@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Decrypt large secret
+        run: ./.github/scripts/decrypt.sh
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.DECRYPTION_KEY }}
       - run: npm ci && npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

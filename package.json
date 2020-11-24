@@ -14,7 +14,6 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.1",
     "redux": "^4.0.5",
-    "redux-devtools-extension": "^2.13.8",
     "web-vitals": "^0.2.4"
   },
   "scripts": {
@@ -40,5 +39,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "redux-devtools-extension": "^2.13.8"
   }
 }
