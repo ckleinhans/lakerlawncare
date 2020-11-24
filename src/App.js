@@ -1,16 +1,15 @@
-import logo from './logo.svg';
+import { Route, Switch } from 'react-router-dom';
 import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-      </header>
-    </div>
+    <Switch>
+      <Route exact path="/">
+        <div>
+          You have reached the homepage. It is currently under construction.
+        </div>
+      </Route>
+    </Switch>
   );
 }
 
