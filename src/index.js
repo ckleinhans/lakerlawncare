@@ -13,7 +13,16 @@ import {
 
 import { composeWithDevTools } from 'redux-devtools-extension';
 
-const firebaseConfig = require('./firebaseConfig.json');
+const firebaseConfig = {
+  apiKey: "AIzaSyCIJc2GQ4w78fWnNgfS2qXygNa4J2yrOMw",
+  authDomain: "lakerlawncare-portal.firebaseapp.com",
+  databaseURL: "https://lakerlawncare-portal.firebaseio.com",
+  projectId: "lakerlawncare-portal",
+  storageBucket: "lakerlawncare-portal.appspot.com",
+  messagingSenderId: "871507676040",
+  appId: "1:871507676040:web:912e51d8308abb513b883d",
+  measurementId: "G-3VWM5B25NE"
+};
 
 firebase.initializeApp(firebaseConfig);
 
