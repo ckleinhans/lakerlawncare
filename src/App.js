@@ -1,16 +1,37 @@
+import React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import './App.css';
+import { connect } from 'react-redux';
+import { isLoaded } from 'react-redux-firebase';
 
-function App() {
+import PageHome from './PageHome';
+import PageLogin from './PageLogin';
+import PageRegister from './PageRegister';
+
+function App(props) {
+  if (!isLoaded(props.auth, props.profile)) {
+    return <div>Authentication loading...</div>
+  }
+
   return (
     <Switch>
       <Route exact path="/">
-        <div>
-          You have reached the homepage. It is currently under construction.
-        </div>
+        <PageHome />
+      </Route>
+      <Route exact path="/login">
+        <PageLogin />
+      </Route>
+      <Route exact path="/register">
+        <PageRegister />
+      </Route>
+      <Route>
+        <div>Page not found</div>
       </Route>
     </Switch>
   );
 }
 
-export default App;
+const mapStateToProps = state => {
+  return {auth: state.firebase.auth, profile: state.firebase.profile};
+}
+
+export default connect(mapStateToProps)(App);
