@@ -6,6 +6,8 @@ import { isLoaded } from 'react-redux-firebase';
 import PageHome from './PageHome';
 import PageLogin from './PageLogin';
 import PageRegister from './PageRegister';
+import PageRecover from './PageRecover';
+import PageDashboard from './PageDashboard';
 
 function App(props) {
   if (!isLoaded(props.auth, props.profile)) {
@@ -22,6 +24,12 @@ function App(props) {
       </Route>
       <Route exact path="/register">
         <PageRegister />
+      </Route>
+      <Route exact path="/recover">
+        <PageRecover />
+      </Route>
+      <Route exact path="/dashboard">
+        <PageDashboard />
       </Route>
       <Route>
         <div>Page not found</div>

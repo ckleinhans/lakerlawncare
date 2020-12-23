@@ -6770,6 +6770,9 @@ button.close {
 }
 .form-signin img {
   width: 200px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 .form-signin .form-signin-heading,
 .form-signin .checkbox {
@@ -6799,5 +6802,8 @@ button.close {
   margin-bottom: 10px;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+}
+.form-signin button {
+  margin-top: 10px;
 }
 /*# sourceMappingURL=bootstrap.css.map */

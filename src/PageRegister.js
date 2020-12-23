@@ -59,7 +59,7 @@ class PageRegister extends React.Component {
           <input name="password" className="form-control" type="password" onChange={this.handleInputChange} placeholder="Password" value={this.state.password}/>
           <button className="btn btn-lg btn-primary btn-block" disabled={!/^[a-zA-Z ]+$/.test(this.state.displayName.trim()) || !/^([0-9]{10})$/.test(this.state.phoneNumber)} onClick={this.register}>Register</button>
           <hr/>
-          <Link to="/login">Already have an account? Login</Link>
+          <Link to="/login">Already have an account? Login here</Link>
         </div>
       </div>
     );

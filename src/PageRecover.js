@@ -5,12 +5,12 @@ import {compose} from 'redux';
 import {Link, Redirect} from 'react-router-dom';
 import logo from './graphic.png';
 
-class PageLogin extends React.Component {
+class PageRecover extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       email: '',
-      password: '',
+      emailSent: false,
     }
   }
 
@@ -18,13 +18,10 @@ class PageLogin extends React.Component {
     this.setState({[event.target.name]: event.target.value, error: ''});
   }
 
-  login = async () => {
-    const credentials = {
-      email: this.state.email,
-      password: this.state.password,
-    }
+  sendRecoveryEmail = async () => {
     try {
-      await this.props.firebase.login(credentials);
+      await this.props.firebase.auth().sendPasswordResetEmail(this.state.email, {url: 'http://lakerlawncare-portal.web.app/login'}); // TODO change
+      this.setState({emailSent: true});
     } catch (error) {
       this.setState({error: error.message});
     }
@@ -37,19 +34,27 @@ class PageLogin extends React.Component {
 
     const errorBar = this.state.error ? <div class="alert alert-danger" role="alert">{this.state.error}</div> : null;
 
+    const formContent = this.state.emailSent ? (
+      <div>
+        Recovery email successfully sent. Check your inbox for a link to reset your password.
+      </div>
+    ) : (
+      <div>
+        <input name="email" type="email" className="form-control" onChange={this.handleInputChange} placeholder="Email address" value={this.state.email}/>
+        <button className="btn btn-lg btn-primary btn-block" onClick={this.sendRecoveryEmail}>Send Reset Email</button>
+      </div>
+    );
+    
+
     return (
       <div className="container" id="signin-container">
         <div className="form-signin">
           <img src={logo} alt=""/>
-          <h2 className="form-signin-heading">Sign in</h2>
+          <h2 className="form-signin-heading">Recover Account</h2>
           {errorBar}
-          <input name="email" type="email" className="form-control" onChange={this.handleInputChange} placeholder="Email address" value={this.state.email}/>
-          <input name="password" type="password" className="form-control" onChange={this.handleInputChange} placeholder="Password" value={this.state.password}/>
-          <button className="btn btn-lg btn-primary btn-block" onClick={this.login}>Login</button>
+          {formContent}
           <hr/>
-          <Link to="/register">Don't have an account? Register here</Link>
-          <br/><br/>
-          <Link to="/recover">Forgot password? Recover your account</Link>
+          <Link to="/login">Back to Login</Link>
         </div>
       </div>
     );
@@ -63,4 +68,4 @@ const mapStateToProps = state => {
 export default compose(
   firebaseConnect(),
   connect(mapStateToProps),
-)(PageLogin);
+)(PageRecover);
