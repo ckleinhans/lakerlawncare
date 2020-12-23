@@ -3,6 +3,7 @@ import {firebaseConnect} from 'react-redux-firebase';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {Link, Redirect} from 'react-router-dom';
+import Button from 'react-bootstrap/Button';
 import logo from './graphic.png';
 
 class PageRegister extends React.Component {
@@ -17,7 +18,13 @@ class PageRegister extends React.Component {
   }
 
   handleInputChange = event => {
-    this.setState({[event.target.name]: event.target.value, error: ''});
+    let value;
+    if (event.target.name === 'phoneNumber') {
+      value = event.target.value.replace(/[^0-9]/g, '');
+    } else {
+     value = event.target.value
+    }
+    this.setState({[event.target.name]: value, error: ''});
   }
 
   register = async () => {
@@ -31,6 +38,7 @@ class PageRegister extends React.Component {
       email: this.state.email,
       displayName: this.state.displayName,
       phoneNumber: this.state.phoneNumber,
+      assignedAppts: [],
     }
 
     try {
@@ -42,7 +50,7 @@ class PageRegister extends React.Component {
 
   render() {
     if (this.props.isLoggedIn) {
-      return <Redirect to="/dashboard"/>
+      return <Redirect to="/"/>
     }
 
     const errorBar = this.state.error ? <div class="alert alert-danger" role="alert">{this.state.error}</div> : null;
@@ -57,7 +65,7 @@ class PageRegister extends React.Component {
           <input name="phoneNumber" className="form-control" onChange={this.handleInputChange} placeholder="Phone number" value={this.state.phoneNumber}/>
           <input name="email" className="form-control" onChange={this.handleInputChange} placeholder="Email address" value={this.state.email}/>
           <input name="password" className="form-control" type="password" onChange={this.handleInputChange} placeholder="Password" value={this.state.password}/>
-          <button className="btn btn-lg btn-primary btn-block" disabled={!/^[a-zA-Z ]+$/.test(this.state.displayName.trim()) || !/^([0-9]{10})$/.test(this.state.phoneNumber)} onClick={this.register}>Register</button>
+          <Button variant="primary" size="lg" block disabled={!/^[a-zA-Z ]+$/.test(this.state.displayName.trim()) || !/^([0-9]{10})$/.test(this.state.phoneNumber)} onClick={this.register}>Register</Button>
           <hr/>
           <Link to="/login">Already have an account? Login here</Link>
         </div>

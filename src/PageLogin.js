@@ -3,6 +3,7 @@ import {firebaseConnect} from 'react-redux-firebase';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {Link, Redirect} from 'react-router-dom';
+import Button from 'react-bootstrap/Button';
 import logo from './graphic.png';
 
 class PageLogin extends React.Component {
@@ -32,7 +33,7 @@ class PageLogin extends React.Component {
 
   render() {
     if (this.props.isLoggedIn) {
-      return <Redirect to="/dashboard"/>
+      return <Redirect to="/"/>
     }
 
     const errorBar = this.state.error ? <div class="alert alert-danger" role="alert">{this.state.error}</div> : null;
@@ -45,11 +46,11 @@ class PageLogin extends React.Component {
           {errorBar}
           <input name="email" type="email" className="form-control" onChange={this.handleInputChange} placeholder="Email address" value={this.state.email}/>
           <input name="password" type="password" className="form-control" onChange={this.handleInputChange} placeholder="Password" value={this.state.password}/>
-          <button className="btn btn-lg btn-primary btn-block" onClick={this.login}>Login</button>
+          <Button variant="primary" size="lg" block onClick={this.login}>Login</Button>
           <hr/>
           <Link to="/register">Don't have an account? Register here</Link>
-          <br/><br/>
-          <Link to="/recover">Forgot password? Recover your account</Link>
+          <div className="spacer"></div>
+          <Link to="/recover">Forgot password? Recover account</Link>
         </div>
       </div>
     );

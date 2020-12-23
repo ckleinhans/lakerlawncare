@@ -49,3 +49,19 @@
 .form-signin button {
   margin-top: 10px;
 }
+.form-signin .spacer {
+  margin-top: 5px;
+}
+.navbar .spacer {
+  vertical-align: middle;
+}
+.navbar-brand img {
+  margin-right: 7px;
+}
+.navbar-body {
+  padding-top: 66px;
+  padding-bottom: 0px;
+}
+.navbar-body .spacer {
+  margin-top: 20px;
+}

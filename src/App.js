@@ -1,13 +1,13 @@
 import React from 'react';
-import { Route, Switch } from 'react-router-dom';
+import { Redirect, Route, Switch } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { isLoaded } from 'react-redux-firebase';
 
-import PageHome from './PageHome';
+import './App.css';
 import PageLogin from './PageLogin';
 import PageRegister from './PageRegister';
 import PageRecover from './PageRecover';
-import PageDashboard from './PageDashboard';
+import NavPageMaster from './NavPageMaster';
 
 function App(props) {
   if (!isLoaded(props.auth, props.profile)) {
@@ -17,7 +17,7 @@ function App(props) {
   return (
     <Switch>
       <Route exact path="/">
-        <PageHome />
+        {props.auth.uid ? <Redirect to="/dash"/> : <Redirect to="/login"/>}
       </Route>
       <Route exact path="/login">
         <PageLogin />
@@ -28,8 +28,8 @@ function App(props) {
       <Route exact path="/recover">
         <PageRecover />
       </Route>
-      <Route exact path="/dashboard">
-        <PageDashboard />
+      <Route exact path="/dash">
+        <NavPageMaster />
       </Route>
       <Route>
         <div>Page not found</div>
