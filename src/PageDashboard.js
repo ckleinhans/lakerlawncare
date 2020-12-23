@@ -3,7 +3,6 @@ import {firebaseConnect} from 'react-redux-firebase';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {Redirect, withRouter} from 'react-router-dom';
-import logo from './graphic.png';
 
 class PageDashboard extends React.Component {
   constructor(props) {
