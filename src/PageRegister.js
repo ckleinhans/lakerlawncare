@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {Link, Redirect} from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
 import logo from './graphic.png';
 
 class PageRegister extends React.Component {
@@ -18,20 +19,24 @@ class PageRegister extends React.Component {
   }
 
   handleInputChange = event => {
-    let value;
-    if (event.target.name === 'phoneNumber') {
-      value = event.target.value.replace(/[^0-9]/g, '');
-    } else {
-     value = event.target.value
-    }
-    this.setState({[event.target.name]: value, error: ''});
+    this.setState({[event.target.name]: event.target.value, error: ''});
   }
 
-  register = async () => {
+  register = async (event) => {
+    event.preventDefault();
+    if (!/^[a-zA-Z ]+$/.test(this.state.displayName.trim())) {
+      event.stopPropagation();
+      this.setState({error: 'Name must only contain spaces and letters.'})
+      return;
+    }
+    if (!/^([0-9]{10})$/.test(this.state.phoneNumber)) {
+      event.stopPropagation();
+      this.setState({error: 'Phone number must only contain numbers.'})
+      return;
+    }
     const credentials = {
       email: this.state.email,
       password: this.state.password,
-      displayName: this.state.displayName,
     }
 
     const profile = {
@@ -50,25 +55,25 @@ class PageRegister extends React.Component {
 
   render() {
     if (this.props.isLoggedIn) {
-      return <Redirect to="/"/>
+      return <Redirect to="/dashboard"/>
     }
 
     const errorBar = this.state.error ? <div class="alert alert-danger" role="alert">{this.state.error}</div> : null;
 
     return (
       <div className="container" id="signin-container">
-        <div className="form-signin">
+        <Form noValidate className="form-signin" onSubmit={this.register}>
           <img src={logo} alt=""/>
           <h2 className="form-signin-heading">Create Account</h2>
           {errorBar}
-          <input name="displayName" className="form-control" onChange={this.handleInputChange} placeholder="Full Name" value={this.state.displayName}/>
-          <input name="phoneNumber" className="form-control" onChange={this.handleInputChange} placeholder="Phone number" value={this.state.phoneNumber}/>
-          <input name="email" className="form-control" onChange={this.handleInputChange} placeholder="Email address" value={this.state.email}/>
-          <input name="password" className="form-control" type="password" onChange={this.handleInputChange} placeholder="Password" value={this.state.password}/>
-          <Button variant="primary" size="lg" block disabled={!/^[a-zA-Z ]+$/.test(this.state.displayName.trim()) || !/^([0-9]{10})$/.test(this.state.phoneNumber)} onClick={this.register}>Register</Button>
+          <Form.Control name="displayName" onChange={this.handleInputChange} placeholder="Full Name" value={this.state.displayName}/>
+          <Form.Control name="phoneNumber" onChange={this.handleInputChange} placeholder="Phone number" value={this.state.phoneNumber}/>
+          <Form.Control name="email" onChange={this.handleInputChange} placeholder="Email address" value={this.state.email}/>
+          <Form.Control name="password" type="password" onChange={this.handleInputChange} placeholder="Password" value={this.state.password}/>
+          <Button variant="primary" size="lg" block type="submit">Register</Button>
           <hr/>
           <Link to="/login">Already have an account? Login here</Link>
-        </div>
+        </Form>
       </div>
     );
   }

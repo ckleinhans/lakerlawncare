@@ -3,7 +3,9 @@ import {firebaseConnect} from 'react-redux-firebase';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {Link, Redirect} from 'react-router-dom';
+import Form from 'react-bootstrap/Form';
 import logo from './graphic.png';
+import Button from 'react-bootstrap/Button';
 
 class PageRecover extends React.Component {
   constructor(props) {
@@ -18,7 +20,8 @@ class PageRecover extends React.Component {
     this.setState({[event.target.name]: event.target.value, error: ''});
   }
 
-  sendRecoveryEmail = async () => {
+  sendRecoveryEmail = async (event) => {
+    event.preventDefault();
     try {
       await this.props.firebase.auth().sendPasswordResetEmail(this.state.email, {url: 'http://lakerlawncare-portal.web.app/login'}); // TODO change
       this.setState({emailSent: true});
@@ -29,7 +32,7 @@ class PageRecover extends React.Component {
 
   render() {
     if (this.props.isLoggedIn) {
-      return <Redirect to="/"/>
+      return <Redirect to="/dashboard"/>
     }
 
     const errorBar = this.state.error ? <div class="alert alert-danger" role="alert">{this.state.error}</div> : null;
@@ -39,10 +42,10 @@ class PageRecover extends React.Component {
         Recovery email successfully sent. Check your inbox for a link to reset your password.
       </div>
     ) : (
-      <div>
-        <input name="email" type="email" className="form-control" onChange={this.handleInputChange} placeholder="Email address" value={this.state.email}/>
-        <button className="btn btn-lg btn-primary btn-block" onClick={this.sendRecoveryEmail}>Send Reset Email</button>
-      </div>
+      <Form onSubmit={this.sendRecoveryEmail}>
+        <Form.Control name="email" type="email" onChange={this.handleInputChange} placeholder="Email address" value={this.state.email}/>
+        <Button variant="primary" size="lg" block type="submit">Send Reset Email</Button>
+      </Form>
     );
     
 

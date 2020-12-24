@@ -17,7 +17,7 @@ function App(props) {
   return (
     <Switch>
       <Route exact path="/">
-        {props.auth.uid ? <Redirect to="/dash"/> : <Redirect to="/login"/>}
+        {props.auth.uid ? <Redirect to="/dashboard"/> : <Redirect to="/login"/>}
       </Route>
       <Route exact path="/login">
         <PageLogin />
@@ -28,7 +28,7 @@ function App(props) {
       <Route exact path="/recover">
         <PageRecover />
       </Route>
-      <Route exact path="/dash">
+      <Route exact path="/dashboard">
         <NavPageMaster />
       </Route>
       <Route>
