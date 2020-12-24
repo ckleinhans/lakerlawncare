@@ -8,10 +8,11 @@ import PageLogin from './PageLogin';
 import PageRegister from './PageRegister';
 import PageRecover from './PageRecover';
 import NavPageMaster from './NavPageMaster';
+import PageLoadAuth from './PageLoadAuth';
 
 function App(props) {
   if (!isLoaded(props.auth, props.profile)) {
-    return <div>Authentication loading...</div>
+    return <PageLoadAuth />
   }
 
   return (

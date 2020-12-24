@@ -18,6 +18,7 @@ class PageAvailable extends React.Component {
         <div className="spacer"/>
         <div className="container">
           <h2>Available Appointments</h2>
+          Under construction...
         </div>
       </div>
     );
@@ -25,10 +26,7 @@ class PageAvailable extends React.Component {
 };
 
 const mapStateToProps = (state, props) => {
-  return({
-    email: state.firebase.auth.email,
-    isLoggedIn: state.firebase.auth.uid,
-  });
+  return({});
 }
 
 export default compose(

@@ -16,7 +16,7 @@ class PageDash extends React.Component {
         <div className="spacer"/>
         <div className="container">
           <h2>My Appointments</h2>
-          Under construction
+          Under construction...
         </div>
       </div>
     );
@@ -24,9 +24,7 @@ class PageDash extends React.Component {
 };
 
 const mapStateToProps = (state, props) => {
-  return({
-    isLoggedIn: state.firebase.auth.uid,
-  });
+  return({});
 }
 
 export default compose(

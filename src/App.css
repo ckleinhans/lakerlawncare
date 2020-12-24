@@ -16,6 +16,7 @@
   display: block;
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 10px;
 }
 .form-signin .form-signin-heading,
 .form-signin .checkbox {
@@ -52,6 +53,21 @@
 .form-signin .spacer {
   margin-top: 5px;
 }
+#auth-load {
+  margin-top: 40px;
+  text-align: center;
+}
+.form-signin .spinner-border {
+  margin-top: 50px;
+  margin-bottom: 30px;
+  width: 50px;
+  height: 50px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+
 .navbar .spacer {
   vertical-align: middle;
 }
@@ -65,3 +81,34 @@
 .navbar-body .spacer {
   margin-top: 20px;
 }
+
+ .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        min-height: 100vh !important;
+        padding-top: 70px;
+        padding-bottom: 0px;
+        padding-left: 5px;
+        padding-right: 5px;
+        box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    }
+    #sidebar-wrapper{
+        min-height: 100vh !important;
+        margin-left: -1rem;
+        max-width: 188px;
+        -webkit-transition: margin .25s ease-out;
+        -moz-transition: margin .25s ease-out;
+        -o-transition: margin .25s ease-out;
+        transition: margin .25s ease-out;
+    }
+    #sidebar-wrapper .sidebar-heading {
+        padding: 0.875rem 1.25rem;
+        font-size: 1.2rem;
+    }
+    
+    #page-content-wrapper {
+        min-width: 0;
+        width: 100%;
+    }
