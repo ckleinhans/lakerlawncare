@@ -3,6 +3,7 @@ import {firebaseConnect} from 'react-redux-firebase';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {withRouter} from 'react-router-dom';
+import construction from './under-construction.gif';
 
 class PageAvailable extends React.Component {
   constructor(props) {
@@ -14,11 +15,11 @@ class PageAvailable extends React.Component {
 
   render() {
     return (
-      <div>
-        <div className="spacer"/>
+      <div className="navbar-page">
         <div className="container">
           <h2>Available Appointments</h2>
-          Under construction...
+          Under construction...<br/>
+          <img src={construction} alt="" />
         </div>
       </div>
     );

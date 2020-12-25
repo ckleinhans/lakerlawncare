@@ -2,6 +2,7 @@ import React from 'react';
 import {firebaseConnect} from 'react-redux-firebase';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
+import construction from './under-construction.gif';
 
 class PageDash extends React.Component {
   constructor(props) {
@@ -12,11 +13,11 @@ class PageDash extends React.Component {
 
   render() {
     return (
-      <div>
-        <div className="spacer"/>
+      <div className="navbar-page">
         <div className="container">
           <h2>My Appointments</h2>
-          Under construction...
+          Under construction...<br/>
+          <img src={construction} alt="" />
         </div>
       </div>
     );

@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import firebase from "firebase/app";
 import 'firebase/database';
 import 'firebase/auth';
+import 'firebase/functions';
 
 import { Provider } from 'react-redux';
 import { createStore, combineReducers } from 'redux';
@@ -24,6 +25,7 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+firebase.functions().useEmulator('localhost', 5001); // Comment out before deploy
 
 const rootReducer = combineReducers({
   firebase: firebaseReducer

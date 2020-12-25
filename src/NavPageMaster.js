@@ -55,7 +55,7 @@ class NavPageMaster extends React.Component {
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
-            <Nav onSelect={this.navUpdate} defaultActiveKey="dash" className="mr-auto">
+            <Nav onSelect={this.navUpdate} activeKey={this.state.navState} className="mr-auto">
               <Nav.Link eventKey="dash">Dashboard</Nav.Link>
               <Nav.Link eventKey="available">Appointments</Nav.Link>
               <Nav.Link eventKey="profile">Profile</Nav.Link>
@@ -66,9 +66,7 @@ class NavPageMaster extends React.Component {
             </Nav>
           </Navbar.Collapse>
         </Navbar>
-        <div className="navbar-body">
-          {contentSwitch}
-        </div>
+        {contentSwitch}
       </div>
     );
   }

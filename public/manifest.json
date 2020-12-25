@@ -1,5 +1,5 @@
 {
-  "short_name": "Laker Lawn Portal",
+  "short_name": "LLC Portal",
   "name": "Laker Lawn Care Management Portal",
   "icons": [
     {
@@ -20,6 +20,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff"
+  "theme_color": "#572B7A",
+  "background_color": "#FFFFFF"
 }

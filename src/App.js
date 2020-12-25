@@ -9,6 +9,7 @@ import PageRegister from './PageRegister';
 import PageRecover from './PageRecover';
 import NavPageMaster from './NavPageMaster';
 import PageLoadAuth from './PageLoadAuth';
+import PageNotFound from './PageNotFound';
 
 function App(props) {
   if (!isLoaded(props.auth, props.profile)) {
@@ -33,7 +34,7 @@ function App(props) {
         <NavPageMaster />
       </Route>
       <Route>
-        <div>Page not found</div>
+        <PageNotFound />
       </Route>
     </Switch>
   );
