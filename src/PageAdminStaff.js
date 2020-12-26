@@ -13,6 +13,7 @@ class PageAdminStaff extends React.Component {
     this.state = {
       loading: false,
       adminKeyLoading: '',
+      apptUsersKeyLoading: '',
     }
   }
 
@@ -38,9 +39,31 @@ class PageAdminStaff extends React.Component {
     }
   }
 
+  setApptUser = async (uid) => {
+    this.setState({ loading: true, apptUsersKeyLoading: uid });
+    const addAdminRole = this.props.firebase.functions().httpsCallable('addAppointmentsRole');
+    try {
+      const result = await addAdminRole({ uid: uid });
+      this.setState({ result: result.data.message, loading: false, apptUsersKeyLoading: '', error: result.data.error });
+    } catch (error) {
+      this.setState({ result: error.message, loading: false, apptUsersKeyLoading: '', error: true });
+    }
+  }
+
+  removeApptUser = async (uid) => {
+    this.setState({ loading: true, apptUsersKeyLoading: uid });
+    const removeAdminRole = this.props.firebase.functions().httpsCallable('removeAppointmentsRole');
+    try {
+      const result = await removeAdminRole({ uid: uid });
+      this.setState({ result: result.data.message, loading: false, apptUsersKeyLoading: '', error: result.data.error });
+    } catch (error) {
+      this.setState({ result: error.message, loading: false, apptUsersKeyLoading: '', error: true });
+    }
+  }
+
   render() {
     let table;
-    if (!isLoaded(this.props.users, this.props.admins)) {
+    if (!isLoaded(this.props.users, this.props.admins, this.props.appointmentUsers)) {
       table = <div>Loading staff...</div>
     } else if (isEmpty(this.props.users)) {
       table = <div>No registered staff found.</div>
@@ -65,9 +88,23 @@ class PageAdminStaff extends React.Component {
             </Button>
           );
 
+        const apptUserButton = this.props.appointmentUsers.includes(key) ? (
+          <Button onClick={() => this.removeApptUser(key)} disabled={this.state.loading} variant="danger">
+            {this.state.apptUsersKeyLoading === key ? (
+              <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+            ) : (<span>Remove</span>)}
+          </Button>
+        ) : (
+            <Button onClick={() => this.setApptUser(key)} disabled={this.state.loading} variant="success">
+              {this.state.apptUsersKeyLoading === key ? (
+                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+              ) : (<span>Add</span>)}
+            </Button>
+          );
+
         return (
           <tr key={key}>
-            <td>{name}</td><td>{email}</td><td>{phoneNumber}</td><td>{adminButton}</td>
+            <td>{name}</td><td>{email}</td><td>{phoneNumber}</td><td>{apptUserButton}</td><td>{adminButton}</td>
           </tr>
         )
       });
@@ -79,6 +116,7 @@ class PageAdminStaff extends React.Component {
               <th>Name</th>
               <th>Email</th>
               <th>Phone #</th>
+              <th>Take Appts?</th>
               <th>Admin</th>
             </tr>
           </thead>
@@ -94,16 +132,18 @@ class PageAdminStaff extends React.Component {
         {this.state.result}
       </Alert>
     ) : (
-      <Alert variant="success">
-        {this.state.result}
-      </Alert>
-    )) : null;
+        <Alert variant="success">
+          {this.state.result}
+        </Alert>
+      )) : null;
 
     return (
-      <div>
-        <h2>Staff List</h2>
-        {messageBox}
-        {table}
+      <div className="navbar-page">
+        <div className="container">
+          <h2>Staff List</h2>
+          {messageBox}
+          {table}
+        </div>
       </div>
     );
   };
@@ -113,12 +153,15 @@ const mapStateToProps = (state, props) => {
   return ({
     users: state.firebase.data['users'],
     admins: state.firebase.data['admins'],
+    appointmentUsers: state.firebase.data['appointmentUsers'],
   });
 };
 
 export default compose(
   firebaseConnect(props => {
-    return [{ path: '/users', storeAs: 'users' }, { path: '/admins', storeAs: 'admins' }];
+    return [{ path: '/users', storeAs: 'users' },
+    { path: '/admins', storeAs: 'admins' },
+    { path: '/appointmentUsers', storeAs: 'appointmentUsers' }];
   }),
   connect(mapStateToProps)
 )(PageAdminStaff);

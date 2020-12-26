@@ -1,4 +1,4 @@
-/* Additional CSS tags for signin page from Bootstrap Examples */
+/* Additional CSS tags for signin pages based off of Bootstrap Examples */
 #signin-container {
   padding-top: 40px;
   padding-bottom: 40px;
@@ -67,11 +67,13 @@
   display: block;
 }
 
+/* Additional custom style for page not found page */
 #page-not-found {
   width: 100px;
   margin-bottom: 40px;
 }
 
+/* Custom navbar and page styling */
 .navbar .spacer {
   vertical-align: middle;
 }
@@ -82,41 +84,5 @@
 .navbar-page {
   padding-top: 86px;
   padding-bottom: 30px;
-  margin-right: 0px;
-}
-
-.sidebar {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  min-height: 100vh !important;
-  padding-top: 70px;
-  padding-bottom: 0px;
-  padding-left: 5px;
-  padding-right: 5px;
-  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-}
-#sidebar-wrapper{
-  min-height: 100vh !important;
-  margin-left: -1rem;
-  max-width: 192px;
-  -webkit-transition: margin .25s ease-out;
-  -moz-transition: margin .25s ease-out;
-  -o-transition: margin .25s ease-out;
-  transition: margin .25s ease-out;
-}
-#sidebar-wrapper .sidebar-heading {
-  font-size: 1.2rem;
-}
-
-#page-content-wrapper {
-  padding-top: 86px;
-  min-width: 0;
-  width: 100%;
-}
-
-#admin-page-row {
-  margin-left: 0px;
   margin-right: 0px;
 }

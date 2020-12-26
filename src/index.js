@@ -25,7 +25,7 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-firebase.functions().useEmulator('localhost', 5001); // Comment out before deploy
+// firebase.functions().useEmulator('localhost', 5001); // Comment out before deploy
 
 const rootReducer = combineReducers({
   firebase: firebaseReducer

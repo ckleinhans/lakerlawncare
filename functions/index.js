@@ -12,12 +12,16 @@ exports.addAdminRole = functions.https.onCall(async (data, context) => {
     if (caller.customClaims && caller.customClaims.admin === true) {
       // get user
       const user = await admin.auth().getUser(data.uid);
+      // get user's custom claims or create empty object if none
+      const claims = user.customClaims ? user.customClaims : {};
+      // set admin custom claim to true
+      claims.admin = true;
       // get admin list in database
       const admins = await (await admin.database().ref('/admins/').get()).val();
       // add new uid to list
       admins.push(user.uid);
-      // set admin user claim
-      await admin.auth().setCustomUserClaims(user.uid, { admin: true });
+      // push updated user claims
+      await admin.auth().setCustomUserClaims(user.uid, claims);
       // update admins array in database
       await admin.database().ref('/admins/').set(admins);
       // return success message
@@ -42,12 +46,16 @@ exports.removeAdminRole = functions.https.onCall(async (data, context) => {
       if (user.email === 'calexk@live.com') {
         return { error: true, message: `Cannot remove admin permissions from ${user.email}`};
       }
+      // get user's custom claims or create empty object if none
+      const claims = user.customClaims ? user.customClaims : {};
+      // set admin custom claim to true
+      claims.admin = false;
       // get admin list in database
       const admins = await (await admin.database().ref('/admins/').get()).val();
       // add new uid to list
       admins.splice(admins.indexOf(user.uid), 1);
       // set admin user claim
-      await admin.auth().setCustomUserClaims(user.uid, { admin: false });
+      await admin.auth().setCustomUserClaims(user.uid, claims);
       // update admins array in database
       await admin.database().ref('/admins/').set(admins);
       // return success message
@@ -55,6 +63,69 @@ exports.removeAdminRole = functions.https.onCall(async (data, context) => {
     } else {
       // return insufficient permission message
       return { error: true, message: 'Error: You must be an admin to remove other admins.' }
+    }
+  } catch (error) {
+    return error;
+  }
+});
+
+exports.addAppointmentsRole = functions.https.onCall(async (data, context) => {
+  try {
+    // check calling user is admin
+    const caller = await admin.auth().getUser(context.auth.uid);
+    if (caller.customClaims && caller.customClaims.admin === true) {
+      // get user
+      const user = await admin.auth().getUser(data.uid);
+      // get user's custom claims or create empty object if none
+      const claims = user.customClaims ? user.customClaims : {};
+      // set admin custom claim to true
+      claims.appointments = true;
+      // get admin list in database
+      const appointmentUsers = await (await admin.database().ref('/appointmentUsers/').get()).val();
+      // add new uid to list
+      appointmentUsers.push(user.uid);
+      // push updated user claims
+      await admin.auth().setCustomUserClaims(user.uid, claims);
+      // update admins array in database
+      await admin.database().ref('/appointmentUsers/').set(appointmentUsers);
+      // return success message
+      return { error: false, message: `Successfully gave ${user.email} appointment privileges.` };
+    } else {
+      // return insufficient permission message
+      return { error: true, message: 'Error: You must be an admin to give other users appointment privileges.' }
+    }
+  } catch (error) {
+    return error;
+  }
+});
+
+exports.removeAppointmentsRole = functions.https.onCall(async (data, context) => {
+  try {
+    // check calling user is admin
+    const caller = await admin.auth().getUser(context.auth.uid);
+    if (caller.customClaims && caller.customClaims.admin === true) {
+      // get admin list in database, if last user, prevent removal
+      const appointmentUsers = await (await admin.database().ref('/appointmentUsers/').get()).val();
+      if (appointmentUsers.length <= 1) {
+        return { error: true, message: 'Error: Cannot remove last user with appointment privileges.' }
+      }
+      // get user
+      const user = await admin.auth().getUser(data.uid);
+      // get user's custom claims or create empty object if none
+      const claims = user.customClaims ? user.customClaims : {};
+      // set admin custom claim to true
+      claims.appointments = false;
+      // add new uid to list
+      appointmentUsers.splice(appointmentUsers.indexOf(user.uid), 1);
+      // set admin user claim
+      await admin.auth().setCustomUserClaims(user.uid, claims);
+      // update admins array in database
+      await admin.database().ref('/appointmentUsers/').set(appointmentUsers);
+      // return success message
+      return { error: false, message: `Successfully removed appointment privileges from ${user.email}.` };
+    } else {
+      // return insufficient permission message
+      return { error: true, message: 'Error: You must be an admin to remove appointment privileges.' }
     }
   } catch (error) {
     return error;
