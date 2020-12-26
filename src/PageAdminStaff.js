@@ -5,6 +5,7 @@ import { compose } from 'redux';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
+import Alert from 'react-bootstrap/esm/Alert';
 
 class PageAdminStaff extends React.Component {
   constructor(props) {
@@ -16,24 +17,24 @@ class PageAdminStaff extends React.Component {
   }
 
   setAdmin = async (uid) => {
-    this.setState({loading: true, adminKeyLoading: uid});
+    this.setState({ loading: true, adminKeyLoading: uid });
     const addAdminRole = this.props.firebase.functions().httpsCallable('addAdminRole');
     try {
-      const result = await addAdminRole({uid: uid});
-      this.setState({result: result.message, loading: false, adminKeyLoading: ''});
+      const result = await addAdminRole({ uid: uid });
+      this.setState({ result: result.data.message, loading: false, adminKeyLoading: '', error: result.data.error });
     } catch (error) {
-      this.setState({result: error.message, loading: false, adminKeyLoading: ''});
+      this.setState({ result: error.message, loading: false, adminKeyLoading: '', error: true });
     }
   }
 
   removeAdmin = async (uid) => {
-    this.setState({loading: true, adminKeyLoading: uid});
+    this.setState({ loading: true, adminKeyLoading: uid });
     const removeAdminRole = this.props.firebase.functions().httpsCallable('removeAdminRole');
     try {
-      const result = await removeAdminRole({uid: uid});
-      this.setState({result: result, loading: false, adminKeyLoading: ''});
+      const result = await removeAdminRole({ uid: uid });
+      this.setState({ result: result.data.message, loading: false, adminKeyLoading: '', error: result.data.error });
     } catch (error) {
-      this.setState({result: error, loading: false, adminKeyLoading: ''});
+      this.setState({ result: error.message, loading: false, adminKeyLoading: '', error: true });
     }
   }
 
@@ -53,17 +54,17 @@ class PageAdminStaff extends React.Component {
         const adminButton = this.props.admins.includes(key) ? (
           <Button onClick={() => this.removeAdmin(key)} disabled={this.state.loading} variant="danger">
             {this.state.adminKeyLoading === key ? (
-              <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/>
+              <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
             ) : (<span>Remove</span>)}
           </Button>
         ) : (
             <Button onClick={() => this.setAdmin(key)} disabled={this.state.loading} variant="success">
               {this.state.adminKeyLoading === key ? (
-              <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/>
-            ) : (<span>Add</span>)}
+                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+              ) : (<span>Add</span>)}
             </Button>
           );
-        
+
         return (
           <tr key={key}>
             <td>{name}</td><td>{email}</td><td>{phoneNumber}</td><td>{adminButton}</td>
@@ -86,11 +87,22 @@ class PageAdminStaff extends React.Component {
           </tbody>
         </Table>
       );
-    }
+    };
+
+    const messageBox = this.state.result ? (this.state.error ? (
+      <Alert variant="danger">
+        {this.state.result}
+      </Alert>
+    ) : (
+      <Alert variant="success">
+        {this.state.result}
+      </Alert>
+    )) : null;
 
     return (
       <div>
         <h2>Staff List</h2>
+        {messageBox}
         {table}
       </div>
     );

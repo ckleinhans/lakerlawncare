@@ -21,10 +21,10 @@ exports.addAdminRole = functions.https.onCall(async (data, context) => {
       // update admins array in database
       await admin.database().ref('/admins/').set(admins);
       // return success message
-      return { message: `Successfully gave ${user.email} admin privileges.` };
+      return { error: false, message: `Successfully gave ${user.email} admin privileges.` };
     } else {
       // return insufficient permission message
-      return { message: 'Error: You must be an admin to make other users admins.' }
+      return { error: true, message: 'Error: You must be an admin to make other users admins.' }
     }
   } catch (error) {
     return error;
@@ -40,7 +40,7 @@ exports.removeAdminRole = functions.https.onCall(async (data, context) => {
       const user = await admin.auth().getUser(data.uid);
       // if user is Caelan, prevent removing admin
       if (user.email === 'calexk@live.com') {
-        return { message: `Cannot remove admin permissions from ${user.email}`};
+        return { error: true, message: `Cannot remove admin permissions from ${user.email}`};
       }
       // get admin list in database
       const admins = await (await admin.database().ref('/admins/').get()).val();
@@ -51,10 +51,10 @@ exports.removeAdminRole = functions.https.onCall(async (data, context) => {
       // update admins array in database
       await admin.database().ref('/admins/').set(admins);
       // return success message
-      return { message: `Successfully removed admin privileges from ${user.email}.` };
+      return { error: false, message: `Successfully removed admin privileges from ${user.email}.` };
     } else {
       // return insufficient permission message
-      return { message: 'Error: You must be an admin to remove other admins.' }
+      return { error: true, message: 'Error: You must be an admin to remove other admins.' }
     }
   } catch (error) {
     return error;
