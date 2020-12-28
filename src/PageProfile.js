@@ -82,14 +82,14 @@ class PageProfile extends React.Component {
 
     const buttonContent = this.state.loading ? (
       <Button variant="primary" size="md" disabled>
-        <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/>
+        <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
       </Button>
     ) : (
         <Button variant="primary" size="md" type="submit" disabled={disable}>Update Profile</Button>
-    );
+      );
 
     const formContent = this.state.profileUpdated ? (
-        <div>Profile successfully updated.</div>
+      <div>Profile successfully updated.</div>
     ) : (
         <div>
           <Form.Group controlId="oldPassword">
@@ -117,31 +117,29 @@ class PageProfile extends React.Component {
           </Form.Group>
           {buttonContent}
         </div>
-    );
+      );
 
     return (
-        <div className="navbar-page">
-          <div className="container">
-            <h2>My Profile</h2>
+      <div className="navbar-page">
+        <div className="container">
+          <h2>My Profile</h2>
           Name: {this.props.profile.displayName}<br />
           Email address: {this.props.profile.email}<br />
           Phone number: {this.props.profile.phoneNumber}<br />
-            <br />
-            <Form onSubmit={this.updateProfile}>
-              <h4>Update Profile Info</h4>
-              {errorBar}
-              {formContent}
-            </Form>
-          </div>
+          <br />
+          <Form onSubmit={this.updateProfile}>
+            <h4>Update Profile Info</h4>
+            {errorBar}
+            {formContent}
+          </Form>
         </div>
+      </div>
     );
   }
 };
 
 const mapStateToProps = (state, props) => {
-  return({
-          profile: state.firebase.profile,
-  });
+  return ({ profile: state.firebase.profile });
 }
 
 export default compose(

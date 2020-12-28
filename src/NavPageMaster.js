@@ -1,6 +1,5 @@
 import React from 'react';
 import { firebaseConnect } from 'react-redux-firebase';
-import { connect } from 'react-redux';
 import { compose } from 'redux';
 import { Redirect } from 'react-router-dom';
 import Navbar from 'react-bootstrap/Navbar';
@@ -12,6 +11,7 @@ import PageDash from './PageDash';
 import PageAdminStaff from './PageAdminStaff';
 import PageAvailable from './PageAvailable';
 import PageProfile from './PageProfile';
+import PageAdminAppts from './PageAdminAppts';
 
 
 class NavPageMaster extends React.Component {
@@ -53,8 +53,11 @@ class NavPageMaster extends React.Component {
       case 'admin-staff':
         contentSwitch = <PageAdminStaff />;
         break;
+      case 'admin-appts':
+        contentSwitch = <PageAdminAppts />;
+        break;
       default: // "dash"
-        contentSwitch = <PageDash appts={this.state.appts}/>;
+        contentSwitch = <PageDash appts={this.state.appts} />;
         break;
     }
 
@@ -91,13 +94,6 @@ class NavPageMaster extends React.Component {
   }
 };
 
-const mapStateToProps = (state, props) => {
-  return ({
-    isLoggedIn: state.firebase.auth.uid,
-  });
-}
-
 export default compose(
   firebaseConnect(),
-  connect(mapStateToProps)
 )(NavPageMaster);

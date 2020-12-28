@@ -1,5 +1,5 @@
 import React from 'react';
-import { firebaseConnect } from 'react-redux-firebase';
+import { firebaseConnect, populate } from 'react-redux-firebase';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import construction from './under-construction.gif';
@@ -20,12 +20,12 @@ class PageDash extends React.Component {
               Thank you for signing up to work for Laker Lawn Care! Your account has been created and you will be given permission to start viewing and taking appointments soon.
             </>
           ) : (
-            <>
-              <h2>My Appointments</h2>
+              <>
+                <h2>My Appointments</h2>
               Under construction...<br />
-              <img src={construction} alt="" />
-            </>
-          )}
+                <img src={construction} alt="" />
+              </>
+            )}
         </div>
       </div>
     );

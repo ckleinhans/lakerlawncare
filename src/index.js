@@ -25,7 +25,7 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-// firebase.functions().useEmulator('localhost', 5001); // Comment out before deploy
+firebase.functions().useEmulator('localhost', 5001); // Comment out before deploy
 
 const rootReducer = combineReducers({
   firebase: firebaseReducer
@@ -37,9 +37,7 @@ const store = createStore(rootReducer, composeWithDevTools())
 
 // react-redux-firebase config
 const rrfConfig = {
-  userProfile: 'users'
-  // useFirestoreForProfile: true // Firestore for Profile instead of Realtime DB
-  // enableClaims: true // Get custom claims along with the profile
+  userProfile: 'users',
 }
 
 const rrfProps = {

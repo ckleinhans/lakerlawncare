@@ -2,7 +2,6 @@ import React from 'react';
 import {firebaseConnect} from 'react-redux-firebase';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
-import {withRouter} from 'react-router-dom';
 import construction from './under-construction.gif';
 
 class PageAvailable extends React.Component {
@@ -31,7 +30,6 @@ const mapStateToProps = (state, props) => {
 }
 
 export default compose(
-  withRouter,
   firebaseConnect(),
   connect(mapStateToProps)
 )(PageAvailable);

@@ -1,6 +1,5 @@
 import React from 'react';
 import {firebaseConnect} from 'react-redux-firebase';
-import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {Link, Redirect} from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
@@ -43,7 +42,7 @@ class PageRegister extends React.Component {
       email: this.state.email,
       displayName: this.state.displayName,
       phoneNumber: this.state.phoneNumber,
-      assignedAppts: [],
+      appointments: [],
     }
 
     try {
@@ -79,11 +78,6 @@ class PageRegister extends React.Component {
   }
 }
 
-const mapStateToProps = state => {
-  return {isLoggedIn: state.firebase.auth.uid};
-}
-
 export default compose(
   firebaseConnect(),
-  connect(mapStateToProps),
 )(PageRegister);

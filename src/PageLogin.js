@@ -59,11 +59,6 @@ class PageLogin extends React.Component {
   }
 }
 
-const mapStateToProps = state => {
-  return {isLoggedIn: state.firebase.auth.uid};
-}
-
 export default compose(
   firebaseConnect(),
-  connect(mapStateToProps),
 )(PageLogin);

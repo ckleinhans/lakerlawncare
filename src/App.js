@@ -22,16 +22,16 @@ function App(props) {
         {props.auth.uid ? <Redirect to="/dashboard"/> : <Redirect to="/login"/>}
       </Route>
       <Route exact path="/login">
-        <PageLogin />
+        <PageLogin isLoggedIn={props.auth.uid}/>
       </Route>
       <Route exact path="/register">
-        <PageRegister />
+        <PageRegister isLoggedIn={props.auth.uid}/>
       </Route>
       <Route exact path="/recover">
-        <PageRecover />
+        <PageRecover isLoggedIn={props.auth.uid}/>
       </Route>
       <Route exact path="/dashboard">
-        <NavPageMaster />
+        <NavPageMaster isLoggedIn={props.auth.uid}/>
       </Route>
       <Route>
         <PageNotFound />

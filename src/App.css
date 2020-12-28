@@ -86,3 +86,17 @@
   padding-bottom: 30px;
   margin-right: 0px;
 }
+
+/* Styling to make dropdown menu dark*/
+.nav-item .dropdown-menu {
+  background: #212529;
+}
+.nav-item .dropdown-item {
+  color: #ffffff;
+}
+.nav-item .dropdown-item:hover {
+  background: #343a40;
+}
+.dropdown-item.active, .dropdown-item:active {
+  background-color: #563b5a;
+}

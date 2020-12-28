@@ -1,6 +1,5 @@
 import React from 'react';
 import {firebaseConnect} from 'react-redux-firebase';
-import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {Link, Redirect} from 'react-router-dom';
 import Form from 'react-bootstrap/Form';
@@ -64,11 +63,6 @@ class PageRecover extends React.Component {
   }
 }
 
-const mapStateToProps = state => {
-  return {isLoggedIn: state.firebase.auth.uid};
-}
-
 export default compose(
   firebaseConnect(),
-  connect(mapStateToProps),
 )(PageRecover);
