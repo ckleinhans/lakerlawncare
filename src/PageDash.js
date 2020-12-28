@@ -1,5 +1,5 @@
 import React from 'react';
-import { firebaseConnect, populate } from 'react-redux-firebase';
+import { firebaseConnect } from 'react-redux-firebase';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import construction from './under-construction.gif';
