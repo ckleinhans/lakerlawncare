@@ -1,7 +1,7 @@
 import React from 'react';
-import {firebaseConnect} from 'react-redux-firebase';
-import {connect} from 'react-redux';
-import {compose} from 'redux';
+import { firebaseConnect } from 'react-redux-firebase';
+import { connect } from 'react-redux';
+import { compose } from 'redux';
 import construction from './under-construction.gif';
 
 class PageAvailable extends React.Component {
@@ -17,7 +17,7 @@ class PageAvailable extends React.Component {
       <div className="navbar-page">
         <div className="container">
           <h2>Available Appointments</h2>
-          Under construction...<br/>
+          Under construction...<br />
           <img src={construction} alt="" />
         </div>
       </div>
@@ -26,7 +26,7 @@ class PageAvailable extends React.Component {
 };
 
 const mapStateToProps = (state, props) => {
-  return({});
+  return ({});
 }
 
 export default compose(
