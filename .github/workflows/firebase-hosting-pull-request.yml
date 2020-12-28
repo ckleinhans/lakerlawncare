@@ -11,7 +11,7 @@ jobs:
       - shell: bash
         env:
           DECRYPTION_KEY: ${{ secrets.DECRYPTION_KEY }}
-        run: gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPTION_KEY" ./src/FirebaseConfig.js.gpg
+        run: gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPTION_KEY" --output ./src/FirebaseConfig.js ./src/FirebaseConfig.js.gpg
       - run: npm ci && npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
