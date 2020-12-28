@@ -6,6 +6,7 @@ import firebase from "firebase/app";
 import 'firebase/database';
 import 'firebase/auth';
 import 'firebase/functions';
+import { FIREBASE_CONFIG } from './FirebaseConfig';
 
 import { Provider } from 'react-redux';
 import { createStore, combineReducers } from 'redux';
@@ -13,18 +14,7 @@ import { ReactReduxFirebaseProvider, firebaseReducer } from 'react-redux-firebas
 
 import { composeWithDevTools } from 'redux-devtools-extension';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCIJc2GQ4w78fWnNgfS2qXygNa4J2yrOMw",
-  authDomain: "lakerlawncare-portal.firebaseapp.com",
-  databaseURL: "https://lakerlawncare-portal.firebaseio.com",
-  projectId: "lakerlawncare-portal",
-  storageBucket: "lakerlawncare-portal.appspot.com",
-  messagingSenderId: "871507676040",
-  appId: "1:871507676040:web:912e51d8308abb513b883d",
-  measurementId: "G-3VWM5B25NE"
-};
-
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(FIREBASE_CONFIG);
 firebase.functions().useEmulator('localhost', 5001); // Comment out before deploy
 
 const rootReducer = combineReducers({
