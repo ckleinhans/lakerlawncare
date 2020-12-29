@@ -12,6 +12,8 @@ import PageAdminStaff from './PageAdminStaff';
 import PageAvailable from './PageAvailable';
 import PageProfile from './PageProfile';
 import PageAdminAppts from './PageAdminAppts';
+import PageAdminCustomers from './PageAdminCustomers';
+import PageAdminFinances from './PageAdminFinances';
 
 
 class NavPageMaster extends React.Component {
@@ -56,6 +58,12 @@ class NavPageMaster extends React.Component {
       case 'admin-appts':
         contentSwitch = <PageAdminAppts />;
         break;
+      case 'admin-customers':
+        contentSwitch = <PageAdminCustomers />;
+        break;
+        case 'admin-finances':
+          contentSwitch = <PageAdminFinances />;
+          break;
       default: // "dash"
         contentSwitch = <PageDash appts={this.state.appts} />;
         break;
