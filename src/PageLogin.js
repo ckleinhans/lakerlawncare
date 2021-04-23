@@ -1,30 +1,30 @@
-import React from 'react';
-import { firebaseConnect } from 'react-redux-firebase';
-import { compose } from 'redux';
-import { Link, Redirect } from 'react-router-dom';
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import logo from './graphic.png';
+import React from "react";
+import { firebaseConnect } from "react-redux-firebase";
+import { compose } from "redux";
+import { Link, Redirect } from "react-router-dom";
+import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
+import logo from "./graphic.png";
 
 class PageLogin extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      email: '',
-      password: '',
-    }
+      email: "",
+      password: "",
+    };
   }
 
-  handleInputChange = event => {
-    this.setState({ [event.target.name]: event.target.value, error: '' });
-  }
+  handleInputChange = (event) => {
+    this.setState({ [event.target.name]: event.target.value, error: "" });
+  };
 
   login = async (event) => {
     event.preventDefault();
     const credentials = {
       email: this.state.email,
       password: this.state.password,
-    }
+    };
     try {
       await this.props.firebase.login(credentials);
     } catch (error) {
@@ -34,10 +34,14 @@ class PageLogin extends React.Component {
 
   render() {
     if (this.props.isLoggedIn) {
-      return <Redirect to="/dashboard" />
+      return <Redirect to="/dashboard" />;
     }
 
-    const errorBar = this.state.error ? <div class="alert alert-danger" role="alert">{this.state.error}</div> : null;
+    const errorBar = this.state.error ? (
+      <div class="alert alert-danger" role="alert">
+        {this.state.error}
+      </div>
+    ) : null;
 
     return (
       <div className="container" id="signin-container">
@@ -45,9 +49,23 @@ class PageLogin extends React.Component {
           <img src={logo} alt="" />
           <h2 className="form-signin-heading">Sign in</h2>
           {errorBar}
-          <Form.Control name="email" type="email" placeholder="Email address" value={this.state.email} onChange={this.handleInputChange} />
-          <Form.Control name="password" type="password" placeholder="Password" onChange={this.handleInputChange} value={this.state.password} />
-          <Button variant="primary" size="lg" block type="submit">Login</Button>
+          <Form.Control
+            name="email"
+            type="email"
+            placeholder="Email address"
+            value={this.state.email}
+            onChange={this.handleInputChange}
+          />
+          <Form.Control
+            name="password"
+            type="password"
+            placeholder="Password"
+            onChange={this.handleInputChange}
+            value={this.state.password}
+          />
+          <Button variant="primary" size="lg" block type="submit">
+            Login
+          </Button>
           <hr />
           <Link to="/register">Don't have an account? Register here</Link>
           <div className="spacer"></div>
@@ -58,6 +76,4 @@ class PageLogin extends React.Component {
   }
 }
 
-export default compose(
-  firebaseConnect(),
-)(PageLogin);
+export default compose(firebaseConnect())(PageLogin);

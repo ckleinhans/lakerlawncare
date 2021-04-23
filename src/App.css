@@ -29,8 +29,8 @@
   position: relative;
   height: auto;
   -webkit-box-sizing: border-box;
-     -moz-box-sizing: border-box;
-          box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   padding: 10px;
   font-size: 16px;
 }
@@ -97,6 +97,15 @@
 .nav-item .dropdown-item:hover {
   background: #343a40;
 }
-.dropdown-item.active, .dropdown-item:active {
+.dropdown-item.active,
+.dropdown-item:active {
   background-color: #563b5a;
+}
+
+/* Styling for buttons in same row as headers */
+.header-button {
+  float: right;
+}
+.inline-header {
+  display: inline-block;
 }

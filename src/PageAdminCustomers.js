@@ -1,31 +1,34 @@
-import React from 'react';
-import { firebaseConnect, isLoaded, isEmpty } from 'react-redux-firebase';
-import { connect } from 'react-redux';
-import { compose } from 'redux';
-import Table from 'react-bootstrap/Table';
-import Button from 'react-bootstrap/Button';
+import React from "react";
+import { firebaseConnect, isLoaded, isEmpty } from "react-redux-firebase";
+import { connect } from "react-redux";
+import { compose } from "redux";
+import Table from "react-bootstrap/Table";
+import Button from "react-bootstrap/Button";
 
 class PageAdminCustomers extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-    }
+    this.state = {};
   }
 
   editCustomer = (key) => {
-    alert('Editing customer with id ' + key); // TODO maybe render new component that is Modal?
-  }
+    alert("Editing customer with id " + key); // TODO maybe render new component that is Modal?
+  };
+
+  addCustomer = () => {
+    alert("Adding customer"); // TODO maybe render new component that is Modal?
+  };
 
   render() {
     let table;
     if (!isLoaded(this.props.customers, this.props.finances)) {
-      table = <div>Loading customers...</div>
+      table = <div>Loading customers...</div>;
     } else if (isEmpty(this.props.customers)) {
-      table = <div>No customers in the database.</div>
+      table = <div>No customers in the database.</div>;
     } else {
       const keys = Object.keys(this.props.customers);
 
-      const tableContent = keys.map(key => {
+      const tableContent = keys.map((key) => {
         const name = this.props.customers[key].name;
         const address = this.props.customers[key].address;
         const email = this.props.customers[key].email;
@@ -34,16 +37,24 @@ class PageAdminCustomers extends React.Component {
         const amountOwed = this.props.finances[key].owed;
         const amountPaid = this.props.finances[key].paid;
         const editButton = (
-          <Button variant="primary" onClick={() => this.editCustomer(key)}>Edit</Button>
-        )
+          <Button variant="primary" onClick={() => this.editCustomer(key)}>
+            Edit
+          </Button>
+        );
         // TODO add ability to remove staff and assign to others
 
         return (
           <tr key={key}>
-            <td>{name}</td><td>{address}</td><td>{email}</td><td>{phoneNumber}</td>
-            <td>{rate}</td><td>{amountOwed}</td><td>{amountPaid}</td><td>{editButton}</td>
+            <td>{name}</td>
+            <td>{address}</td>
+            <td>{email}</td>
+            <td>{phoneNumber}</td>
+            <td>{rate}</td>
+            <td>{amountOwed}</td>
+            <td>{amountPaid}</td>
+            <td>{editButton}</td>
           </tr>
-        )
+        );
       });
 
       table = (
@@ -60,36 +71,37 @@ class PageAdminCustomers extends React.Component {
               <th>Edit</th>
             </tr>
           </thead>
-          <tbody>
-            {tableContent}
-          </tbody>
+          <tbody>{tableContent}</tbody>
         </Table>
       );
-    };
+    }
 
     return (
       <div className="navbar-page">
         <div className="container">
-          <h2>Customer List</h2>
+          <h2 className="inline-header">Customer List</h2>
+          <Button className="header-button" variant="success" onClick={() => this.addCustomer()}>
+            + Add Customer
+          </Button>
           {table}
         </div>
       </div>
     );
-  };
+  }
 }
 
 const mapStateToProps = (state, props) => {
-  return ({
-    finances: state.firebase.data['finances'],
-    customers: state.firebase.data['customers'],
-  });
+  return {
+    finances: state.firebase.data["finances"],
+    customers: state.firebase.data["customers"],
+  };
 };
 
 export default compose(
-  firebaseConnect(props => {
+  firebaseConnect((props) => {
     return [
-      { path: '/finances/customers', storeAs: 'finances' },
-      { path: '/customers', storeAs: 'customers' }
+      { path: "/finances/customers", storeAs: "finances" },
+      { path: "/customers", storeAs: "customers" },
     ];
   }),
   connect(mapStateToProps)
