@@ -1,10 +1,8 @@
 import React from "react";
 import Table from "react-bootstrap/Table";
-import Button from "react-bootstrap/Button";
 import { firebaseConnect, isLoaded, isEmpty } from "react-redux-firebase";
 import { connect } from "react-redux";
 import { compose } from "redux";
-import construction from "./under-construction.gif";
 
 class PageDash extends React.Component {
   constructor(props) {
@@ -18,7 +16,7 @@ class PageDash extends React.Component {
     const tableContent =
       isLoaded(users, myAppts, customers) && !isEmpty(myAppts)
         ? Object.keys(myAppts).map((key) => {
-            const { customer, date, rate, staffAssigned } = myAppts[key];
+            const { customer, date, staffAssigned } = myAppts[key];
             const { address, name, phoneNumber } = customers[customer];
             const staffString = staffAssigned
               .map((uid) => {

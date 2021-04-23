@@ -3,7 +3,6 @@ import Table from "react-bootstrap/Table";
 import { firebaseConnect, isLoaded, isEmpty } from "react-redux-firebase";
 import { connect } from "react-redux";
 import { compose } from "redux";
-import construction from "./under-construction.gif";
 
 class PageAvailable extends React.Component {
   constructor(props) {
@@ -32,7 +31,7 @@ class PageAvailable extends React.Component {
                 <td>{address}</td>
                 <td>{name}</td>
                 <td>{staffString || "None"}</td>
-                <td>{"RATE HERE"}</td>
+                <td>{`${rate.amount} ${rate.type}`}</td>
                 <td>{"Button Here"}</td>
               </tr>
             );
