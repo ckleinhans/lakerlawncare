@@ -73,7 +73,7 @@ class PageAdminFinances extends React.Component {
 
     return (
       <div className="navbar-page">
-        <div className="container">
+        <div className="container" style={{ minWidth: 900 }}>
           <h2>Finances</h2>
           {table}
         </div>

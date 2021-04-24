@@ -67,7 +67,7 @@ class PageAdminStaff extends React.Component {
               <th>Date</th>
               <th>Customer</th>
               <th>Rate</th>
-              <th>Assigned Staff</th>
+              <th>Staff</th>
               <th>Edit</th>
             </tr>
           </thead>
@@ -78,7 +78,7 @@ class PageAdminStaff extends React.Component {
 
     return (
       <div className="navbar-page">
-        <div className="container">
+        <div className="container" style={{ minWidth: 900 }}>
           <h2 className="inline-header">Appointment List</h2> <br/>{/*Button before break*/}
           {table}
         </div>

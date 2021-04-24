@@ -46,9 +46,9 @@ class PageDash extends React.Component {
           <tr>
             <th>Date</th>
             <th>Address</th>
-            <th>Customer Name</th>
+            <th>Name</th>
             <th>Phone #</th>
-            <th>Staff Assigned</th>
+            <th>Staff</th>
             <th>Complete</th>
           </tr>
         </thead>
@@ -58,7 +58,7 @@ class PageDash extends React.Component {
 
     return (
       <div className="navbar-page">
-        <div className="container">
+        <div className="container" style={{ minWidth: 900 }}>
           {!this.props.appts ? (
             <>
               <h2>Account Pending</h2>

@@ -50,8 +50,8 @@ class PageAvailable extends React.Component {
           <tr>
             <th>Date</th>
             <th>Address</th>
-            <th>Customer Name</th>
-            <th>Staff Assigned</th>
+            <th>Name</th>
+            <th>Staff</th>
             <th>Rate</th>
             <th>Take</th>
           </tr>
@@ -62,7 +62,7 @@ class PageAvailable extends React.Component {
 
     return (
       <div className="navbar-page">
-        <div className="container">
+        <div className="container" style={{ minWidth: 900 }}>
           <h2>Available Appointments</h2>
           {table}
         </div>
