@@ -13,25 +13,36 @@ class PageAvailable extends React.Component {
   }
 
   render() {
-    const { customers, users, availableAppts, adminPercentage } = this.props;
+    const {
+      customers,
+      users,
+      availableAppts,
+      availableApptIds,
+      adminPercentage,
+    } = this.props;
 
     const tableContent =
-      isLoaded(users, availableAppts, customers) && !isEmpty(availableAppts)
+      isLoaded(users, availableAppts, availableApptIds, customers) &&
+      !isEmpty(availableAppts)
         ? Object.keys(availableAppts).map((key) => {
             const { customer, date, rate, staffAssigned } = availableAppts[key];
             const { address, name } = customers[customer];
             const staffString = staffAssigned
-              .map((uid) => {
-                return users[uid].displayName;
-              })
-              .join(", "); // string of all assigned uids
+              ? staffAssigned
+                  .map((uid) => {
+                    return users[uid].displayName;
+                  })
+                  .join(", ")
+              : "None";
             return (
               <tr key={key}>
                 <td>{date}</td>
                 <td>{address}</td>
                 <td>{name}</td>
                 <td>{staffString || "None"}</td>
-                <td>{`$${rate.amount * (1 - adminPercentage)} ${rate.type}`}</td>
+                <td>{`$${rate.amount * (1 - adminPercentage)} ${
+                  rate.type
+                }`}</td>
                 <td>{"Button Here"}</td>
               </tr>
             );
@@ -73,18 +84,29 @@ class PageAvailable extends React.Component {
 
 const mapStateToProps = (state, props) => {
   return {
-    availableAppts: state.firebase.data.appointments,
+    availableAppts:
+      isLoaded(props.availableApptIds) &&
+      !isEmpty(props.availableApptIds) &&
+      props.availableApptIds.find(
+        (apptId) => !props.myApptIds || !props.myApptIds.includes(apptId)
+      )
+        ? state.firebase.data.appointments
+        : null,
   };
 };
 
 export default compose(
   firebaseConnect((props) =>
     isLoaded(props.availableApptIds) && !isEmpty(props.availableApptIds)
-      ? props.availableApptIds.map((apptId) => {
-          return {
-            path: `/appointments/${apptId}`,
-          };
-        })
+      ? props.availableApptIds
+          .filter(
+            (apptId) => !props.myApptIds || !props.myApptIds.includes(apptId)
+          )
+          .map((apptId) => {
+            return {
+              path: `/appointments/${apptId}`,
+            };
+          })
       : null
   ),
   connect(mapStateToProps)

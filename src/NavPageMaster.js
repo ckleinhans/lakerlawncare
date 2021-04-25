@@ -69,7 +69,8 @@ class NavPageMaster extends React.Component {
           <PageAvailable
             users={users}
             customers={customers}
-            availableApptId={availableApptIds}
+            availableApptIds={availableApptIds}
+            myApptIds={myApptIds}
             adminPercentage={adminPercentage}
           />
         );

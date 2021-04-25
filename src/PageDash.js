@@ -19,10 +19,12 @@ class PageDash extends React.Component {
             const { customer, date, staffAssigned } = myAppts[key];
             const { address, name, phoneNumber } = customers[customer];
             const staffString = staffAssigned
-              .map((uid) => {
-                return users[uid].displayName;
-              })
-              .join(", "); // string of all assigned uids
+              ? staffAssigned
+                  .map((uid) => {
+                    return users[uid].displayName;
+                  })
+                  .join(", ")
+              : "None";
             return (
               <tr key={key}>
                 <td>{date}</td>
@@ -80,7 +82,10 @@ class PageDash extends React.Component {
 
 const mapStateToProps = (state, props) => {
   return {
-    myAppts: state.firebase.data.appointments,
+    myAppts:
+      isLoaded(props.myApptIds) && !isEmpty(props.myApptIds)
+        ? state.firebase.data.appointments
+        : null,
   };
 };
 

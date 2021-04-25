@@ -6,10 +6,12 @@ import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
+import Col from "react-bootstrap/Col";
 import Autosuggest from "react-autosuggest";
 import ReactTags from "react-tag-autocomplete";
+import DatePicker from "react-datepicker";
 
-class PageAdminStaff extends React.Component {
+class PageAdminAppts extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -20,6 +22,7 @@ class PageAdminStaff extends React.Component {
       date: "",
       customerName: "",
       rate: "",
+      rateType: "Select",
       numStaff: "",
       customerSuggestions: [],
       staffSuggestions: [],
@@ -31,64 +34,159 @@ class PageAdminStaff extends React.Component {
     this.setState({
       showEditModal: true,
       modalError: "",
-      date: appointments[key].date,
+      date: new Date(appointments[key].date),
       customerName: customers[appointments[key].customer].name,
-      rate: `$${appointments[key].rate.amount} ${appointments[key].rate.type}`,
+      rate: appointments[key].rate.amount,
+      rateType: appointments[key].rate.type,
       numStaff: appointments[key].numStaff,
-      staffSuggestions: appointments[key].staffAssigned.map((uid) => {
-        return { id: uid, name: users[uid].displayName };
-      }),
+      staffSuggestions: appointments[key].staffAssigned
+        ? appointments[key].staffAssigned.map((uid) => {
+            return { id: uid, name: users[uid].displayName };
+          })
+        : [],
       key: key,
     });
   };
 
   editAppointment = (key) => {
     this.setState({ modalLoading: true });
-    this.pushAppointment(key);
+    try {
+      this.pushAppointment(key);
+    } catch (error) {
+      this.setState({ modalError: error.toString() });
+    }
   };
 
   addAppointment = () => {
     this.setState({ modalLoading: true });
     const key = this.props.firebase.push("/appointments").key;
-    this.pushAppointment(key);
+    try {
+      this.pushAppointment(key);
+    } catch (error) {
+      this.setState({ modalError: error.toString() });
+    }
   };
 
   pushAppointment = (key) => {
-    // TODO input validation
-
-    const { customers, availableApptIds } = this.props;
-    const { date, customerName, rate, numStaff, staffSuggestions } = this.state;
+    const { customers, availableApptIds, assignedAppointments } = this.props;
+    const {
+      date,
+      customerName,
+      rate,
+      numStaff,
+      staffSuggestions,
+      rateType,
+    } = this.state;
     const customer = Object.keys(customers).find(
       (id) => customers[id].name === customerName
     );
-
     const staffAssigned = staffSuggestions.map((suggestion) => suggestion.id);
 
+    if (!date) {
+      return this.setState({
+        modalError: "Date is required.",
+        modalLoading: false,
+      });
+    }
+    if (!customerName) {
+      return this.setState({
+        modalError: "Customer is required.",
+        modalLoading: false,
+      });
+    }
+    if (!/^([0-9.]+)$/.test(rate)) {
+      return this.setState({
+        modalError: "Rate must be a number.",
+        modalLoading: false,
+      });
+    }
+    if (rateType === "Select") {
+      return this.setState({
+        modalError: "Rate type is required.",
+        modalLoading: false,
+      });
+    }
+    if (!/^([0-9]+)$/.test(numStaff)) {
+      return this.setState({
+        modalError: "Number of staff must be a number.",
+        modalLoading: false,
+      });
+    }
+    if (staffAssigned.length > Number(numStaff)) {
+      return this.setState({
+        modalError: "Too many staff assigned!",
+        modalLoading: false,
+      });
+    }
+
     const data = {
-      date,
+      date: date.toLocaleDateString(undefined, {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }),
       customer,
-      rate,
-      numStaff,
+      rate: {
+        amount: Number(rate),
+        type: rateType,
+      },
+      numStaff: Number(numStaff),
       staffAssigned,
     };
 
-    // TODO replace staff assigned in available check with new updated assigned staff
-    const availableChanged = availableApptIds.includes(key)
-      ? staffAssigned.length >= numStaff
-      : staffAssigned.length < numStaff;
-    console.log(availableChanged);
+    // Decide if available status changed & compute potential new available list
+    const availableChanged =
+      availableApptIds && availableApptIds.includes(key)
+        ? staffAssigned.length >= numStaff
+        : staffAssigned.length < numStaff;
 
-    // Set the onUpdate callback based on if we also need to update available appointments or not
-    const onUpdate = availableChanged
+    const newAvailableApptIds = availableApptIds
+      ? [].concat(availableApptIds)
+      : [];
+    if (newAvailableApptIds.includes(key)) {
+      newAvailableApptIds.splice(newAvailableApptIds.indexOf(key), 1);
+    } else {
+      newAvailableApptIds.push(key);
+    }
+
+    // Search through new staff assigned to find any that didn't have appt before
+    const newAssignedAppointments = {};
+    staffAssigned.forEach((uid) => {
+      // If didn't have appt before, push appt id to list of assigned appts
+      if (
+        !assignedAppointments ||
+        !assignedAppointments[uid] ||
+        !assignedAppointments[uid].includes(key)
+      ) {
+        newAssignedAppointments[uid] =
+          assignedAppointments && assignedAppointments[uid]
+            ? assignedAppointments[uid].concat([key])
+            : [key];
+      }
+    });
+
+    // Search for old assigned staff who are not in new staff list & remove appt from their list
+    if (assignedAppointments)
+      Object.keys(assignedAppointments).forEach((uid) => {
+        if (
+          assignedAppointments[uid].includes(key) &&
+          !staffAssigned.includes(uid)
+        ) {
+          newAssignedAppointments[uid] = assignedAppointments[uid];
+          newAssignedAppointments[uid].splice(
+            newAssignedAppointments[uid].indexOf(key),
+            1
+          );
+        }
+      });
+
+    // If staff assigned changed, update all of their appt lists within callback
+    const newAssignedApptsCallback = newAssignedAppointments
       ? () => {
-          // Add/remove appt id from available list depending on if it is full ot not
-          const newAvailableApptIds = availableApptIds.includes(key)
-            ? availableApptIds.splice(availableApptIds.indexOf(key), 1)
-            : availableApptIds.push(key);
-
-          this.props.firebase.set(
-            `/availableAppointments`,
-            newAvailableApptIds,
+          this.props.firebase.update(
+            "/assignedAppointments",
+            newAssignedAppointments,
             () => {
               this.setState({
                 modalLoading: false,
@@ -100,7 +198,6 @@ class PageAdminStaff extends React.Component {
           );
         }
       : () => {
-          // Available appts dont need to be changed, just set state
           this.setState({
             modalLoading: false,
             modalError: "",
@@ -109,11 +206,39 @@ class PageAdminStaff extends React.Component {
           });
         };
 
+    // Set the onUpdate callback based on if we also need to update available appointments or not
+    const onUpdate = availableChanged
+      ? () => {
+          this.props.firebase.set(
+            `/availableAppointments`,
+            newAvailableApptIds,
+            newAssignedApptsCallback
+          );
+        }
+      : newAssignedApptsCallback;
+
     this.props.firebase.set(`/appointments/${key}`, data, onUpdate);
   };
 
-  handleChange = (event) =>
-    this.setState({ [event.target.name]: event.target.value });
+  handleChange = (event) => {
+    const { customers } = this.props;
+    const { customerName } = this.state;
+    const data = { [event.target.name]: event.target.value };
+
+    // If user entered rate type as flat, populate rate with customer's rate
+    if (
+      event.target.name === "rateType" &&
+      event.target.value === "flat" &&
+      customerName
+    ) {
+      const customerId = Object.keys(customers).find(
+        (id) => customers[id].name === customerName
+      );
+      data.rate = customers[customerId].rate;
+    }
+
+    this.setState(data);
+  };
 
   handleAddClose = () => this.setState({ showAddModal: false });
 
@@ -150,10 +275,22 @@ class PageAdminStaff extends React.Component {
   getSuggestionValue = (suggestion) => suggestion;
 
   // handles changes to customer autosuggest
-  handleCustomerChange = (_e, newValue) => {
-    this.setState({
-      customerName: newValue,
-    });
+  handleCustomerChange = (e, newValue) => {
+    const { rateType } = this.state;
+    const { customers } = this.props;
+    const data = { customerName: newValue };
+
+    // If rate is flat, populate rate with customer's rate
+    if (rateType === "flat") {
+      const customerId = Object.keys(customers).find(
+        (id) => customers[id].name === newValue
+      );
+      if (customerId) {
+        data.rate = customers[customerId].rate;
+      }
+    }
+
+    this.setState(data);
   };
 
   // reset customer if invalid, called onBlur (when input loses focus)
@@ -212,12 +349,14 @@ class PageAdminStaff extends React.Component {
       date,
       customerName,
       rate,
+      rateType,
       numStaff,
       customerSuggestions,
       staffSuggestions,
     } = this.state;
     const { appointments, customers, users } = this.props;
 
+    // Conditionally render table if data loaded from Firebase
     let table;
     if (!isLoaded(appointments, customers, users)) {
       table = <div>Loading appointments...</div>;
@@ -232,10 +371,12 @@ class PageAdminStaff extends React.Component {
         const rate = `$${appointments[key].rate.amount} ${appointments[key].rate.type}`;
         const numStaff = appointments[key].numStaff;
         const staffAssigned = appointments[key].staffAssigned
-          .map((uid) => {
-            return users[uid].displayName;
-          })
-          .join(", "); // string of all assigned uids
+          ? appointments[key].staffAssigned
+              .map((uid) => {
+                return users[uid].displayName;
+              })
+              .join(", ")
+          : "None";
         const apptEditButton = (
           <Button
             variant="primary"
@@ -276,7 +417,11 @@ class PageAdminStaff extends React.Component {
     }
 
     const modalErrorBar = modalError ? (
-      <div class="alert alert-danger" role="alert">
+      <div
+        style={{ marginBottom: "-5px" }}
+        className="alert alert-danger"
+        role="alert"
+      >
         {modalError}
       </div>
     ) : null;
@@ -295,13 +440,11 @@ class PageAdminStaff extends React.Component {
 
     const modalBody = (
       <Modal.Body>
-        {modalErrorBar}
         <Form.Label>Date</Form.Label>
-        <Form.Control
-          name="date"
-          onChange={this.handleChange}
-          placeholder="Appointment Date"
-          value={date}
+        <DatePicker
+          selected={date}
+          onChange={(date) => this.setState({ date })}
+          placeholderText="Appointment Date"
         />
         <br />
         <Form.Label>Customer Name</Form.Label>
@@ -316,12 +459,28 @@ class PageAdminStaff extends React.Component {
         <br />
         {/* TODO make rate 2 inputs for type and amount*/}
         <Form.Label>Rate</Form.Label>
-        <Form.Control
-          name="rate"
-          onChange={this.handleChange}
-          placeholder="Rate"
-          value={rate}
-        />
+        <Form.Row>
+          <Col>
+            <Form.Control
+              name="rate"
+              onChange={this.handleChange}
+              placeholder="Amount ($)"
+              value={rate}
+            />
+          </Col>
+          <Col>
+            <Form.Control
+              as="select"
+              name="rateType"
+              onChange={this.handleChange}
+              value={rateType}
+            >
+              <option disabled>Select</option>
+              <option>flat</option>
+              <option>hourly</option>
+            </Form.Control>
+          </Col>
+        </Form.Row>
         <br />
         <Form.Label>Number of Staff</Form.Label>
         <Form.Control
@@ -358,6 +517,7 @@ class PageAdminStaff extends React.Component {
                 date: "",
                 customerName: "",
                 rate: "",
+                rateType: "Select",
                 numStaff: "",
                 staffSuggestions: [],
               })
@@ -371,6 +531,7 @@ class PageAdminStaff extends React.Component {
             <Modal.Header closeButton>
               <Modal.Title>Create Appointment</Modal.Title>
             </Modal.Header>
+            {modalErrorBar}
             {modalBody}
             <Modal.Footer>
               <Button
@@ -387,6 +548,7 @@ class PageAdminStaff extends React.Component {
             <Modal.Header closeButton>
               <Modal.Title>Edit Appointment</Modal.Title>
             </Modal.Header>
+            {modalErrorBar}
             {modalBody}
             <Modal.Footer>
               <Button
@@ -408,6 +570,7 @@ const mapStateToProps = (state, props) => {
   return {
     appointments: state.firebase.data["appointments"],
     customers: state.firebase.data["customers"],
+    assignedAppointments: state.firebase.data["assignedAppointments"],
   };
 };
 
@@ -416,7 +579,8 @@ export default compose(
     return [
       { path: "/appointments", storeAs: "appointments" },
       { path: "/customers", storeAs: "customers" },
+      { path: "/assignedAppointments", storeAs: "assignedAppointments" },
     ];
   }),
   connect(mapStateToProps)
-)(PageAdminStaff);
+)(PageAdminAppts);
