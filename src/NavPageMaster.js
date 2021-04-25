@@ -46,7 +46,14 @@ class NavPageMaster extends React.Component {
   };
 
   render() {
-    const { isLoggedIn, users, customers, myApptIds, availableApptIds } = this.props;
+    const {
+      isLoggedIn,
+      users,
+      customers,
+      myApptIds,
+      availableApptIds,
+      adminPercentage,
+    } = this.props;
 
     if (!isLoggedIn) {
       return <Redirect to="/login" />;
@@ -58,13 +65,26 @@ class NavPageMaster extends React.Component {
         contentSwitch = <PageProfile />;
         break;
       case "available":
-        contentSwitch = <PageAvailable users={users} customers={customers} availableApptId={availableApptIds}/>;
+        contentSwitch = (
+          <PageAvailable
+            users={users}
+            customers={customers}
+            availableApptId={availableApptIds}
+            adminPercentage={adminPercentage}
+          />
+        );
         break;
       case "admin-staff":
         contentSwitch = <PageAdminStaff users={users} />;
         break;
       case "admin-appts":
-        contentSwitch = <PageAdminAppts users={users} customers={customers} />;
+        contentSwitch = (
+          <PageAdminAppts
+            users={users}
+            customers={customers}
+            availableApptIds={availableApptIds}
+          />
+        );
         break;
       case "admin-customers":
         contentSwitch = <PageAdminCustomers customers={customers} />;
@@ -82,6 +102,7 @@ class NavPageMaster extends React.Component {
             customers={customers}
             myApptIds={myApptIds}
             appts={this.state.appts}
+            adminPercentage={adminPercentage}
           />
         );
         break;
@@ -156,6 +177,7 @@ const mapStateToProps = (state, props) => {
     customers: state.firebase.data.customers,
     myApptIds: state.firebase.data.myApptIds,
     availableApptIds: state.firebase.data.availableApptIds,
+    adminPercentage: state.firebase.data.adminPercentage,
   };
 };
 
@@ -165,6 +187,7 @@ export default compose(
     { path: `/customers`, storeAs: "customers" },
     { path: `/assignedAppointments/${props.isLoggedIn}`, storeAs: "myApptIds" },
     { path: `/availableAppointments`, storeAs: "availableApptIds" },
+    { path: `/finances/adminPercentage`, storeAs: "adminPercentage" },
   ]),
   connect(mapStateToProps)
 )(NavPageMaster);

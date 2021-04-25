@@ -131,3 +131,25 @@ exports.removeAppointmentsRole = functions.https.onCall(async (data, context) =>
     return error;
   }
 });
+
+exports.claimAppointment = functions.https.onCall(async (data, context) => {
+  try {
+    // Get user
+    const caller = await admin.auth().getUser(context.auth.uid);
+    // Check if user can take appointments
+    if (caller.customClaims && caller.customClaims.appointments === true) {
+      // Check if appointment has available staff spot
+
+      // add staff to appointment UID list
+
+      // add appointment to staff's assigned appointments
+
+      // If all staff spots taken, remove appt from available appointments
+    } else {
+      // return insufficient permission message
+      return { error: true, message: 'Error: You do not have permission to take appointments.' }
+    }
+  } catch (error) {
+    return error;
+  }
+});

@@ -13,7 +13,7 @@ class PageAvailable extends React.Component {
   }
 
   render() {
-    const { customers, users, availableAppts } = this.props;
+    const { customers, users, availableAppts, adminPercentage } = this.props;
 
     const tableContent =
       isLoaded(users, availableAppts, customers) && !isEmpty(availableAppts)
@@ -31,7 +31,7 @@ class PageAvailable extends React.Component {
                 <td>{address}</td>
                 <td>{name}</td>
                 <td>{staffString || "None"}</td>
-                <td>{`${rate.amount} ${rate.type}`}</td>
+                <td>{`$${rate.amount * (1 - adminPercentage)} ${rate.type}`}</td>
                 <td>{"Button Here"}</td>
               </tr>
             );
