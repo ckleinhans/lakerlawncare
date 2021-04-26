@@ -34,31 +34,78 @@ class PageAdminCustomers extends React.Component {
       address: customers[key].address,
       phoneNumber: customers[key].phoneNumber,
       rate: customers[key].rate,
-      frequency: customers[key].frequency || "None",
+      frequency: customers[key].frequency,
       key: key,
     });
   };
 
   editCustomer = (key) => {
     this.setState({ modalLoading: true });
-    this.pushCustomer(key);
+    try {
+      this.pushCustomer(key);
+    } catch (error) {
+      this.setState({ modalError: error.toString(), modalLoading: false });
+    }
   };
 
   addCustomer = () => {
     this.setState({ modalLoading: true });
     const key = this.props.firebase.push("/customers").key;
-    this.pushCustomer(key);
+    try {
+      this.pushCustomer(key);
+    } catch (error) {
+      this.setState({ modalError: error.toString(), modalLoading: false });
+    }
   };
 
   pushCustomer = (key) => {
     const { name, email, address, phoneNumber, rate, frequency } = this.state;
+
+    // Input validation
+    if (!name) {
+      return this.setState({
+        modalError: "Customer name is required.",
+        modalLoading: false,
+      });
+    }
+    if (!address) {
+      return this.setState({
+        modalError: "Customer address is required.",
+        modalLoading: false,
+      });
+    }
+    if (!email && !phoneNumber) {
+      return this.setState({
+        modalError: "Customer email or phone number is required.",
+        modalLoading: false,
+      });
+    }
+    if (phoneNumber && !/^([0-9]{10})$/.test(phoneNumber)) {
+      return this.setState({
+        modalError: "Phone number must be formatted as 1234567890",
+        modalLoading: false,
+      });
+    }
+    if (rate && !/^([0-9.]+)$/.test(rate)) {
+      return this.setState({
+        modalError: "Phone number must be formatted as 1234567890",
+        modalLoading: false,
+      });
+    }
+    if (frequency && !/^([0-9]+)$/.test(frequency)) {
+      return this.setState({
+        modalError: "Phone number must be formatted as 1234567890",
+        modalLoading: false,
+      });
+    }
+
     const data = {
       name,
-      email,
+      email: email || null,
       address,
-      phoneNumber,
-      rate,
-      frequency,
+      phoneNumber: phoneNumber || null,
+      rate: rate || null,
+      frequency: frequency || null,
     };
 
     const onUpdate = () => {
@@ -112,17 +159,13 @@ class PageAdminCustomers extends React.Component {
         const frequency = customers[key].frequency || "None";
         const amountOwed = finances[key] ? finances[key].owed : 0;
         const amountPaid = finances[key] ? finances[key].paid : 0;
-        const editButton = (
-          <Button
-            variant="primary"
-            onClick={() => this.handleShowEditModal(key)}
-          >
-            Edit
-          </Button>
-        );
 
         return (
-          <tr key={key}>
+          <tr
+            key={key}
+            className="clickable-row"
+            onClick={() => this.handleShowEditModal(key)}
+          >
             <td>{name}</td>
             <td>{address}</td>
             <td>{email}</td>
@@ -131,7 +174,6 @@ class PageAdminCustomers extends React.Component {
             <td>{frequency}</td>
             <td>{amountOwed}</td>
             <td>{amountPaid}</td>
-            <td>{editButton}</td>
           </tr>
         );
       });
@@ -148,7 +190,6 @@ class PageAdminCustomers extends React.Component {
               <th>Freq.</th>
               <th>Owed</th>
               <th>Paid</th>
-              <th>Edit</th>
             </tr>
           </thead>
           <tbody>{tableContent}</tbody>
@@ -157,14 +198,17 @@ class PageAdminCustomers extends React.Component {
     }
 
     const modalErrorBar = modalError ? (
-      <div class="alert alert-danger" role="alert">
+      <div
+        style={{ marginBottom: "-5px" }}
+        className="alert alert-danger"
+        role="alert"
+      >
         {modalError}
       </div>
     ) : null;
 
     const modalBody = (
       <Modal.Body>
-        {modalErrorBar}
         <Form.Label>Name</Form.Label>
         <Form.Control
           name="name"
@@ -209,7 +253,7 @@ class PageAdminCustomers extends React.Component {
         <Form.Control
           name="frequency"
           onChange={this.handleChange}
-          placeholder="Mowing Frequency"
+          placeholder="Mowing Frequency (Days)"
           value={frequency}
         />
       </Modal.Body>
@@ -243,6 +287,7 @@ class PageAdminCustomers extends React.Component {
             <Modal.Header closeButton>
               <Modal.Title>Add Customer</Modal.Title>
             </Modal.Header>
+            {modalErrorBar}
             {modalBody}
             <Modal.Footer>
               <Button
@@ -259,6 +304,7 @@ class PageAdminCustomers extends React.Component {
             <Modal.Header closeButton>
               <Modal.Title>Edit Customer</Modal.Title>
             </Modal.Header>
+            {modalErrorBar}
             {modalBody}
             <Modal.Footer>
               <Button

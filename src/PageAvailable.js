@@ -12,6 +12,8 @@ class PageAvailable extends React.Component {
     };
   }
 
+  showDetails = (key) => {};
+
   render() {
     const {
       customers,
@@ -35,7 +37,11 @@ class PageAvailable extends React.Component {
                   .join(", ")
               : "None";
             return (
-              <tr key={key}>
+              <tr
+                key={key}
+                className="clickable-row"
+                onClick={() => this.showDetails(key)}
+              >
                 <td>{date}</td>
                 <td>{address}</td>
                 <td>{name}</td>
@@ -43,7 +49,6 @@ class PageAvailable extends React.Component {
                 <td>{`$${rate.amount * (1 - adminPercentage)} ${
                   rate.type
                 }`}</td>
-                <td>{"Button Here"}</td>
               </tr>
             );
           })
@@ -64,7 +69,6 @@ class PageAvailable extends React.Component {
             <th>Name</th>
             <th>Staff</th>
             <th>Rate</th>
-            <th>Take</th>
           </tr>
         </thead>
         <tbody>{tableContent}</tbody>

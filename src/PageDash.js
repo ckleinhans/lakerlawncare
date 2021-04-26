@@ -10,6 +10,8 @@ class PageDash extends React.Component {
     this.state = {};
   }
 
+  showDetails = (key) => {};
+
   render() {
     const { users, myAppts, customers } = this.props;
 
@@ -26,13 +28,16 @@ class PageDash extends React.Component {
                   .join(", ")
               : "None";
             return (
-              <tr key={key}>
+              <tr
+                key={key}
+                className="clickable-row"
+                onClick={() => this.showDetails(key)}
+              >
                 <td>{date}</td>
                 <td>{address}</td>
                 <td>{name}</td>
                 <td>{phoneNumber}</td>
                 <td>{staffString || "None"}</td>
-                <td>{"Button Here"}</td>
               </tr>
             );
           })
@@ -51,7 +56,6 @@ class PageDash extends React.Component {
             <th>Name</th>
             <th>Phone #</th>
             <th>Staff</th>
-            <th>Complete</th>
           </tr>
         </thead>
         <tbody>{tableContent}</tbody>

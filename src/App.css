@@ -1,3 +1,8 @@
+/* CSS for table rows */
+.clickable-row {
+  cursor: pointer;
+}
+
 /* Additional CSS tags for signin pages based off of Bootstrap Examples */
 #signin-container {
   padding-top: 40px;

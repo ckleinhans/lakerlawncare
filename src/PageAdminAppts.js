@@ -24,6 +24,7 @@ class PageAdminAppts extends React.Component {
       rate: "",
       rateType: "Select",
       numStaff: "",
+      notes: "",
       customerSuggestions: [],
       staffSuggestions: [],
     };
@@ -39,6 +40,7 @@ class PageAdminAppts extends React.Component {
       rate: appointments[key].rate.amount,
       rateType: appointments[key].rate.type,
       numStaff: appointments[key].numStaff,
+      notes: appointments[key].notes,
       staffSuggestions: appointments[key].staffAssigned
         ? appointments[key].staffAssigned.map((uid) => {
             return { id: uid, name: users[uid].displayName };
@@ -53,7 +55,7 @@ class PageAdminAppts extends React.Component {
     try {
       this.pushAppointment(key);
     } catch (error) {
-      this.setState({ modalError: error.toString() });
+      this.setState({ modalError: error.toString(), modalLoading: false });
     }
   };
 
@@ -63,7 +65,7 @@ class PageAdminAppts extends React.Component {
     try {
       this.pushAppointment(key);
     } catch (error) {
-      this.setState({ modalError: error.toString() });
+      this.setState({ modalError: error.toString(), modalLoading: false });
     }
   };
 
@@ -76,6 +78,7 @@ class PageAdminAppts extends React.Component {
       numStaff,
       staffSuggestions,
       rateType,
+      notes,
     } = this.state;
     const customer = Object.keys(customers).find(
       (id) => customers[id].name === customerName
@@ -133,6 +136,7 @@ class PageAdminAppts extends React.Component {
       },
       numStaff: Number(numStaff),
       staffAssigned,
+      notes,
     };
 
     // Decide if available status changed & compute potential new available list
@@ -351,6 +355,7 @@ class PageAdminAppts extends React.Component {
       rate,
       rateType,
       numStaff,
+      notes,
       customerSuggestions,
       staffSuggestions,
     } = this.state;
@@ -377,24 +382,18 @@ class PageAdminAppts extends React.Component {
               })
               .join(", ")
           : "None";
-        const apptEditButton = (
-          <Button
-            variant="primary"
-            onClick={() => this.handleShowEditModal(key)}
-          >
-            Edit
-          </Button>
-        );
-        // TODO add ability to remove staff and assign to others
 
         return (
-          <tr key={key}>
+          <tr
+            key={key}
+            className="clickable-row"
+            onClick={() => this.handleShowEditModal(key)}
+          >
             <td>{date}</td>
             <td>{customer}</td>
             <td>{rate}</td>
             <td>{numStaff}</td>
             <td>{staffAssigned}</td>
-            <td>{apptEditButton}</td>
           </tr>
         );
       });
@@ -408,7 +407,6 @@ class PageAdminAppts extends React.Component {
               <th>Rate</th>
               <th># Staff</th>
               <th>Staff</th>
-              <th>Edit</th>
             </tr>
           </thead>
           <tbody>{tableContent}</tbody>
@@ -500,6 +498,16 @@ class PageAdminAppts extends React.Component {
           minQueryLength={1}
           suggestionsTransform={this.filterStaffNameSuggestions}
         />
+        <br />
+        <Form.Label>Appointment Notes</Form.Label>
+        <Form.Control
+          as="textarea"
+          name="notes"
+          placeholder="Add appointment specific information or other notes here."
+          onChange={this.handleChange}
+          value={notes}
+          rows={2}
+        />
       </Modal.Body>
     );
 
@@ -519,6 +527,7 @@ class PageAdminAppts extends React.Component {
                 rate: "",
                 rateType: "Select",
                 numStaff: "",
+                notes: "",
                 staffSuggestions: [],
               })
             }
