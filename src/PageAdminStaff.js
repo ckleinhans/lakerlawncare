@@ -216,18 +216,23 @@ class PageAdminStaff extends React.Component {
       });
 
       table = (
-        <Table striped bordered hover>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone #</th>
-              <th>Take Appts?</th>
-              <th>Admin</th>
-            </tr>
-          </thead>
-          <tbody>{tableContent}</tbody>
-        </Table>
+        <div>
+          View staff and manage permissions from this page.
+          <div className="table-container">
+            <Table striped bordered hover className="page-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone #</th>
+                  <th>Take Appts?</th>
+                  <th>Admin</th>
+                </tr>
+              </thead>
+              <tbody>{tableContent}</tbody>
+            </Table>
+          </div>
+        </div>
       );
     }
 

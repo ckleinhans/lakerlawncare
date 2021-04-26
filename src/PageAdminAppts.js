@@ -136,7 +136,7 @@ class PageAdminAppts extends React.Component {
       },
       numStaff: Number(numStaff),
       staffAssigned,
-      notes,
+      notes: notes || null,
     };
 
     // Decide if available status changed & compute potential new available list
@@ -399,18 +399,23 @@ class PageAdminAppts extends React.Component {
       });
 
       table = (
-        <Table striped bordered hover>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Customer</th>
-              <th>Rate</th>
-              <th># Staff</th>
-              <th>Staff</th>
-            </tr>
-          </thead>
-          <tbody>{tableContent}</tbody>
-        </Table>
+        <div>
+          Click a customer to see details and actions.
+          <div className="table-container">
+            <Table striped bordered hover className="page-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Customer</th>
+                  <th>Rate</th>
+                  <th># Staff</th>
+                  <th>Staff</th>
+                </tr>
+              </thead>
+              <tbody>{tableContent}</tbody>
+            </Table>
+          </div>
+        </div>
       );
     }
 
@@ -513,7 +518,7 @@ class PageAdminAppts extends React.Component {
 
     return (
       <div className="navbar-page">
-        <div className="container" style={{ minWidth: 900 }}>
+        <div className="container">
           <h2 className="inline-header">Appointment List</h2>
           <Button
             className="header-button"
@@ -544,6 +549,13 @@ class PageAdminAppts extends React.Component {
             {modalBody}
             <Modal.Footer>
               <Button
+                variant="secondary"
+                onClick={this.handleAddClose}
+                disabled={modalLoading}
+              >
+                Cancel
+              </Button>
+              <Button
                 variant="success"
                 onClick={this.addAppointment}
                 disabled={modalLoading}
@@ -560,6 +572,13 @@ class PageAdminAppts extends React.Component {
             {modalErrorBar}
             {modalBody}
             <Modal.Footer>
+              <Button
+                variant="secondary"
+                onClick={this.handleEditClose}
+                disabled={modalLoading}
+              >
+                Cancel
+              </Button>
               <Button
                 variant="primary"
                 onClick={() => this.editAppointment(this.state.key)}

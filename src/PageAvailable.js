@@ -61,23 +61,28 @@ class PageAvailable extends React.Component {
         No available appointments found. Stay tuned for future appointments!
       </div>
     ) : (
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Address</th>
-            <th>Name</th>
-            <th>Staff</th>
-            <th>Rate</th>
-          </tr>
-        </thead>
-        <tbody>{tableContent}</tbody>
-      </Table>
+      <div>
+        Click an appointment to see details and actions.
+        <div className="table-container">
+          <Table striped bordered hover className="page-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Address</th>
+                <th>Name</th>
+                <th>Staff</th>
+                <th>Rate</th>
+              </tr>
+            </thead>
+            <tbody>{tableContent}</tbody>
+          </Table>
+        </div>
+      </div>
     );
 
     return (
       <div className="navbar-page">
-        <div className="container" style={{ minWidth: 900 }}>
+        <div className="container">
           <h2>Available Appointments</h2>
           {table}
         </div>

@@ -179,21 +179,26 @@ class PageAdminCustomers extends React.Component {
       });
 
       table = (
-        <Table striped bordered hover>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Address</th>
-              <th>Email Address</th>
-              <th>Phone #</th>
-              <th>Rate</th>
-              <th>Freq.</th>
-              <th>Owed</th>
-              <th>Paid</th>
-            </tr>
-          </thead>
-          <tbody>{tableContent}</tbody>
-        </Table>
+        <div>
+          Click a customer to see details and actions.
+          <div className="table-container">
+            <Table striped bordered hover className="page-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Address</th>
+                  <th>Email Address</th>
+                  <th>Phone #</th>
+                  <th>Rate</th>
+                  <th>Freq.</th>
+                  <th>Owed</th>
+                  <th>Paid</th>
+                </tr>
+              </thead>
+              <tbody>{tableContent}</tbody>
+            </Table>
+          </div>
+        </div>
       );
     }
 
@@ -261,7 +266,7 @@ class PageAdminCustomers extends React.Component {
 
     return (
       <div className="navbar-page">
-        <div className="container" style={{ minWidth: 900 }}>
+        <div className="container">
           <h2 className="inline-header">Customer List</h2>
           <Button
             className="header-button"
@@ -291,6 +296,13 @@ class PageAdminCustomers extends React.Component {
             {modalBody}
             <Modal.Footer>
               <Button
+                variant="secondary"
+                onClick={this.handleAddClose}
+                disabled={modalLoading}
+              >
+                Cancel
+              </Button>
+              <Button
                 variant="success"
                 onClick={this.addCustomer}
                 disabled={modalLoading}
@@ -307,6 +319,13 @@ class PageAdminCustomers extends React.Component {
             {modalErrorBar}
             {modalBody}
             <Modal.Footer>
+              <Button
+                variant="secondary"
+                onClick={this.handleEditClose}
+                disabled={modalLoading}
+              >
+                Cancel
+              </Button>
               <Button
                 variant="primary"
                 onClick={() => this.editCustomer(this.state.key)}

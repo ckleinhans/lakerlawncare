@@ -48,23 +48,28 @@ class PageDash extends React.Component {
     ) : isEmpty(myAppts) ? (
       <div>No appointments found. Go take some from the Appointments tab!</div>
     ) : (
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Address</th>
-            <th>Name</th>
-            <th>Phone #</th>
-            <th>Staff</th>
-          </tr>
-        </thead>
-        <tbody>{tableContent}</tbody>
-      </Table>
+      <div>
+        Click an appointment to see details and actions.
+        <div className="table-container">
+          <Table striped bordered hover className="page-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Address</th>
+                <th>Name</th>
+                <th>Phone #</th>
+                <th>Staff</th>
+              </tr>
+            </thead>
+            <tbody>{tableContent}</tbody>
+          </Table>
+        </div>
+      </div>
     );
 
     return (
       <div className="navbar-page">
-        <div className="container" style={{ minWidth: 900 }}>
+        <div className="container">
           {!this.props.appts ? (
             <>
               <h2>Account Pending</h2>
