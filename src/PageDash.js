@@ -13,39 +13,41 @@ class PageDash extends React.Component {
   showDetails = (key) => {};
 
   render() {
-    const { users, myAppts, customers } = this.props;
+    const { users, appointments, customers, myApptIds } = this.props;
 
     const tableContent =
-      isLoaded(users, myAppts, customers) && !isEmpty(myAppts)
-        ? Object.keys(myAppts).map((key) => {
-            const { customer, date, staffAssigned } = myAppts[key];
-            const { address, name, phoneNumber } = customers[customer];
-            const staffString = staffAssigned
-              ? staffAssigned
-                  .map((uid) => {
-                    return users[uid].displayName;
-                  })
-                  .join(", ")
-              : "None";
-            return (
-              <tr
-                key={key}
-                className="clickable-row"
-                onClick={() => this.showDetails(key)}
-              >
-                <td>{date}</td>
-                <td>{address}</td>
-                <td>{name}</td>
-                <td>{phoneNumber}</td>
-                <td>{staffString || "None"}</td>
-              </tr>
-            );
-          })
+      isLoaded(users, appointments, customers) && !isEmpty(appointments)
+        ? Object.keys(appointments)
+            .filter((key) => myApptIds && myApptIds.includes(key))
+            .map((key) => {
+              const { customer, date, staffAssigned } = appointments[key];
+              const { address, name, phoneNumber } = customers[customer];
+              const staffString = staffAssigned
+                ? staffAssigned
+                    .map((uid) => {
+                      return users[uid].displayName;
+                    })
+                    .join(", ")
+                : "None";
+              return (
+                <tr
+                  key={key}
+                  className="clickable-row"
+                  onClick={() => this.showDetails(key)}
+                >
+                  <td>{date}</td>
+                  <td>{address}</td>
+                  <td>{name}</td>
+                  <td>{phoneNumber}</td>
+                  <td>{staffString || "None"}</td>
+                </tr>
+              );
+            })
         : null;
 
-    const table = !isLoaded(users, myAppts, customers) ? (
+    const table = !isLoaded(users, appointments, customers) ? (
       <div>Loading appointments...</div>
-    ) : isEmpty(myAppts) ? (
+    ) : isEmpty(appointments) ? (
       <div>No appointments found. Go take some from the Appointments tab!</div>
     ) : (
       <div>
@@ -91,7 +93,7 @@ class PageDash extends React.Component {
 
 const mapStateToProps = (state, props) => {
   return {
-    myAppts:
+    appointments:
       isLoaded(props.myApptIds) && !isEmpty(props.myApptIds)
         ? state.firebase.data.appointments
         : null,

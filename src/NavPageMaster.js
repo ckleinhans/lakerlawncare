@@ -67,6 +67,7 @@ class NavPageMaster extends React.Component {
       case "available":
         contentSwitch = (
           <PageAvailable
+            uid={isLoggedIn}
             users={users}
             customers={customers}
             availableApptIds={availableApptIds}

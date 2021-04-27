@@ -37,7 +37,7 @@ class PageAdminAppts extends React.Component {
       modalError: "",
       date: new Date(appointments[key].date),
       customerName: customers[appointments[key].customer].name,
-      rate: appointments[key].rate.amount,
+      rate: appointments[key].rate.amount.toFixed(2),
       rateType: appointments[key].rate.type,
       numStaff: appointments[key].numStaff,
       notes: appointments[key].notes,
@@ -70,7 +70,12 @@ class PageAdminAppts extends React.Component {
   };
 
   pushAppointment = (key) => {
-    const { customers, availableApptIds, assignedAppointments } = this.props;
+    const {
+      customers,
+      availableApptIds,
+      assignedAppointments,
+      firebase,
+    } = this.props;
     const {
       date,
       customerName,
@@ -188,7 +193,7 @@ class PageAdminAppts extends React.Component {
     // If staff assigned changed, update all of their appt lists within callback
     const newAssignedApptsCallback = newAssignedAppointments
       ? () => {
-          this.props.firebase.update(
+          firebase.update(
             "/assignedAppointments",
             newAssignedAppointments,
             () => {
@@ -213,7 +218,7 @@ class PageAdminAppts extends React.Component {
     // Set the onUpdate callback based on if we also need to update available appointments or not
     const onUpdate = availableChanged
       ? () => {
-          this.props.firebase.set(
+          firebase.set(
             `/availableAppointments`,
             newAvailableApptIds,
             newAssignedApptsCallback
@@ -221,7 +226,7 @@ class PageAdminAppts extends React.Component {
         }
       : newAssignedApptsCallback;
 
-    this.props.firebase.set(`/appointments/${key}`, data, onUpdate);
+    firebase.set(`/appointments/${key}`, data, onUpdate);
   };
 
   handleChange = (event) => {
@@ -373,7 +378,9 @@ class PageAdminAppts extends React.Component {
       const tableContent = keys.map((key) => {
         const customer = customers[appointments[key].customer].name; // This is only uid need to populate the customer
         const date = appointments[key].date;
-        const rate = `$${appointments[key].rate.amount} ${appointments[key].rate.type}`;
+        const rate = `$${appointments[key].rate.amount.toFixed(2)} ${
+          appointments[key].rate.type
+        }`;
         const numStaff = appointments[key].numStaff;
         const staffAssigned = appointments[key].staffAssigned
           ? appointments[key].staffAssigned
@@ -400,7 +407,7 @@ class PageAdminAppts extends React.Component {
 
       table = (
         <div>
-          Click a customer to see details and actions.
+          Click an appointment to see details and actions.
           <div className="table-container">
             <Table striped bordered hover className="page-table">
               <thead>
