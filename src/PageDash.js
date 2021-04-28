@@ -3,17 +3,64 @@ import Table from "react-bootstrap/Table";
 import { firebaseConnect, isLoaded, isEmpty } from "react-redux-firebase";
 import { connect } from "react-redux";
 import { compose } from "redux";
+import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
+import Form from "react-bootstrap/Form";
+import Col from "react-bootstrap/Col";
 
 class PageDash extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      modalError: "",
+      modalLoading: false,
+      showApptModal: false,
+      selectedAppt: null,
+      apptKey: "",
+      reportNotes: "",
+      checkbox: false,
+      hours: "",
+    };
   }
 
-  showDetails = (key) => {};
+  handleChange = (event) =>
+    this.setState({ [event.target.name]: event.target.value });
+
+  showDetails = (key) => {
+    this.setState({
+      showApptModal: true,
+      apptKey: key,
+      modalError: "",
+      selectedAppt: this.props.appointments[key],
+      reportNotes: "",
+      checkbox: false,
+      hours: "",
+    });
+  };
+
+  // TODO
+  completeAppointment = () => {};
+
+  handleModalClose = () => this.setState({ showApptModal: false });
 
   render() {
-    const { users, appointments, customers, myApptIds } = this.props;
+    const {
+      modalError,
+      modalLoading,
+      showApptModal,
+      selectedAppt,
+      apptKey,
+      hours,
+      reportNotes,
+      checkbox,
+    } = this.state;
+    const {
+      users,
+      appointments,
+      customers,
+      myApptIds,
+      adminPercentage,
+    } = this.props;
 
     const tableContent =
       isLoaded(users, appointments, customers) && !isEmpty(appointments)
@@ -69,6 +116,113 @@ class PageDash extends React.Component {
       </div>
     );
 
+    const modalErrorBar = modalError ? (
+      <div
+        style={{ marginBottom: "-5px" }}
+        className="alert alert-danger"
+        role="alert"
+      >
+        {modalError}
+      </div>
+    ) : null;
+
+    const rateCalc = selectedAppt
+      ? selectedAppt.rate.type === "flat"
+        ? (selectedAppt.rate.amount * (1 - adminPercentage)) /
+          selectedAppt.numStaff
+        : selectedAppt.rate.amount * (1 - adminPercentage)
+      : null;
+
+    const staffAssigned =
+      selectedAppt && selectedAppt.staffAssigned
+        ? selectedAppt.staffAssigned
+            .map((uid) => {
+              return users[uid].displayName;
+            })
+            .join(", ")
+        : "None";
+
+    const apptDateMatch =
+      selectedAppt &&
+      new Date().toLocaleDateString(undefined, {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }) === selectedAppt.date;
+
+    const reportForm = apptDateMatch ? (
+      <div>
+        <h6 style={{textAlign: "center"}}>Complete the form below once you have finished.</h6>
+        <Form.Label>Hours Worked</Form.Label>
+        <Form.Control
+          name="hours"
+          onChange={this.handleChange}
+          placeholder="e.g. 1.25"
+          value={hours}
+        />
+        <br />
+        <Form.Label>Report Notes</Form.Label>
+        <Form.Control
+          as="textarea"
+          name="reportNotes"
+          placeholder="Add any information or notes about the appointment or customer here."
+          onChange={this.handleChange}
+          value={reportNotes}
+          rows={2}
+        />
+        <br />
+        <Form.Check
+          type="checkbox"
+          name="checkbox"
+          value={checkbox}
+          onChange={this.handleChange}
+          label="I confirm all staff listed above were present and each worked the number of hours entered above."
+        />
+      </div>
+    ) : null;
+
+    const modalBody = apptKey ? (
+      <Modal.Body>
+        <Form.Row>
+          <Col className="label-column">Date:</Col>
+          <Col>{selectedAppt.date}</Col>
+        </Form.Row>
+        <Form.Row>
+          <Col className="label-column">Address:</Col>
+          <Col>{customers[selectedAppt.customer].address}</Col>
+        </Form.Row>
+        <Form.Row>
+          <Col className="label-column">Customer:</Col>
+          <Col>{customers[selectedAppt.customer].name}</Col>
+        </Form.Row>
+        <Form.Row>
+          <Col className="label-column">
+            Pay Rate:
+            <br />
+            <br />
+          </Col>
+          <Col>
+            ${rateCalc.toFixed(2)} {selectedAppt.rate.type}
+          </Col>
+        </Form.Row>
+        <Form.Row>
+          <Col className="label-column">Staff Assigned:</Col>
+          <Col>{staffAssigned}</Col>
+        </Form.Row>
+        <Form.Row>
+          <Col className="label-column">Number of Staff:</Col>
+          <Col>{selectedAppt.numStaff}</Col>
+        </Form.Row>
+        <br />
+        Notes: <br />
+        {selectedAppt.notes || "None"}
+        <br />
+        <br />
+        {reportForm}
+      </Modal.Body>
+    ) : null;
+
     return (
       <div className="navbar-page">
         <div className="container">
@@ -83,6 +237,32 @@ class PageDash extends React.Component {
             <>
               <h2>My Appointments</h2>
               {table}
+
+              <Modal show={showApptModal} onHide={this.handleModalClose}>
+                <Modal.Header closeButton>
+                  <Modal.Title>Appointment Report</Modal.Title>
+                </Modal.Header>
+                {modalErrorBar}
+                {modalBody}
+                <Modal.Footer>
+                  <Button
+                    variant="secondary"
+                    onClick={this.handleModalClose}
+                    disabled={modalLoading}
+                  >
+                    Cancel
+                  </Button>
+                  {apptDateMatch ? (
+                    <Button
+                      variant="success"
+                      onClick={() => this.completeAppointment(apptKey)}
+                      disabled={modalLoading}
+                    >
+                      Submit Report
+                    </Button>
+                  ) : null}
+                </Modal.Footer>
+              </Modal>
             </>
           )}
         </div>

@@ -467,7 +467,6 @@ class PageAdminAppts extends React.Component {
           inputProps={customerSuggestInputProps}
         />
         <br />
-        {/* TODO make rate 2 inputs for type and amount*/}
         <Form.Label>Rate</Form.Label>
         <Form.Row>
           <Col>

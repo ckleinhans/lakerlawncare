@@ -227,7 +227,7 @@ class PageAvailable extends React.Component {
         <br />
         <br />
         <b>Notes:</b> <br />
-        {selectedAppt.notes}
+        {selectedAppt.notes || "None"}
       </Modal.Body>
     ) : null;
 
