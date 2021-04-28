@@ -166,12 +166,19 @@ class PageAdminAppts extends React.Component {
       if (
         !assignedAppointments ||
         !assignedAppointments[uid] ||
-        !assignedAppointments[uid].includes(key)
+        !assignedAppointments[uid].incomplete ||
+        !assignedAppointments[uid].incomplete.includes(key)
       ) {
-        newAssignedAppointments[uid] =
-          assignedAppointments && assignedAppointments[uid]
-            ? assignedAppointments[uid].concat([key])
+        newAssignedAppointments[uid].incomplete =
+          assignedAppointments &&
+          assignedAppointments[uid] &&
+          assignedAppointments[uid].incomplete
+            ? assignedAppointments[uid].incomplete.concat([key])
             : [key];
+        newAssignedAppointments[uid].completed =
+          assignedAppointments &&
+          assignedAppointments[uid] &&
+          assignedAppointments[uid].completed;
       }
     });
 
@@ -179,12 +186,12 @@ class PageAdminAppts extends React.Component {
     if (assignedAppointments)
       Object.keys(assignedAppointments).forEach((uid) => {
         if (
-          assignedAppointments[uid].includes(key) &&
+          assignedAppointments[uid].incomplete.includes(key) &&
           !staffAssigned.includes(uid)
         ) {
           newAssignedAppointments[uid] = assignedAppointments[uid];
-          newAssignedAppointments[uid].splice(
-            newAssignedAppointments[uid].indexOf(key),
+          newAssignedAppointments[uid].incomplete.splice(
+            newAssignedAppointments[uid].incomplete.indexOf(key),
             1
           );
         }

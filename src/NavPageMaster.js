@@ -187,7 +187,7 @@ export default compose(
   firebaseConnect((props) => [
     { path: `/users`, storeAs: "users" },
     { path: `/customers`, storeAs: "customers" },
-    { path: `/assignedAppointments/${props.isLoggedIn}`, storeAs: "myApptIds" },
+    { path: `/assignedAppointments/${props.isLoggedIn}/incomplete`, storeAs: "myApptIds" },
     { path: `/availableAppointments`, storeAs: "availableApptIds" },
     { path: `/finances/adminPercentage`, storeAs: "adminPercentage" },
   ]),

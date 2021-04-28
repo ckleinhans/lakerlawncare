@@ -75,7 +75,7 @@ class PageAvailable extends React.Component {
         newAssignedStaff,
         () => {
           firebase.set(
-            `/assignedAppointments/${uid}`,
+            `/assignedAppointments/${uid}/incomplete`,
             newAssignedAppts,
             updateAvailableCallback
           );
