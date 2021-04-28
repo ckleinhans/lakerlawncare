@@ -133,6 +133,7 @@ class PageAdminStaff extends React.Component {
             onClick={() => this.removeAdmin(key)}
             disabled={this.state.loading}
             variant="danger"
+            size="sm"
           >
             {this.state.adminKeyLoading === key ? (
               <Spinner
@@ -151,6 +152,7 @@ class PageAdminStaff extends React.Component {
             onClick={() => this.setAdmin(key)}
             disabled={this.state.loading}
             variant="success"
+            size="sm"
           >
             {this.state.adminKeyLoading === key ? (
               <Spinner
@@ -161,7 +163,7 @@ class PageAdminStaff extends React.Component {
                 aria-hidden="true"
               />
             ) : (
-              <span>Add</span>
+              <span>Give</span>
             )}
           </Button>
         );
@@ -171,6 +173,7 @@ class PageAdminStaff extends React.Component {
             onClick={() => this.removeApptUser(key)}
             disabled={this.state.loading}
             variant="danger"
+            size="sm"
           >
             {this.state.apptUsersKeyLoading === key ? (
               <Spinner
@@ -181,7 +184,7 @@ class PageAdminStaff extends React.Component {
                 aria-hidden="true"
               />
             ) : (
-              <span>Remove</span>
+              <span>Undo</span>
             )}
           </Button>
         ) : (
@@ -189,6 +192,7 @@ class PageAdminStaff extends React.Component {
             onClick={() => this.setApptUser(key)}
             disabled={this.state.loading}
             variant="success"
+            size="sm"
           >
             {this.state.apptUsersKeyLoading === key ? (
               <Spinner
@@ -199,7 +203,7 @@ class PageAdminStaff extends React.Component {
                 aria-hidden="true"
               />
             ) : (
-              <span>Add</span>
+              <span>Approve</span>
             )}
           </Button>
         );
@@ -209,15 +213,15 @@ class PageAdminStaff extends React.Component {
             <td>{name}</td>
             <td>{email}</td>
             <td>{phoneNumber}</td>
-            <td>{apptUserButton}</td>
-            <td>{adminButton}</td>
+            <td style={{ textAlign: "center" }}>{apptUserButton}</td>
+            <td style={{ textAlign: "center" }}>{adminButton}</td>
           </tr>
         );
       });
 
       table = (
         <div>
-          View staff and manage permissions from this page.
+          View staff and manage permissions below.
           <div className="table-container">
             <Table striped bordered hover className="page-table">
               <thead>
@@ -225,7 +229,7 @@ class PageAdminStaff extends React.Component {
                   <th>Name</th>
                   <th>Email</th>
                   <th>Phone #</th>
-                  <th>Take Appts?</th>
+                  <th>Approve</th>
                   <th>Admin</th>
                 </tr>
               </thead>
@@ -246,7 +250,7 @@ class PageAdminStaff extends React.Component {
 
     return (
       <div className="navbar-page">
-        <div className="container" style={{ minWidth: 900 }}>
+        <div className="container">
           <h2>Staff List</h2>
           {messageBox}
           {table}
