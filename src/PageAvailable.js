@@ -166,40 +166,43 @@ class PageAvailable extends React.Component {
             })
         : null;
 
-    const table = !isLoaded(
-      users,
-      appointments,
-      availableApptIds,
-      myApptIds,
-      customers
-    ) ? (
-      <div>Loading appointments...</div>
-    ) : !availableApptIds ||
-      isEmpty(
-        availableApptIds.filter((key) => !myApptIds || !myApptIds.includes(key))
-      ) ? (
-      <div>
-        No available appointments found. Stay tuned for future appointments!
-      </div>
-    ) : (
-      <div>
-        Click an appointment to see details and actions.
-        <div className="table-container">
-          <Table striped bordered hover className="page-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Address</th>
-                <th>Name</th>
-                <th>Pay Rate</th>
-                <th>Staff Assigned</th>
-              </tr>
-            </thead>
-            <tbody>{tableContent}</tbody>
-          </Table>
+    const table =
+      !isLoaded(users, availableApptIds, myApptIds, customers) ||
+      (!isLoaded(appointments) && availableApptIds &&
+        !isEmpty(
+          availableApptIds.filter(
+            (key) => !myApptIds || !myApptIds.includes(key)
+          )
+        )) ? (
+        <div>Loading appointments...</div>
+      ) : !availableApptIds ||
+        isEmpty(
+          availableApptIds.filter(
+            (key) => !myApptIds || !myApptIds.includes(key)
+          )
+        ) ? (
+        <div>
+          No available appointments found. Stay tuned for future appointments!
         </div>
-      </div>
-    );
+      ) : (
+        <div>
+          Click an appointment to see details and actions.
+          <div className="table-container">
+            <Table striped bordered hover className="page-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Address</th>
+                  <th>Name</th>
+                  <th>Pay Rate</th>
+                  <th>Staff Assigned</th>
+                </tr>
+              </thead>
+              <tbody>{tableContent}</tbody>
+            </Table>
+          </div>
+        </div>
+      );
 
     const modalErrorBar = modalError ? (
       <div
@@ -316,6 +319,7 @@ class PageAvailable extends React.Component {
 
 const mapStateToProps = (state, props) => {
   return {
+    myApptIds: props.myApptIds ? props.myApptIds.incomplete : props.myApptIds,
     appointments: state.firebase.data.appointments,
   };
 };

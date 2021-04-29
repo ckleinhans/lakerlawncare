@@ -111,29 +111,31 @@ class PageDash extends React.Component {
             })
         : null;
 
-    const table = !isLoaded(users, appointments, customers) ? (
-      <div>Loading appointments...</div>
-    ) : isEmpty(appointments) ? (
-      <div>No appointments found. Go take some from the Available tab!</div>
-    ) : (
-      <div>
-        Click an appointment to see details and actions.
-        <div className="table-container">
-          <Table striped bordered hover className="page-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Address</th>
-                <th>Name</th>
-                <th>Phone #</th>
-                <th>Staff Assigned</th>
-              </tr>
-            </thead>
-            <tbody>{tableContent}</tbody>
-          </Table>
+    const table =
+      !isLoaded(users, customers, myApptIds) ||
+      (!isLoaded(appointments) && !isEmpty(myApptIds)) ? (
+        <div>Loading appointments...</div>
+      ) : isEmpty(myApptIds) ? (
+        <div>No appointments found. Go take some from the Available tab!</div>
+      ) : (
+        <div>
+          Click an appointment to see details and actions.
+          <div className="table-container">
+            <Table striped bordered hover className="page-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Address</th>
+                  <th>Name</th>
+                  <th>Phone #</th>
+                  <th>Staff Assigned</th>
+                </tr>
+              </thead>
+              <tbody>{tableContent}</tbody>
+            </Table>
+          </div>
         </div>
-      </div>
-    );
+      );
 
     const modalErrorBar = modalError ? (
       <div
@@ -318,10 +320,8 @@ class PageDash extends React.Component {
 
 const mapStateToProps = (state, props) => {
   return {
-    appointments:
-      isLoaded(props.myApptIds) && !isEmpty(props.myApptIds)
-        ? state.firebase.data.appointments
-        : null,
+    myApptIds: props.myApptIds ? props.myApptIds.incomplete : props.myApptIds,
+    appointments: state.firebase.data.appointments,
   };
 };
 

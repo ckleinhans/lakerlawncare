@@ -73,7 +73,7 @@ class NavPageMaster extends React.Component {
             users={users}
             customers={customers}
             availableApptIds={availableApptIds}
-            myApptIds={myApptIds ? myApptIds.incomplete : undefined}
+            myApptIds={myApptIds}
             adminPercentage={adminPercentage}
           />
         );
@@ -104,7 +104,7 @@ class NavPageMaster extends React.Component {
           <PageDash
             users={users}
             customers={customers}
-            myApptIds={myApptIds ? myApptIds.incomplete : undefined}
+            myApptIds={myApptIds}
             takeAppts={takeAppts}
             adminPercentage={adminPercentage}
           />
