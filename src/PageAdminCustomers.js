@@ -155,7 +155,7 @@ class PageAdminCustomers extends React.Component {
         const address = customers[key].address;
         const email = customers[key].email;
         const phoneNumber = customers[key].phoneNumber;
-        const rate = customers[key].rate;
+        const rate = customers[key].rate ? `$${customers[key].rate}` : "None";
         const frequency = customers[key].frequency || "None";
         const amountOwed = finances[key] ? finances[key].owed : 0;
         const amountPaid = finances[key] ? finances[key].paid : 0;

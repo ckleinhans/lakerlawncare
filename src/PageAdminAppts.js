@@ -18,6 +18,7 @@ class PageAdminAppts extends React.Component {
       showAddModal: false,
       showEditModal: false,
       modalLoading: false,
+      repeat: false,
       modalError: "",
       date: "",
       customerName: "",
@@ -41,6 +42,7 @@ class PageAdminAppts extends React.Component {
       rateType: appointments[key].rate.type,
       numStaff: appointments[key].numStaff,
       notes: appointments[key].notes,
+      repeat: appointments[key].repeat,
       staffSuggestions: appointments[key].staffAssigned
         ? appointments[key].staffAssigned.map((uid) => {
             return { id: uid, name: users[uid].displayName };
@@ -84,6 +86,7 @@ class PageAdminAppts extends React.Component {
       staffSuggestions,
       rateType,
       notes,
+      repeat,
     } = this.state;
     const customer = Object.keys(customers).find(
       (id) => customers[id].name === customerName
@@ -142,6 +145,7 @@ class PageAdminAppts extends React.Component {
       numStaff: Number(numStaff),
       staffAssigned,
       notes: notes || null,
+      repeat,
     };
 
     // Decide if available status changed & compute potential new available list
@@ -255,6 +259,9 @@ class PageAdminAppts extends React.Component {
 
     this.setState(data);
   };
+
+  handleCheckboxChange = (event) =>
+    this.setState({ [event.target.name]: event.target.checked });
 
   handleAddClose = () => this.setState({ showAddModal: false });
 
@@ -370,6 +377,7 @@ class PageAdminAppts extends React.Component {
       notes,
       customerSuggestions,
       staffSuggestions,
+      repeat,
     } = this.state;
     const { appointments, customers, users } = this.props;
 
@@ -491,6 +499,14 @@ class PageAdminAppts extends React.Component {
           placeholderText="Appointment Date"
         />
         <br />
+        <Form.Check
+          type="checkbox"
+          name="repeat"
+          checked={repeat}
+          onChange={this.handleCheckboxChange}
+          label="Repeat this appointment"
+        />
+        <br />
         <Form.Label>Customer Name</Form.Label>
         <Autosuggest
           suggestions={customerSuggestions}
@@ -566,6 +582,7 @@ class PageAdminAppts extends React.Component {
             onClick={() =>
               this.setState({
                 showAddModal: true,
+                repeat: false,
                 modalError: "",
                 date: "",
                 customerName: "",

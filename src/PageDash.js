@@ -26,6 +26,9 @@ class PageDash extends React.Component {
   handleChange = (event) =>
     this.setState({ [event.target.name]: event.target.value });
 
+  handleCheckboxChange = (event) =>
+    this.setState({ [event.target.name]: event.target.checked });
+
   showDetails = (key) => {
     this.setState({
       showApptModal: true,
@@ -123,7 +126,7 @@ class PageDash extends React.Component {
                 <th>Address</th>
                 <th>Name</th>
                 <th>Phone #</th>
-                <th>Staff</th>
+                <th>Staff Assigned</th>
               </tr>
             </thead>
             <tbody>{tableContent}</tbody>
@@ -193,14 +196,22 @@ class PageDash extends React.Component {
         <Form.Check
           type="checkbox"
           name="checkbox"
-          value={checkbox}
-          onChange={this.handleChange}
+          checked={checkbox}
+          onChange={this.handleCheckboxChange}
           label="I confirm all staff listed above were present and each worked the number of hours entered above."
         />
       </div>
     ) : null;
 
-    const modalBody = apptKey ? (
+    const address = selectedAppt
+      ? customers[selectedAppt.customer].address
+      : null;
+
+    const phoneNumber = selectedAppt
+      ? customers[selectedAppt.customer].phoneNumber
+      : null;
+
+    const modalBody = selectedAppt ? (
       <Modal.Body>
         <Form.Row>
           <Col className="label-column">Date:</Col>
@@ -208,11 +219,27 @@ class PageDash extends React.Component {
         </Form.Row>
         <Form.Row>
           <Col className="label-column">Address:</Col>
-          <Col>{customers[selectedAppt.customer].address}</Col>
+          <Col>
+            {address} (
+            <a
+              href={`http://maps.google.com/?q=${address + " MN"}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Google Maps
+            </a>
+            )
+          </Col>
         </Form.Row>
         <Form.Row>
           <Col className="label-column">Customer:</Col>
           <Col>{customers[selectedAppt.customer].name}</Col>
+        </Form.Row>
+        <Form.Row>
+          <Col className="label-column">Phone Number:</Col>
+          <Col>
+            <a href={`tel:${phoneNumber}`}>{phoneNumber}</a>
+          </Col>
         </Form.Row>
         <Form.Row>
           <Col className="label-column">

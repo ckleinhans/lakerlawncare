@@ -5,6 +5,8 @@ import { connect } from "react-redux";
 import { compose } from "redux";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
+import Form from "react-bootstrap/Form";
+import Col from "react-bootstrap/Col";
 
 class PageAvailable extends React.Component {
   constructor(props) {
@@ -157,8 +159,8 @@ class PageAvailable extends React.Component {
                   <td>{date}</td>
                   <td>{address}</td>
                   <td>{name}</td>
-                  <td>{staffString || "None"}</td>
                   <td>{`$${rateCalc.toFixed(2)} ${rate.type}`}</td>
+                  <td>{staffString || "None"}</td>
                 </tr>
               );
             })
@@ -189,8 +191,8 @@ class PageAvailable extends React.Component {
                 <th>Date</th>
                 <th>Address</th>
                 <th>Name</th>
-                <th>Staff</th>
-                <th>Rate</th>
+                <th>Pay Rate</th>
+                <th>Staff Assigned</th>
               </tr>
             </thead>
             <tbody>{tableContent}</tbody>
@@ -225,23 +227,54 @@ class PageAvailable extends React.Component {
             .join(", ")
         : "None";
 
+    const address = selectedAppt
+      ? customers[selectedAppt.customer].address
+      : null;
+
     const modalBody = apptKey ? (
       <Modal.Body>
-        <b>Date:</b> {selectedAppt.date}
+        <Form.Row>
+          <Col className="label-column">Date:</Col>
+          <Col>{selectedAppt.date}</Col>
+        </Form.Row>
+        <Form.Row>
+          <Col className="label-column">Address:</Col>
+          <Col>
+            {address} (
+            <a
+              href={`http://maps.google.com/?q=${address + " MN"}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Google Maps
+            </a>
+            )
+          </Col>
+        </Form.Row>
+        <Form.Row>
+          <Col className="label-column">Customer:</Col>
+          <Col>{customers[selectedAppt.customer].name}</Col>
+        </Form.Row>
+        <Form.Row>
+          <Col className="label-column">
+            Pay Rate:
+            <br />
+            <br />
+          </Col>
+          <Col>
+            ${rateCalc.toFixed(2)} {selectedAppt.rate.type}
+          </Col>
+        </Form.Row>
+        <Form.Row>
+          <Col className="label-column">Staff Assigned:</Col>
+          <Col>{staffAssigned}</Col>
+        </Form.Row>
+        <Form.Row>
+          <Col className="label-column">Number of Staff:</Col>
+          <Col>{selectedAppt.numStaff}</Col>
+        </Form.Row>
         <br />
-        <b>Address:</b> {customers[selectedAppt.customer].address}
-        <br />
-        <b>Customer:</b> {customers[selectedAppt.customer].name}
-        <br />
-        <b>Pay Rate:</b> ${rateCalc.toFixed(2)} {selectedAppt.rate.type}
-        <br />
-        <br />
-        <b>Staff Assigned:</b> {staffAssigned}
-        <br />
-        <b>Number of Staff:</b> {selectedAppt.numStaff}
-        <br />
-        <br />
-        <b>Notes:</b> <br />
+        Notes: <br />
         {selectedAppt.notes || "None"}
       </Modal.Body>
     ) : null;
