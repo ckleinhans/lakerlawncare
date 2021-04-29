@@ -382,35 +382,61 @@ class PageAdminAppts extends React.Component {
     } else {
       const keys = Object.keys(appointments);
 
-      const tableContent = keys.map((key) => {
-        const customer = customers[appointments[key].customer].name; // This is only uid need to populate the customer
-        const date = appointments[key].date;
-        const rate = `$${appointments[key].rate.amount.toFixed(2)} ${
-          appointments[key].rate.type
-        }`;
-        const numStaff = appointments[key].numStaff;
-        const staffAssigned = appointments[key].staffAssigned
-          ? appointments[key].staffAssigned
-              .map((uid) => {
-                return users[uid].displayName;
-              })
-              .join(", ")
-          : "None";
+      const tableContent = keys
+        .sort((key1, key2) => {
+          if (appointments[key1].complete && !appointments[key2].complete) {
+            return 1;
+          } else if (
+            !appointments[key1].complete &&
+            appointments[key2].complete
+          ) {
+            return -1;
+          } else {
+            return (
+              new Date(appointments[key1].date) -
+              new Date(appointments[key2].date)
+            );
+          }
+        })
+        .map((key) => {
+          const customer = customers[appointments[key].customer].name; // This is only uid need to populate the customer
+          const date = appointments[key].date;
+          const status = appointments[key].complete ? "Complete" : "Incomplete";
+          const rate = `$${appointments[key].rate.amount.toFixed(2)} ${
+            appointments[key].rate.type
+          }`;
+          const numStaff = appointments[key].numStaff;
+          const staffAssigned = appointments[key].staffAssigned
+            ? appointments[key].staffAssigned
+                .map((uid) => {
+                  return users[uid].displayName;
+                })
+                .join(", ")
+            : "None";
 
-        return (
-          <tr
-            key={key}
-            className="clickable-row"
-            onClick={() => this.handleShowEditModal(key)}
-          >
-            <td>{date}</td>
-            <td>{customer}</td>
-            <td>{rate}</td>
-            <td>{numStaff}</td>
-            <td>{staffAssigned}</td>
-          </tr>
-        );
-      });
+          const style =
+            !appointments[key].complete &&
+            new Date(appointments[key].date) - new Date().setHours(0, 0, 0, 0) <
+              0
+              ? { background: "#ffa9a9" }
+              : null;
+
+          return (
+            <tr
+              key={key}
+              className="clickable-row"
+              onClick={() => this.handleShowEditModal(key)}
+              style={style}
+            >
+              <td>{date}</td>
+              <td>{status}</td>
+              <td>{customer}</td>
+              <td>{rate}</td>
+              <td>{numStaff}</td>
+              <td>{staffAssigned}</td>
+            </tr>
+          );
+        });
 
       table = (
         <div>
@@ -420,6 +446,7 @@ class PageAdminAppts extends React.Component {
               <thead>
                 <tr>
                   <th>Date</th>
+                  <th>Status</th>
                   <th>Customer</th>
                   <th>Rate</th>
                   <th># Staff</th>

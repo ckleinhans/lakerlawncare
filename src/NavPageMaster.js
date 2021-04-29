@@ -22,7 +22,7 @@ class NavPageMaster extends React.Component {
     this.state = {
       navState: "dash",
       isAdmin: false,
-      appts: false,
+      takeAppts: false,
     };
     props.firebase
       .auth()
@@ -36,7 +36,7 @@ class NavPageMaster extends React.Component {
           idTokenResult.claims &&
           idTokenResult.claims.appointments === true
         ) {
-          this.setState({ appts: true });
+          this.setState({ takeAppts: true });
         }
       });
   }
@@ -53,14 +53,16 @@ class NavPageMaster extends React.Component {
       myApptIds,
       availableApptIds,
       adminPercentage,
+      firebase,
     } = this.props;
+    const { navState, takeAppts, isAdmin } = this.state;
 
     if (!isLoggedIn) {
       return <Redirect to="/login" />;
     }
 
     let contentSwitch;
-    switch (this.state.navState) {
+    switch (navState) {
       case "profile":
         contentSwitch = <PageProfile />;
         break;
@@ -102,8 +104,8 @@ class NavPageMaster extends React.Component {
           <PageDash
             users={users}
             customers={customers}
-            myApptIds={myApptIds}
-            appts={this.state.appts}
+            myApptIds={myApptIds.incomplete}
+            takeAppts={takeAppts}
             adminPercentage={adminPercentage}
           />
         );
@@ -132,15 +134,15 @@ class NavPageMaster extends React.Component {
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav
               onSelect={this.navUpdate}
-              activeKey={this.state.navState}
+              activeKey={navState}
               className="mr-auto"
             >
               <Nav.Link eventKey="dash">Dashboard</Nav.Link>
-              {this.state.appts ? (
-                <Nav.Link eventKey="available">Appointments</Nav.Link>
+              {takeAppts ? (
+                <Nav.Link eventKey="available">Available</Nav.Link>
               ) : null}
               <Nav.Link eventKey="profile">Profile</Nav.Link>
-              {this.state.isAdmin ? (
+              {isAdmin ? (
                 <NavDropdown title="Admin Panel" id="basic-nav-dropdown">
                   <NavDropdown.Item eventKey="admin-staff">
                     Staff List
@@ -158,10 +160,7 @@ class NavPageMaster extends React.Component {
               ) : null}
             </Nav>
             <Nav>
-              <Button
-                onClick={() => this.props.firebase.logout()}
-                variant="danger"
-              >
+              <Button onClick={() => firebase.logout()} variant="danger">
                 Logout
               </Button>
             </Nav>
@@ -187,7 +186,10 @@ export default compose(
   firebaseConnect((props) => [
     { path: `/users`, storeAs: "users" },
     { path: `/customers`, storeAs: "customers" },
-    { path: `/assignedAppointments/${props.isLoggedIn}/incomplete`, storeAs: "myApptIds" },
+    {
+      path: `/assignedAppointments/${props.isLoggedIn}`,
+      storeAs: "myApptIds",
+    },
     { path: `/availableAppointments`, storeAs: "availableApptIds" },
     { path: `/finances/adminPercentage`, storeAs: "adminPercentage" },
   ]),

@@ -28,9 +28,9 @@ class PageRegister extends React.Component {
       this.setState({ error: "Name must only contain spaces and letters." });
       return;
     }
-    if (!/^([0-9]{10})$/.test(this.state.phoneNumber)) {
+    if (!/^([0-9]{3}-[0-9]{3}-[0-9]{4})$/.test(this.state.phoneNumber)) {
       event.stopPropagation();
-      this.setState({ error: "Phone number must only contain numbers." });
+      this.setState({ error: "Phone number must be formatted as 123-456-7890." });
       return;
     }
     const credentials = {

@@ -113,6 +113,21 @@ class PageAvailable extends React.Component {
       )
         ? Object.keys(appointments)
             .filter((key) => !myApptIds || !myApptIds.includes(key))
+            .sort((key1, key2) => {
+              if (appointments[key1].complete && !appointments[key2].complete) {
+                return 1;
+              } else if (
+                !appointments[key1].complete &&
+                appointments[key2].complete
+              ) {
+                return -1;
+              } else {
+                return (
+                  new Date(appointments[key1].date) -
+                  new Date(appointments[key2].date)
+                );
+              }
+            })
             .map((key) => {
               const {
                 customer,

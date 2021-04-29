@@ -60,12 +60,28 @@ class PageDash extends React.Component {
       customers,
       myApptIds,
       adminPercentage,
+      takeAppts,
     } = this.props;
 
     const tableContent =
       isLoaded(users, appointments, customers) && !isEmpty(appointments)
         ? Object.keys(appointments)
             .filter((key) => myApptIds && myApptIds.includes(key))
+            .sort((key1, key2) => {
+              if (appointments[key1].complete && !appointments[key2].complete) {
+                return 1;
+              } else if (
+                !appointments[key1].complete &&
+                appointments[key2].complete
+              ) {
+                return -1;
+              } else {
+                return (
+                  new Date(appointments[key1].date) -
+                  new Date(appointments[key2].date)
+                );
+              }
+            })
             .map((key) => {
               const { customer, date, staffAssigned } = appointments[key];
               const { address, name, phoneNumber } = customers[customer];
@@ -95,7 +111,7 @@ class PageDash extends React.Component {
     const table = !isLoaded(users, appointments, customers) ? (
       <div>Loading appointments...</div>
     ) : isEmpty(appointments) ? (
-      <div>No appointments found. Go take some from the Appointments tab!</div>
+      <div>No appointments found. Go take some from the Available tab!</div>
     ) : (
       <div>
         Click an appointment to see details and actions.
@@ -153,7 +169,9 @@ class PageDash extends React.Component {
 
     const reportForm = apptDateMatch ? (
       <div>
-        <h6 style={{textAlign: "center"}}>Complete the form below once you have finished.</h6>
+        <h6 style={{ textAlign: "center" }}>
+          Complete the form below once you have finished the appointment.
+        </h6>
         <Form.Label>Hours Worked</Form.Label>
         <Form.Control
           name="hours"
@@ -226,7 +244,7 @@ class PageDash extends React.Component {
     return (
       <div className="navbar-page">
         <div className="container">
-          {!this.props.appts ? (
+          {!takeAppts ? (
             <>
               <h2>Account Pending</h2>
               Thank you for signing up to work for Laker Lawn Care! Your account

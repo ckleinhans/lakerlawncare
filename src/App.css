@@ -11,9 +11,19 @@
 }
 
 /* Css for PageDash appointment modal */
-.label-column {
-  max-width: 130px;
-  text-align: right;
+@media (min-width: 800px) {
+  .label-column {
+    min-width: 130px;
+    max-width: 130px;
+    text-align: right;
+  }
+}
+@media (max-width: 800px) {
+  .label-column {
+    min-width: 130px;
+    max-width: 130px;
+    text-align: right;
+  }
 }
 
 /* Styling for buttons in same row as headers */

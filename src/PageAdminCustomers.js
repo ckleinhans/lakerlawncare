@@ -80,28 +80,28 @@ class PageAdminCustomers extends React.Component {
         modalLoading: false,
       });
     }
-    if (phoneNumber && !/^([0-9]{10})$/.test(phoneNumber)) {
+    if (phoneNumber && !/^([0-9]{3}-[0-9]{3}-[0-9]{4})$/.test(phoneNumber)) {
       return this.setState({
-        modalError: "Phone number must be formatted as 1234567890",
+        modalError: "Phone number must be formatted as 123-456-7890",
         modalLoading: false,
       });
     }
     if (rate && !/^([0-9.]+)$/.test(rate)) {
       return this.setState({
-        modalError: "Phone number must be formatted as 1234567890",
+        modalError: "Rate must be a valid number.",
         modalLoading: false,
       });
     }
     if (frequency && !/^([0-9]+)$/.test(frequency)) {
       return this.setState({
-        modalError: "Phone number must be formatted as 1234567890",
+        modalError: "Frequency must be an integer.",
         modalLoading: false,
       });
     }
 
     const data = {
       name,
-      email: email || null,
+      email: email.toLowerCase() || null,
       address,
       phoneNumber: phoneNumber || null,
       rate: rate || null,
@@ -172,8 +172,8 @@ class PageAdminCustomers extends React.Component {
             <td>{phoneNumber}</td>
             <td>{rate}</td>
             <td>{frequency}</td>
-            <td>{amountOwed}</td>
-            <td>{amountPaid}</td>
+            <td>{`$${amountOwed}`}</td>
+            <td>{`$${amountPaid}`}</td>
           </tr>
         );
       });

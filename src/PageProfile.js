@@ -22,23 +22,33 @@ class PageProfile extends React.Component {
   }
 
   updateProfile = async (event) => {
+    const {
+      displayName,
+      phoneNumber,
+      oldPassword,
+      email,
+      newPassword,
+    } = this.state;
+    const { firebase, profile } = this.props;
     event.preventDefault();
-    if (!/^[a-zA-Z ]+$/.test(this.state.displayName.trim())) {
+    if (!/^[a-zA-Z ]+$/.test(displayName.trim())) {
       event.stopPropagation();
       this.setState({ error: "Name must only contain spaces and letters." });
       return;
     }
-    if (!/^([0-9]{10})$/.test(this.state.phoneNumber)) {
+    if (!/^([0-9]{3}-[0-9]{3}-[0-9]{4})$/.test(phoneNumber)) {
       event.stopPropagation();
-      this.setState({ error: "Phone number must only contain numbers." });
+      this.setState({
+        error: "Phone number must be formatted as 123-456-7890.",
+      });
       return;
     }
     this.setState({ loading: true });
 
-    const user = this.props.firebase.auth().currentUser;
-    const credential = this.props.firebase.auth.EmailAuthProvider.credential(
-      this.props.profile.email,
-      this.state.oldPassword
+    const user = firebase.auth().currentUser;
+    const credential = firebase.auth.EmailAuthProvider.credential(
+      profile.email,
+      oldPassword
     );
     try {
       await user.reauthenticateWithCredential(credential);
@@ -50,21 +60,21 @@ class PageProfile extends React.Component {
 
     const updates = {};
     updates[`/users/${user.uid}`] = {
-      displayName: this.state.displayName,
-      email: this.state.email,
-      phoneNumber: this.state.phoneNumber,
+      displayName,
+      email,
+      phoneNumber,
     };
 
-    this.props.firebase.update("/", updates, async (error) => {
+    firebase.update("/", updates, async (error) => {
       if (error) {
         this.setState({ error: error.message, loading: false });
       } else {
         try {
-          if (this.state.email !== this.props.profile.email) {
+          if (email !== profile.email) {
             await user.updateEmail("user@example.com");
           }
-          if (this.state.newPassword !== "") {
-            await user.updatePassword(this.state.newPassword);
+          if (newPassword !== "") {
+            await user.updatePassword(newPassword);
           }
           this.setState({ profileUpdated: true, loading: false });
         } catch (error) {
@@ -79,13 +89,23 @@ class PageProfile extends React.Component {
   };
 
   render() {
-    const disable = !this.state.oldPassword.trim();
+    const { profile } = this.props;
+    const {
+      displayName,
+      phoneNumber,
+      oldPassword,
+      email,
+      newPassword,
+      error,
+      loading,
+      profileUpdated,
+    } = this.state;
 
-    const errorBar = this.state.error ? (
-      <Alert variant="danger">{this.state.error}</Alert>
-    ) : null;
+    const disable = !oldPassword.trim();
 
-    const buttonContent = this.state.loading ? (
+    const errorBar = error ? <Alert variant="danger">{error}</Alert> : null;
+
+    const buttonContent = loading ? (
       <Button variant="primary" size="md" disabled>
         <Spinner
           as="span"
@@ -101,7 +121,7 @@ class PageProfile extends React.Component {
       </Button>
     );
 
-    const formContent = this.state.profileUpdated ? (
+    const formContent = profileUpdated ? (
       <div>Profile successfully updated.</div>
     ) : (
       <div>
@@ -111,7 +131,7 @@ class PageProfile extends React.Component {
             type="password"
             placeholder="Current password"
             onChange={this.handleInputChange}
-            value={this.state.oldPassword}
+            value={oldPassword}
           />
         </Form.Group>
         <Form.Group controlId="displayName">
@@ -121,7 +141,7 @@ class PageProfile extends React.Component {
             placeholder="Full Name"
             disabled={disable}
             onChange={this.handleInputChange}
-            value={this.state.displayName}
+            value={displayName}
           />
         </Form.Group>
         <Form.Group controlId="phoneNumber">
@@ -131,7 +151,7 @@ class PageProfile extends React.Component {
             placeholder="Full Name"
             disabled={disable}
             onChange={this.handleInputChange}
-            value={this.state.phoneNumber}
+            value={phoneNumber}
           />
         </Form.Group>
         <Form.Group controlId="email">
@@ -141,7 +161,7 @@ class PageProfile extends React.Component {
             placeholder="Email address"
             disabled={disable}
             onChange={this.handleInputChange}
-            value={this.state.email}
+            value={email}
           />
         </Form.Group>
         <Form.Group controlId="newPassword">
@@ -151,7 +171,7 @@ class PageProfile extends React.Component {
             placeholder="New Password"
             disabled={disable}
             onChange={this.handleInputChange}
-            value={this.state.newPassword}
+            value={newPassword}
           />
           <Form.Text className="text-muted">
             Leave this blank to keep your old password.
@@ -165,11 +185,11 @@ class PageProfile extends React.Component {
       <div className="navbar-page">
         <div className="container">
           <h2>My Profile</h2>
-          Name: {this.props.profile.displayName}
+          Name: {profile.displayName}
           <br />
-          Email address: {this.props.profile.email}
+          Email address: {profile.email}
           <br />
-          Phone number: {this.props.profile.phoneNumber}
+          Phone number: {profile.phoneNumber}
           <br />
           <br />
           <Form onSubmit={this.updateProfile}>
