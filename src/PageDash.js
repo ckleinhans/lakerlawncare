@@ -69,22 +69,17 @@ class PageDash extends React.Component {
     const tableContent =
       isLoaded(users, appointments, customers) && !isEmpty(appointments)
         ? Object.keys(appointments)
-            .filter((key) => myApptIds && myApptIds.includes(key))
-            .sort((key1, key2) => {
-              if (appointments[key1].complete && !appointments[key2].complete) {
-                return 1;
-              } else if (
-                !appointments[key1].complete &&
-                appointments[key2].complete
-              ) {
-                return -1;
-              } else {
-                return (
-                  new Date(appointments[key1].date) -
-                  new Date(appointments[key2].date)
-                );
-              }
-            })
+            .filter(
+              (key) =>
+                myApptIds &&
+                myApptIds.incomplete &&
+                myApptIds.incomplete.includes(key)
+            )
+            .sort(
+              (key1, key2) =>
+                new Date(appointments[key1].date) -
+                new Date(appointments[key2].date)
+            )
             .map((key) => {
               const { customer, date, staffAssigned } = appointments[key];
               const { address, name, phoneNumber } = customers[customer];

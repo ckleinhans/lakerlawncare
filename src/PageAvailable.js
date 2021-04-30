@@ -111,13 +111,20 @@ class PageAvailable extends React.Component {
       isLoaded(users, appointments, availableApptIds, myApptIds, customers) &&
       availableApptIds &&
       !isEmpty(
-        availableApptIds.filter((key) => !myApptIds || !myApptIds.includes(key))
+        availableApptIds.filter(
+          (key) =>
+            !myApptIds ||
+            !myApptIds.incomplete ||
+            !myApptIds.incomplete.includes(key)
+        )
       )
         ? Object.keys(appointments)
             .filter(
               (key) =>
                 availableApptIds.includes(key) &&
-                (!myApptIds || !myApptIds.includes(key))
+                (!myApptIds ||
+                  !myApptIds.incomplete ||
+                  !myApptIds.incomplete.includes(key))
             )
             .sort((key1, key2) => {
               if (appointments[key1].complete && !appointments[key2].complete) {
