@@ -114,7 +114,11 @@ class PageAvailable extends React.Component {
         availableApptIds.filter((key) => !myApptIds || !myApptIds.includes(key))
       )
         ? Object.keys(appointments)
-            .filter((key) => !myApptIds || !myApptIds.includes(key))
+            .filter(
+              (key) =>
+                availableApptIds.includes(key) &&
+                (!myApptIds || !myApptIds.includes(key))
+            )
             .sort((key1, key2) => {
               if (appointments[key1].complete && !appointments[key2].complete) {
                 return 1;
@@ -168,7 +172,8 @@ class PageAvailable extends React.Component {
 
     const table =
       !isLoaded(users, availableApptIds, myApptIds, customers) ||
-      (!isLoaded(appointments) && availableApptIds &&
+      (!isLoaded(appointments) &&
+        availableApptIds &&
         !isEmpty(
           availableApptIds.filter(
             (key) => !myApptIds || !myApptIds.includes(key)
@@ -330,7 +335,9 @@ export default compose(
     !isEmpty(props.availableApptIds)
       ? props.availableApptIds
           .filter(
-            (apptId) => !props.myApptIds || !props.myApptIds.includes(apptId)
+            (apptId) =>
+              !props.myApptIds.incomplete ||
+              !props.myApptIds.incomplete.includes(apptId)
           )
           .map((apptId) => {
             return {

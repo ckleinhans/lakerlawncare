@@ -22,44 +22,49 @@ class PageRegister extends React.Component {
   };
 
   register = async (event) => {
+    const { displayName, email, phoneNumber, password } = this.state;
+    const { firebase } = this.props;
     event.preventDefault();
-    if (!/^[a-zA-Z ]+$/.test(this.state.displayName.trim())) {
+    if (!/^[a-zA-Z ]+$/.test(displayName.trim())) {
       event.stopPropagation();
       this.setState({ error: "Name must only contain spaces and letters." });
       return;
     }
-    if (!/^([0-9]{3}-[0-9]{3}-[0-9]{4})$/.test(this.state.phoneNumber)) {
+    if (!/^([0-9]{3}-[0-9]{3}-[0-9]{4})$/.test(phoneNumber)) {
       event.stopPropagation();
-      this.setState({ error: "Phone number must be formatted as 123-456-7890." });
+      this.setState({
+        error: "Phone number must be formatted as 123-456-7890.",
+      });
       return;
     }
     const credentials = {
-      email: this.state.email,
-      password: this.state.password,
+      email: email.toLowerCase(),
+      password,
     };
 
     const profile = {
-      email: this.state.email,
-      displayName: this.state.displayName,
-      phoneNumber: this.state.phoneNumber,
-      appointments: [],
+      email: email.toLowerCase(),
+      displayName,
+      phoneNumber,
     };
 
     try {
-      await this.props.firebase.createUser(credentials, profile);
+      await firebase.createUser(credentials, profile);
     } catch (error) {
       this.setState({ error: error.message });
     }
   };
 
   render() {
-    if (this.props.isLoggedIn) {
+    const { isLoggedIn } = this.props;
+    const { error, displayName, email, phoneNumber, password } = this.state;
+    if (isLoggedIn) {
       return <Redirect to="/dashboard" />;
     }
 
-    const errorBar = this.state.error ? (
+    const errorBar = error ? (
       <div class="alert alert-danger" role="alert">
-        {this.state.error}
+        {error}
       </div>
     ) : null;
 
@@ -73,26 +78,26 @@ class PageRegister extends React.Component {
             name="displayName"
             onChange={this.handleInputChange}
             placeholder="Full Name"
-            value={this.state.displayName}
+            value={displayName}
           />
           <Form.Control
             name="phoneNumber"
             onChange={this.handleInputChange}
             placeholder="Phone number"
-            value={this.state.phoneNumber}
+            value={phoneNumber}
           />
           <Form.Control
             name="email"
             onChange={this.handleInputChange}
             placeholder="Email address"
-            value={this.state.email}
+            value={email}
           />
           <Form.Control
             name="password"
             type="password"
             onChange={this.handleInputChange}
             placeholder="Password"
-            value={this.state.password}
+            value={password}
           />
           <Button variant="primary" size="lg" block type="submit">
             Register

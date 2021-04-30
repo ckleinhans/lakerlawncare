@@ -58,22 +58,21 @@ class PageProfile extends React.Component {
       return;
     }
 
-    const updates = {};
-    updates[`/users/${user.uid}`] = {
+    const updates = {
       displayName,
-      email,
+      email: email.toLowerCase(),
       phoneNumber,
     };
 
-    firebase.update("/", updates, async (error) => {
+    firebase.update(`/users/${user.uid}`, updates, async (error) => {
       if (error) {
         this.setState({ error: error.message, loading: false });
       } else {
         try {
           if (email !== profile.email) {
-            await user.updateEmail("user@example.com");
+            await user.updateEmail(email);
           }
-          if (newPassword !== "") {
+          if (newPassword) {
             await user.updatePassword(newPassword);
           }
           this.setState({ profileUpdated: true, loading: false });

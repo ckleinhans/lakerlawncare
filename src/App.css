@@ -20,8 +20,8 @@
 }
 @media (max-width: 800px) {
   .label-column {
-    min-width: 130px;
-    max-width: 130px;
+    min-width: 133px;
+    max-width: 133px;
     text-align: right;
   }
 }

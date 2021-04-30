@@ -424,8 +424,7 @@ class PageAdminAppts extends React.Component {
 
           const style =
             !appointments[key].complete &&
-            new Date(appointments[key].date) - new Date().setHours(0, 0, 0, 0) <
-              0
+            new Date(appointments[key].date) < new Date().setHours(0, 0, 0, 0)
               ? { background: "#ffa9a9" }
               : null;
 
@@ -534,7 +533,6 @@ class PageAdminAppts extends React.Component {
               onChange={this.handleChange}
               value={rateType}
             >
-              <option disabled>Select</option>
               <option>flat</option>
               <option>hourly</option>
             </Form.Control>
@@ -587,7 +585,7 @@ class PageAdminAppts extends React.Component {
                 date: "",
                 customerName: "",
                 rate: "",
-                rateType: "Select",
+                rateType: "flat",
                 numStaff: "",
                 notes: "",
                 staffSuggestions: [],
