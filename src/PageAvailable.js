@@ -44,7 +44,10 @@ class PageAvailable extends React.Component {
         ? [uid].concat(appt.staffAssigned)
         : [uid];
 
-      const newAssignedAppts = myApptIds ? [key].concat(myApptIds) : [key];
+      const newAssignedAppts =
+        myApptIds && myApptIds.incomplete
+          ? [key].concat(myApptIds.incomplete)
+          : [key];
 
       const updateAvailableCallback =
         newAssignedStaff.length < appt.numStaff
@@ -183,14 +186,20 @@ class PageAvailable extends React.Component {
         availableApptIds &&
         !isEmpty(
           availableApptIds.filter(
-            (key) => !myApptIds || !myApptIds.includes(key)
+            (key) =>
+              !myApptIds ||
+              !myApptIds.incomplete ||
+              !myApptIds.incomplete.includes(key)
           )
         )) ? (
         <div>Loading appointments...</div>
       ) : !availableApptIds ||
         isEmpty(
           availableApptIds.filter(
-            (key) => !myApptIds || !myApptIds.includes(key)
+            (key) =>
+              !myApptIds ||
+              !myApptIds.incomplete ||
+              !myApptIds.incomplete.includes(key)
           )
         ) ? (
         <div>
@@ -331,7 +340,7 @@ class PageAvailable extends React.Component {
 
 const mapStateToProps = (state, props) => {
   return {
-    myApptIds: props.myApptIds ? props.myApptIds.incomplete : props.myApptIds,
+    myApptIds: props.myApptIds,
     appointments: state.firebase.data.appointments,
   };
 };

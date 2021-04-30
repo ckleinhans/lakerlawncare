@@ -41,8 +41,48 @@ class PageDash extends React.Component {
     });
   };
 
-  // TODO
-  completeAppointment = () => {};
+  completeAppointment = async () => {
+    const { apptKey, hours, reportNotes, checkbox } = this.state;
+
+    // input validation
+    if (!/^([0-9.]+)$/.test(hours)) {
+      return this.setState({
+        modalError: "Hours worked must be a number.",
+        modalLoading: false,
+      });
+    }
+    if (!checkbox) {
+      return this.setState({
+        modalError:
+          "You must confirm the information by checking the checkbox.",
+        modalLoading: false,
+      });
+    }
+
+    this.setState({ modalLoading: true, modalError: "" });
+    const completeAppointment = this.props.firebase
+      .functions()
+      .httpsCallable("completeAppointment");
+    try {
+      const result = await completeAppointment({ apptKey, hours, reportNotes });
+      if (result.data.error) {
+        this.setState({
+          modalLoading: false,
+          modalError: result.data.message,
+        });
+      } else {
+        this.setState({
+          modalLoading: false,
+          showApptModal: false,
+        });
+      }
+    } catch (error) {
+      this.setState({
+        modalLoading: false,
+        modalError: error.toString(),
+      });
+    }
+  };
 
   handleModalClose = () => this.setState({ showApptModal: false });
 
@@ -69,7 +109,12 @@ class PageDash extends React.Component {
     const tableContent =
       isLoaded(users, appointments, customers) && !isEmpty(appointments)
         ? Object.keys(appointments)
-            .filter((key) => myApptIds && myApptIds.includes(key))
+            .filter(
+              (key) =>
+                myApptIds &&
+                myApptIds.incomplete &&
+                myApptIds.incomplete.includes(key)
+            )
             .sort(
               (key1, key2) =>
                 new Date(appointments[key1].date) -
@@ -103,9 +148,9 @@ class PageDash extends React.Component {
 
     const table =
       !isLoaded(users, customers, myApptIds) ||
-      (!isLoaded(appointments) && !isEmpty(myApptIds)) ? (
+      (!isLoaded(appointments) && !isEmpty(myApptIds.incomplete)) ? (
         <div>Loading appointments...</div>
-      ) : isEmpty(myApptIds) ? (
+      ) : isEmpty(myApptIds.incomplete) ? (
         <div>No appointments found. Go take some from the Available tab!</div>
       ) : (
         <div>
@@ -155,7 +200,7 @@ class PageDash extends React.Component {
 
     const apptDateMatch =
       selectedAppt &&
-      new Date().toLocaleDateString(undefined, {
+      new Date().toLocaleDateString("en-US", {
         weekday: "short",
         year: "numeric",
         month: "short",
@@ -310,14 +355,15 @@ class PageDash extends React.Component {
 
 const mapStateToProps = (state, props) => {
   return {
-    myApptIds: props.myApptIds ? props.myApptIds.incomplete : props.myApptIds,
+    myApptIds: props.myApptIds,
     appointments: state.firebase.data.appointments,
   };
 };
 
 export default compose(
   firebaseConnect((props) =>
-    isLoaded(props.myApptIds) && !isEmpty(props.myApptIds)
+    isLoaded(props.myApptIds) &&
+    !isEmpty(props.myApptIds, props.myApptIds.incomplete)
       ? props.myApptIds.incomplete.map((apptId) => {
           return {
             path: `/appointments/${apptId}`,

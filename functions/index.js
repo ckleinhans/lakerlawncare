@@ -17,7 +17,7 @@ exports.addAdminRole = functions.https.onCall(async (data, context) => {
       // set admin custom claim to true
       claims.admin = true;
       // get admin list in database
-      const admins = await (await admin.database().ref("/admins/").get()).val();
+      const admins = (await admin.database().ref("/admins/").get()).val();
       // add new uid to list
       admins.push(user.uid);
       // push updated user claims
@@ -60,7 +60,7 @@ exports.removeAdminRole = functions.https.onCall(async (data, context) => {
       // set admin custom claim to true
       claims.admin = false;
       // get admin list in database
-      const admins = await (await admin.database().ref("/admins/").get()).val();
+      const admins = (await admin.database().ref("/admins/").get()).val();
       // add new uid to list
       admins.splice(admins.indexOf(user.uid), 1);
       // set admin user claim
@@ -130,7 +130,7 @@ exports.removeAppointmentsRole = functions.https.onCall(
       const caller = await admin.auth().getUser(context.auth.uid);
       if (caller.customClaims && caller.customClaims.admin === true) {
         // get admin list in database, if last user, prevent removal
-        const appointmentUsers = await (
+        const appointmentUsers = (
           await admin.database().ref("/appointmentUsers/").get()
         ).val();
         if (appointmentUsers.length <= 1) {
@@ -173,11 +173,15 @@ exports.removeAppointmentsRole = functions.https.onCall(
 
 exports.completeAppointment = functions.https.onCall(async (data, context) => {
   try {
-    // Get user
-    const caller = await admin.auth().getUser(context.auth.uid);
     // Get appointment
-    const apptRef = admin.database.ref(`/appointments/${data.apptKey}`);
-    const appt = await (await apptRef.get()).val();
+    const apptRef = admin.database().ref(`/appointments/${data.apptKey}`);
+    const appt = (await apptRef.get()).val();
+
+    // Update numStaff to current num assigned staff & add reportNotes
+    const newNumStaff = appt.staffAssigned.length;
+    const numHours = data.hours;
+    const reportNotes = data.reportNotes;
+
     // If user not assigned to appt, return error
     if (!appt.staffAssigned.includes(context.auth.uid)) {
       return {
@@ -186,33 +190,144 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
       };
     }
     // If appt not todays date, return error
-    if (new Date(appt.date) !== new Date().setHours(0, 0, 0, 0)) {
+    if (
+      appt.date !==
+      new Date().toLocaleDateString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    ) {
       return {
         error: true,
         message: "Error: This appointment is not scheduled for today.",
       };
     }
+    // If appt already complete, return error
+    if (appt.complete) {
+      return {
+        error: true,
+        message: "Error: This appointment has already been completed.",
+      };
+    }
 
-    // Change appt status to complete
-    await apptRef.set({ ...appt, completed: true });
+    const amount =
+      appt.rate.type === "hourly"
+        ? appt.rate.amount * newNumStaff * data.hours
+        : appt.rate.amount;
 
-    // For each staff, move appt from incomplete to complete
-    appt.staffAssigned.array.forEach(staffId => {
-      const assignedApptRef = admin.database.ref(`/assignedAppointments/${staffId}`);
-      const assignedAppts = await (await assignedApptRef.get()).val();
-      assignedAppts.incomplete.splice(assignedAppts.incomplete.indexOf(data.apptKey), 1);
+    const date = new Date().toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+
+    // Write customer finance transaction they owe
+    const custFinanceRef = admin
+      .database()
+      .ref(`/finances/customers/${appt.customer}`);
+    custFinanceRef.push({
+      date,
+      amount,
+      appointment: data.apptKey,
+      description: `Owed from appointment with rate $${appt.rate.amount} ${appt.rate.type}.`,
+      complete: false,
+    });
+
+    // Compute staff rate using numStaff and the admin percentage
+    const adminPercentage = (
+      await admin.database().ref("/finances/adminPercentage").get()
+    ).val();
+    const staffAmount =
+      appt.rate.type === "hourly"
+        ? appt.rate.amount * data.hours * (1 - adminPercentage)
+        : (appt.rate.amount / newNumStaff) * (1 - adminPercentage);
+
+    // For each staff, move appt from incomplete to complete and write amount they are owed in finances
+    await appt.staffAssigned.forEach(async (staffId) => {
+      const assignedApptRef = admin
+        .database()
+        .ref(`/assignedAppointments/${staffId}`);
+      const assignedAppts = (await assignedApptRef.get()).val();
+
+      assignedAppts.incomplete.splice(
+        assignedAppts.incomplete.indexOf(data.apptKey),
+        1
+      );
       if (assignedAppts.complete) {
-        assignedAppts.complete.push(data.apptKey)
+        assignedAppts.complete.push(data.apptKey);
       } else {
         assignedAppts.complete = [data.apptKey];
       }
       await assignedApptRef.set(assignedAppts);
+
+      const staffFinanceRef = admin
+        .database()
+        .ref(`/finances/staff/${staffId}`);
+      staffFinanceRef.push({
+        date,
+        amount: staffAmount,
+        appointment: data.apptKey,
+        description: `Owed from appointment with rate $${appt.rate.amount} ${appt.rate.type}.`,
+        complete: false,
+      });
     });
 
-    // Write customer finances they owe
-    const custfinanceRef = admin.database.ref(`/finances/${appt.customer}`);
+    // If appt is listed as available, remove it from available list
+    const availableApptsRef = admin.database().ref("/availableAppointments");
+    const availableAppts = (await availableApptsRef.get()).val();
+    if (availableAppts && availableAppts.includes(data.apptKey)) {
+      availableAppts.splice(availableAppts.indexOf(data.apptKey), 1);
+      await availableApptsRef.set(availableAppts);
+    }
 
+    // Change appt status to complete
+    await apptRef.update({
+      numStaff: newNumStaff,
+      numHours,
+      reportNotes,
+      complete: true,
+    });
+
+    // Create new appt if repeat flag is set
+    if (appt.repeat) {
+      const custFreq = (
+        await admin
+          .database()
+          .ref(`/customers/${appt.customer}/frequency`)
+          .get()
+      ).val();
+      if (custFreq) {
+        // Update appt date using customer frequency & clear assigned staff
+        const apptDate = new Date(appt.date);
+        apptDate.setDate(apptDate.getDate() + Number(custFreq));
+        appt.date = apptDate.toLocaleDateString("en-US", {
+          weekday: "short",
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+        appt.staffAssigned = null;
+        const apptsRef = admin.database().ref("/appointments");
+        const newApptKey = (await apptsRef.push()).key;
+        // Push the new appt
+        apptsRef.child(newApptKey).set({ ...appt });
+
+        // Add the new appt to the list of available appts
+        availableAppts.push(newApptKey);
+        await availableApptsRef.set(availableAppts);
+      }
+    }
+
+    return { error: false };
   } catch (error) {
-    return error;
+    return {
+      error: true,
+      message: error.toString(),
+    };
   }
 });
