@@ -328,7 +328,7 @@ const mapStateToProps = (state, props) => {
 export default compose(
   firebaseConnect((props) =>
     isLoaded(props.myApptIds) && !isEmpty(props.myApptIds)
-      ? props.myApptIds.map((apptId) => {
+      ? props.myApptIds.incomplete.map((apptId) => {
           return {
             path: `/appointments/${apptId}`,
           };
