@@ -336,6 +336,7 @@ export default compose(
       ? props.availableApptIds
           .filter(
             (apptId) =>
+              !props.myApptIds ||
               !props.myApptIds.incomplete ||
               !props.myApptIds.incomplete.includes(apptId)
           )
