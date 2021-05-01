@@ -7,6 +7,7 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
+import Spinner from "react-bootstrap/Spinner";
 
 class PageDash extends React.Component {
   constructor(props) {
@@ -55,6 +56,20 @@ class PageDash extends React.Component {
       return this.setState({
         modalError:
           "You must confirm the information by checking the checkbox.",
+        modalLoading: false,
+      });
+    }
+    if (
+      appointments[key1].date !==
+      new Date().toLocaleDateString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    ) {
+      return this.setState({
+        modalError: "Error: This appointment is not scheduled for today.",
         modalLoading: false,
       });
     }
@@ -148,9 +163,11 @@ class PageDash extends React.Component {
 
     const table =
       !isLoaded(users, customers, myApptIds) ||
-      (!isLoaded(appointments) && !isEmpty(myApptIds.incomplete)) ? (
+      (!isLoaded(appointments) &&
+        myApptIds &&
+        !isEmpty(myApptIds.incomplete)) ? (
         <div>Loading appointments...</div>
-      ) : isEmpty(myApptIds.incomplete) ? (
+      ) : !myApptIds || isEmpty(myApptIds.incomplete) ? (
         <div>No appointments found. Go take some from the Available tab!</div>
       ) : (
         <div>
@@ -340,7 +357,17 @@ class PageDash extends React.Component {
                       onClick={() => this.completeAppointment(apptKey)}
                       disabled={modalLoading}
                     >
-                      Submit Report
+                      {modalLoading ? (
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        "Submit Report"
+                      )}
                     </Button>
                   ) : null}
                 </Modal.Footer>
@@ -363,7 +390,8 @@ const mapStateToProps = (state, props) => {
 export default compose(
   firebaseConnect((props) =>
     isLoaded(props.myApptIds) &&
-    !isEmpty(props.myApptIds, props.myApptIds.incomplete)
+    !isEmpty(props.myApptIds) &&
+    !isEmpty(props.myApptIds.incomplete)
       ? props.myApptIds.incomplete.map((apptId) => {
           return {
             path: `/appointments/${apptId}`,

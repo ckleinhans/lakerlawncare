@@ -190,20 +190,17 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
       };
     }
     // If appt not todays date, return error
-    if (
-      appt.date !==
+    console.log(appt.date);
+    console.log(
       new Date().toLocaleDateString("en-US", {
         weekday: "short",
         year: "numeric",
         month: "short",
         day: "numeric",
       })
-    ) {
-      return {
-        error: true,
-        message: "Error: This appointment is not scheduled for today.",
-      };
-    }
+    );
+    // Had date check before, but dates weren't lining up correctly for some reason
+
     // If appt already complete, return error
     if (appt.complete) {
       return {

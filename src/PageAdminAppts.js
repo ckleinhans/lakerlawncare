@@ -77,6 +77,7 @@ class PageAdminAppts extends React.Component {
       availableApptIds,
       assignedAppointments,
       firebase,
+      appointments,
     } = this.props;
     const {
       date,
@@ -93,6 +94,12 @@ class PageAdminAppts extends React.Component {
     );
     const staffAssigned = staffSuggestions.map((suggestion) => suggestion.id);
 
+    if (appointments[key] && appointments[key].complete) {
+      return this.setState({
+        modalError: "This appointment is already complete.",
+        modalLoading: false,
+      });
+    }
     if (!date) {
       return this.setState({
         modalError: "Date is required.",
@@ -131,7 +138,7 @@ class PageAdminAppts extends React.Component {
     }
 
     const data = {
-      date: date.toLocaleDateString('en-US', {
+      date: date.toLocaleDateString("en-US", {
         weekday: "short",
         year: "numeric",
         month: "short",
@@ -187,7 +194,8 @@ class PageAdminAppts extends React.Component {
     if (assignedAppointments)
       Object.keys(assignedAppointments).forEach((uid) => {
         if (
-          assignedAppointments[uid].incomplete && assignedAppointments[uid].incomplete.includes(key) &&
+          assignedAppointments[uid].incomplete &&
+          assignedAppointments[uid].incomplete.includes(key) &&
           !staffAssigned.includes(uid)
         ) {
           newAssignedAppointments[uid] = assignedAppointments[uid];
@@ -375,6 +383,7 @@ class PageAdminAppts extends React.Component {
       customerSuggestions,
       staffSuggestions,
       repeat,
+      key,
     } = this.state;
     const { appointments, customers, users } = this.props;
 
@@ -474,15 +483,18 @@ class PageAdminAppts extends React.Component {
       </div>
     ) : null;
 
+    const disableForm = key && appointments[key].complete;
+
     const customerSuggestInputProps = {
       placeholder: "Customer Name",
       value: customerName,
       name: "customerName",
+      disabled: disableForm,
       onBlur: () => this.handleCustomerReset(),
       onChange: (e, { newValue }) => this.handleCustomerChange(e, newValue),
     };
 
-    const staffNameSuggestions = Object.keys(users).map((key) => {
+    const staffNameSuggestions = users && Object.keys(users).map((key) => {
       return { id: key, name: users[key].displayName };
     });
 
@@ -493,6 +505,7 @@ class PageAdminAppts extends React.Component {
           selected={date}
           onChange={(date) => this.setState({ date })}
           placeholderText="Appointment Date"
+          disabled={disableForm}
         />
         <br />
         <Form.Check
@@ -501,6 +514,7 @@ class PageAdminAppts extends React.Component {
           checked={repeat}
           onChange={this.handleCheckboxChange}
           label="Repeat this appointment"
+          disabled={disableForm}
         />
         <br />
         <Form.Label>Customer Name</Form.Label>
@@ -511,6 +525,7 @@ class PageAdminAppts extends React.Component {
           getSuggestionValue={this.getSuggestionValue}
           renderSuggestion={this.renderSuggestion}
           inputProps={customerSuggestInputProps}
+          disabled={disableForm}
         />
         <br />
         <Form.Label>Rate</Form.Label>
@@ -521,6 +536,7 @@ class PageAdminAppts extends React.Component {
               onChange={this.handleChange}
               placeholder="Amount ($)"
               value={rate}
+              disabled={disableForm}
             />
           </Col>
           <Col>
@@ -529,6 +545,7 @@ class PageAdminAppts extends React.Component {
               name="rateType"
               onChange={this.handleChange}
               value={rateType}
+              disabled={disableForm}
             >
               <option>flat</option>
               <option>hourly</option>
@@ -542,6 +559,7 @@ class PageAdminAppts extends React.Component {
           onChange={this.handleChange}
           placeholder="# Staff"
           value={numStaff}
+          disabled={disableForm}
         />
         <br />
         <Form.Label>Staff Assigned</Form.Label>
@@ -563,6 +581,7 @@ class PageAdminAppts extends React.Component {
           onChange={this.handleChange}
           value={notes}
           rows={2}
+          disabled={disableForm}
         />
       </Modal.Body>
     );
@@ -585,6 +604,7 @@ class PageAdminAppts extends React.Component {
                 rateType: "flat",
                 numStaff: "",
                 notes: "",
+                key: "",
                 staffSuggestions: [],
               })
             }
@@ -631,13 +651,15 @@ class PageAdminAppts extends React.Component {
               >
                 Cancel
               </Button>
-              <Button
-                variant="primary"
-                onClick={() => this.editAppointment(this.state.key)}
-                disabled={modalLoading}
-              >
-                Save Changes
-              </Button>
+              {disableForm ? null : (
+                <Button
+                  variant="primary"
+                  onClick={() => this.editAppointment(this.state.key)}
+                  disabled={modalLoading}
+                >
+                  Save Changes
+                </Button>
+              )}
             </Modal.Footer>
           </Modal>
         </div>
