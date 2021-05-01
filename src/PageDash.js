@@ -45,6 +45,7 @@ class PageDash extends React.Component {
   completeAppointment = async () => {
     const { apptKey, hours, reportNotes, checkbox } = this.state;
     const { appointments } = this.props;
+    this.setState({ modalLoading: true, modalError: "" });
 
     // input validation
     if (!/^([0-9.]+)$/.test(hours)) {
@@ -75,12 +76,25 @@ class PageDash extends React.Component {
       });
     }
 
-    this.setState({ modalLoading: true, modalError: "" });
+    const date = new Date().toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+
     const completeAppointment = this.props.firebase
       .functions()
       .httpsCallable("completeAppointment");
     try {
-      const result = await completeAppointment({ apptKey, hours, reportNotes });
+      const result = await completeAppointment({
+        apptKey,
+        hours,
+        reportNotes,
+        date,
+      });
       if (result.data.error) {
         this.setState({
           modalLoading: false,

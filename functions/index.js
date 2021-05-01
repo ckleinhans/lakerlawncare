@@ -189,17 +189,9 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
         message: "Error: You are not assigned to this appointment.",
       };
     }
-    // If appt not todays date, return error
-    console.log(appt.date);
-    console.log(
-      new Date().toLocaleDateString("en-US", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
-    );
+    
     // Had date check before, but dates weren't lining up correctly for some reason
+    // Date is now checked on PageDash before function call
 
     // If appt already complete, return error
     if (appt.complete) {
@@ -214,21 +206,12 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
         ? appt.rate.amount * newNumStaff * data.hours
         : appt.rate.amount;
 
-    const date = new Date().toLocaleDateString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-
     // Write customer finance transaction they owe
     const custFinanceRef = admin
       .database()
       .ref(`/finances/customers/${appt.customer}`);
     custFinanceRef.push({
-      date,
+      date: data.date,
       amount,
       appointment: data.apptKey,
       description: `Owed from appointment with rate $${appt.rate.amount} ${appt.rate.type}.`,
@@ -266,7 +249,7 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
         .database()
         .ref(`/finances/staff/${staffId}`);
       staffFinanceRef.push({
-        date,
+        date: data.date,
         amount: staffAmount,
         appointment: data.apptKey,
         description: `Owed from appointment with rate $${appt.rate.amount} ${appt.rate.type}.`,
