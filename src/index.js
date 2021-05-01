@@ -18,8 +18,8 @@ import {
 import { composeWithDevTools } from "redux-devtools-extension";
 
 firebase.initializeApp(FIREBASE_CONFIG);
-firebase.functions().useEmulator("localhost", 5001); // Comment out before deploy
-firebase.database().useEmulator("localhost", 9000); // Comment out before deploy
+//firebase.functions().useEmulator("localhost", 5001); // Comment out before deploy
+//firebase.database().useEmulator("localhost", 9000); // Comment out before deploy
 
 const rootReducer = combineReducers({
   firebase: firebaseReducer,
