@@ -44,6 +44,7 @@ class PageDash extends React.Component {
 
   completeAppointment = async () => {
     const { apptKey, hours, reportNotes, checkbox } = this.state;
+    const { appointments } = this.props;
 
     // input validation
     if (!/^([0-9.]+)$/.test(hours)) {
@@ -60,7 +61,7 @@ class PageDash extends React.Component {
       });
     }
     if (
-      appointments[key1].date !==
+      appointments[apptKey].date !==
       new Date().toLocaleDateString("en-US", {
         weekday: "short",
         year: "numeric",
