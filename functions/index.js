@@ -189,7 +189,7 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
         message: "Error: You are not assigned to this appointment.",
       };
     }
-    
+
     // Had date check before, but dates weren't lining up correctly for some reason
     // Date is now checked on PageDash before function call
 
@@ -214,7 +214,9 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
       date: data.date,
       amount,
       appointment: data.apptKey,
-      description: `Owed from appointment with rate $${appt.rate.amount} ${appt.rate.type}.`,
+      description: `Owed from appointment with rate $${appt.rate.amount.toFixed(
+        2
+      )} ${appt.rate.type}.`,
       complete: false,
     });
 
@@ -252,7 +254,10 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
         date: data.date,
         amount: staffAmount,
         appointment: data.apptKey,
-        description: `Owed from appointment with rate $${appt.rate.amount} ${appt.rate.type}.`,
+        description: `Owed from appointment with pay $${(
+          appt.rate.amount *
+          (1 - adminPercentage)
+        ).toFixed(2)} ${appt.rate.type}.`,
         complete: false,
       });
     });

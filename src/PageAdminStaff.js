@@ -110,114 +110,125 @@ class PageAdminStaff extends React.Component {
   };
 
   render() {
+    const { users, admins, appointmentUsers } = this.props;
     let table;
-    if (
-      !isLoaded(
-        this.props.users,
-        this.props.admins,
-        this.props.appointmentUsers
-      )
-    ) {
+    if (!isLoaded(users, admins, appointmentUsers)) {
       table = <div>Loading staff...</div>;
-    } else if (isEmpty(this.props.users)) {
+    } else if (isEmpty(users)) {
       table = <div>No registered staff found.</div>;
     } else {
-      const keys = Object.keys(this.props.users);
+      const tableContent = Object.keys(users)
+        .sort((key1, key2) => {
+          if (admins.includes(key1) && !admins.includes(key2)) {
+            return 1;
+          } else if (!admins.includes(key1) && admins.includes(key2)) {
+            return -1;
+          } else if (
+            appointmentUsers.includes(key1) &&
+            !appointmentUsers.includes(key2)
+          ) {
+            return 1;
+          } else if (
+            !appointmentUsers.includes(key1) &&
+            appointmentUsers.includes(key2)
+          ) {
+            return -1;
+          }
+        })
+        .map((key) => {
+          const name = users[key].displayName;
+          const email = users[key].email;
+          const phoneNumber = users[key].phoneNumber;
+          const adminButton = admins.includes(key) ? (
+            <Button
+              onClick={() => this.removeAdmin(key)}
+              disabled={this.state.loading}
+              variant="danger"
+              size="sm"
+            >
+              {this.state.adminKeyLoading === key ? (
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+              ) : (
+                <span>Remove</span>
+              )}
+            </Button>
+          ) : (
+            <Button
+              onClick={() => this.setAdmin(key)}
+              disabled={this.state.loading}
+              variant="success"
+              size="sm"
+            >
+              {this.state.adminKeyLoading === key ? (
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+              ) : (
+                <span>Give</span>
+              )}
+            </Button>
+          );
 
-      const tableContent = keys.map((key) => {
-        const name = this.props.users[key].displayName;
-        const email = this.props.users[key].email;
-        const phoneNumber = this.props.users[key].phoneNumber;
-        const adminButton = this.props.admins.includes(key) ? (
-          <Button
-            onClick={() => this.removeAdmin(key)}
-            disabled={this.state.loading}
-            variant="danger"
-            size="sm"
-          >
-            {this.state.adminKeyLoading === key ? (
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
-            ) : (
-              <span>Remove</span>
-            )}
-          </Button>
-        ) : (
-          <Button
-            onClick={() => this.setAdmin(key)}
-            disabled={this.state.loading}
-            variant="success"
-            size="sm"
-          >
-            {this.state.adminKeyLoading === key ? (
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
-            ) : (
-              <span>Give</span>
-            )}
-          </Button>
-        );
+          const apptUserButton = appointmentUsers.includes(key) ? (
+            <Button
+              onClick={() => this.removeApptUser(key)}
+              disabled={this.state.loading}
+              variant="danger"
+              size="sm"
+            >
+              {this.state.apptUsersKeyLoading === key ? (
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+              ) : (
+                <span>Undo</span>
+              )}
+            </Button>
+          ) : (
+            <Button
+              onClick={() => this.setApptUser(key)}
+              disabled={this.state.loading}
+              variant="success"
+              size="sm"
+            >
+              {this.state.apptUsersKeyLoading === key ? (
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+              ) : (
+                <span>Approve</span>
+              )}
+            </Button>
+          );
 
-        const apptUserButton = this.props.appointmentUsers.includes(key) ? (
-          <Button
-            onClick={() => this.removeApptUser(key)}
-            disabled={this.state.loading}
-            variant="danger"
-            size="sm"
-          >
-            {this.state.apptUsersKeyLoading === key ? (
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
-            ) : (
-              <span>Undo</span>
-            )}
-          </Button>
-        ) : (
-          <Button
-            onClick={() => this.setApptUser(key)}
-            disabled={this.state.loading}
-            variant="success"
-            size="sm"
-          >
-            {this.state.apptUsersKeyLoading === key ? (
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
-            ) : (
-              <span>Approve</span>
-            )}
-          </Button>
-        );
-
-        return (
-          <tr key={key}>
-            <td>{name}</td>
-            <td>{email}</td>
-            <td>{phoneNumber}</td>
-            <td style={{ textAlign: "center" }}>{apptUserButton}</td>
-            <td style={{ textAlign: "center" }}>{adminButton}</td>
-          </tr>
-        );
-      });
+          return (
+            <tr key={key}>
+              <td>{name}</td>
+              <td>{email}</td>
+              <td>{phoneNumber}</td>
+              <td style={{ textAlign: "center" }}>{apptUserButton}</td>
+              <td style={{ textAlign: "center" }}>{adminButton}</td>
+            </tr>
+          );
+        });
 
       table = (
         <div>

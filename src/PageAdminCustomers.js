@@ -30,11 +30,11 @@ class PageAdminCustomers extends React.Component {
       showEditModal: true,
       modalError: "",
       name: customers[key].name,
-      email: customers[key].email,
+      email: customers[key].email || "",
       address: customers[key].address,
-      phoneNumber: customers[key].phoneNumber,
-      rate: customers[key].rate,
-      frequency: customers[key].frequency,
+      phoneNumber: customers[key].phoneNumber || "",
+      rate: customers[key].rate || "",
+      frequency: customers[key].frequency || "",
       key: key,
     });
   };
