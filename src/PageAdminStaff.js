@@ -133,7 +133,7 @@ class PageAdminStaff extends React.Component {
             appointmentUsers.includes(key2)
           ) {
             return -1;
-          }
+          } else return key1.localeCompare(key2);
         })
         .map((key) => {
           const name = users[key].displayName;
