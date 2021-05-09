@@ -671,7 +671,6 @@ class PageAdminAppts extends React.Component {
 const mapStateToProps = (state, props) => {
   return {
     appointments: state.firebase.data["appointments"],
-    customers: state.firebase.data["customers"],
     assignedAppointments: state.firebase.data["assignedAppointments"],
   };
 };
@@ -680,7 +679,6 @@ export default compose(
   firebaseConnect((props) => {
     return [
       { path: "/appointments", storeAs: "appointments" },
-      { path: "/customers", storeAs: "customers" },
       { path: "/assignedAppointments", storeAs: "assignedAppointments" },
     ];
   }),

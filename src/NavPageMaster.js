@@ -11,6 +11,7 @@ import logo from "./graphic.png";
 import PageDash from "./PageDash";
 import PageAdminStaff from "./PageAdminStaff";
 import PageAvailable from "./PageAvailable";
+import PageBalance from "./PageBalance";
 import PageProfile from "./PageProfile";
 import PageAdminAppts from "./PageAdminAppts";
 import PageAdminCustomers from "./PageAdminCustomers";
@@ -65,6 +66,9 @@ class NavPageMaster extends React.Component {
     switch (navState) {
       case "profile":
         contentSwitch = <PageProfile />;
+        break;
+      case "balance":
+        contentSwitch = <PageBalance uid={isLoggedIn}/>;
         break;
       case "available":
         contentSwitch = (
@@ -141,6 +145,7 @@ class NavPageMaster extends React.Component {
               {takeAppts ? (
                 <Nav.Link eventKey="available">Available</Nav.Link>
               ) : null}
+              <Nav.Link eventKey="balance">Balance</Nav.Link>
               <Nav.Link eventKey="profile">Profile</Nav.Link>
               {isAdmin ? (
                 <NavDropdown title="Admin Panel" id="basic-nav-dropdown">

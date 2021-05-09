@@ -214,7 +214,7 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
       date: data.date,
       amount,
       appointment: data.apptKey,
-      description: `Owed from appointment with rate $${appt.rate.amount.toFixed(
+      description: `Owed from appointment for with rate $${appt.rate.amount.toFixed(
         2
       )} ${appt.rate.type}.`,
       complete: false,
@@ -228,6 +228,9 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
       appt.rate.type === "hourly"
         ? appt.rate.amount * data.hours * (1 - adminPercentage)
         : (appt.rate.amount / newNumStaff) * (1 - adminPercentage);
+    const customerName = (
+      await admin.database().ref(`/customers/${appt.customer}/name`).get()
+    ).val();
 
     // For each staff, move appt from incomplete to complete and write amount they are owed in finances
     await appt.staffAssigned.forEach(async (staffId) => {
@@ -254,7 +257,7 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
         date: data.date,
         amount: staffAmount,
         appointment: data.apptKey,
-        description: `Owed from appointment with pay $${(
+        description: `Owed from appointment for ${customerName} with pay $${(
           appt.rate.amount *
           (1 - adminPercentage)
         ).toFixed(2)} ${appt.rate.type}.`,
