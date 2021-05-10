@@ -405,6 +405,14 @@ class PageAdminAppts extends React.Component {
             appointments[key2].complete
           ) {
             return -1;
+          } else if (
+            appointments[key1].complete &&
+            appointments[key2].complete
+          ) {
+            return (
+              new Date(appointments[key2].date) -
+              new Date(appointments[key1].date)
+            );
           } else {
             return (
               new Date(appointments[key1].date) -
@@ -413,7 +421,7 @@ class PageAdminAppts extends React.Component {
           }
         })
         .map((key) => {
-          const customer = customers[appointments[key].customer].name; // This is only uid need to populate the customer
+          const customer = customers[appointments[key].customer].name;
           const date = appointments[key].date;
           const status = appointments[key].complete ? "Complete" : "Incomplete";
           const rate = `$${appointments[key].rate.amount.toFixed(2)} ${
@@ -483,108 +491,163 @@ class PageAdminAppts extends React.Component {
       </div>
     ) : null;
 
-    const disableForm = key && appointments[key].complete;
-
     const customerSuggestInputProps = {
       placeholder: "Customer Name",
       value: customerName,
       name: "customerName",
-      disabled: disableForm,
       onBlur: () => this.handleCustomerReset(),
       onChange: (e, { newValue }) => this.handleCustomerChange(e, newValue),
     };
 
-    const staffNameSuggestions = users && Object.keys(users).map((key) => {
-      return { id: key, name: users[key].displayName };
-    });
+    const staffNameSuggestions =
+      users &&
+      Object.keys(users).map((key) => {
+        return { id: key, name: users[key].displayName };
+      });
 
-    const modalBody = (
-      <Modal.Body>
-        <Form.Label>Date</Form.Label>
-        <DatePicker
-          selected={date}
-          onChange={(date) => this.setState({ date })}
-          placeholderText="Appointment Date"
-          disabled={disableForm}
-        />
-        <br />
-        <Form.Check
-          type="checkbox"
-          name="repeat"
-          checked={repeat}
-          onChange={this.handleCheckboxChange}
-          label="Repeat this appointment"
-          disabled={disableForm}
-        />
-        <br />
-        <Form.Label>Customer Name</Form.Label>
-        <Autosuggest
-          suggestions={customerSuggestions}
-          onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-          onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-          getSuggestionValue={this.getSuggestionValue}
-          renderSuggestion={this.renderSuggestion}
-          inputProps={customerSuggestInputProps}
-          disabled={disableForm}
-        />
-        <br />
-        <Form.Label>Rate</Form.Label>
-        <Form.Row>
-          <Col>
-            <Form.Control
-              name="rate"
-              onChange={this.handleChange}
-              placeholder="Amount ($)"
-              value={rate}
-              disabled={disableForm}
-            />
-          </Col>
-          <Col>
-            <Form.Control
-              as="select"
-              name="rateType"
-              onChange={this.handleChange}
-              value={rateType}
-              disabled={disableForm}
-            >
-              <option>flat</option>
-              <option>hourly</option>
-            </Form.Control>
-          </Col>
-        </Form.Row>
-        <br />
-        <Form.Label>Number of Staff</Form.Label>
-        <Form.Control
-          name="numStaff"
-          onChange={this.handleChange}
-          placeholder="# Staff"
-          value={numStaff}
-          disabled={disableForm}
-        />
-        <br />
-        <Form.Label>Staff Assigned</Form.Label>
-        <ReactTags
-          onAddition={this.addStaff}
-          onDelete={this.removeStaff}
-          placeholderText="Add Staff"
-          suggestions={staffNameSuggestions}
-          tags={staffSuggestions}
-          minQueryLength={1}
-          suggestionsTransform={this.filterStaffNameSuggestions}
-        />
-        <br />
-        <Form.Label>Appointment Notes</Form.Label>
-        <Form.Control
-          as="textarea"
-          name="notes"
-          placeholder="Add appointment specific information or other notes here."
-          onChange={this.handleChange}
-          value={notes}
-          rows={2}
-          disabled={disableForm}
-        />
-      </Modal.Body>
-    );
+    const modalBody =
+      key && appointments[key].complete ? (
+        <Modal.Body>
+          <Form.Row>
+            <Col className="label-column">Date:</Col>
+            <Col>{appointments[key].date}</Col>
+          </Form.Row>
+          <Form.Row>
+            <Col className="label-column">Repeating:</Col>
+            <Col>{repeat ? "Yes" : "No"}</Col>
+          </Form.Row>
+          <Form.Row>
+            <Col className="label-column">Address:</Col>
+            <Col>
+              {customers[appointments[key].customer].address} (
+              <a
+                href={`http://maps.google.com/?q=${
+                  customers[appointments[key].customer].address + " MN"
+                }`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Google Maps
+              </a>
+              )
+            </Col>
+          </Form.Row>
+          <Form.Row>
+            <Col className="label-column">Customer:</Col>
+            <Col>{customerName}</Col>
+          </Form.Row>
+          <Form.Row>
+            <Col className="label-column">Rate:</Col>
+            <Col>
+              ${rate} {rateType}
+            </Col>
+          </Form.Row>
+          <Form.Row>
+            <Col className="label-column">
+              Hours Worked:
+              <br />
+              <br />
+            </Col>
+            <Col>{appointments[key].numHours} hour(s)</Col>
+          </Form.Row>
+          <Form.Row>
+            <Col className="label-column">Staff Assigned:</Col>
+            <Col>
+              {staffSuggestions.map((suggestion) => suggestion.name).join(", ")}
+            </Col>
+          </Form.Row>
+          <Form.Row>
+            <Col className="label-column">Number of Staff:</Col>
+            <Col>{numStaff}</Col>
+          </Form.Row>
+          <br />
+          Notes: <br />
+          {notes || "None"}
+          <br />
+          <br />
+          Report Notes: <br />
+          {appointments[key].reportNotes || "None"}
+        </Modal.Body>
+      ) : (
+        <Modal.Body>
+          <Form.Label>Date</Form.Label>
+          <DatePicker
+            selected={date}
+            onChange={(date) => this.setState({ date })}
+            placeholderText="Appointment Date"
+          />
+          <br />
+          <Form.Check
+            type="checkbox"
+            name="repeat"
+            checked={repeat}
+            onChange={this.handleCheckboxChange}
+            label="Repeat this appointment"
+          />
+          <br />
+          <Form.Label>Customer Name</Form.Label>
+          <Autosuggest
+            suggestions={customerSuggestions}
+            onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+            onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+            getSuggestionValue={this.getSuggestionValue}
+            renderSuggestion={this.renderSuggestion}
+            inputProps={customerSuggestInputProps}
+          />
+          <br />
+          <Form.Label>Rate</Form.Label>
+          <Form.Row>
+            <Col>
+              <Form.Control
+                name="rate"
+                onChange={this.handleChange}
+                placeholder="Amount ($)"
+                value={rate}
+              />
+            </Col>
+            <Col>
+              <Form.Control
+                as="select"
+                name="rateType"
+                onChange={this.handleChange}
+                value={rateType}
+              >
+                <option>flat</option>
+                <option>hourly</option>
+              </Form.Control>
+            </Col>
+          </Form.Row>
+          <br />
+          <Form.Label>Number of Staff</Form.Label>
+          <Form.Control
+            name="numStaff"
+            onChange={this.handleChange}
+            placeholder="# Staff"
+            value={numStaff}
+          />
+          <br />
+          <Form.Label>Staff Assigned</Form.Label>
+          <ReactTags
+            onAddition={this.addStaff}
+            onDelete={this.removeStaff}
+            placeholderText="Add Staff"
+            suggestions={staffNameSuggestions}
+            tags={staffSuggestions}
+            minQueryLength={1}
+            suggestionsTransform={this.filterStaffNameSuggestions}
+          />
+          <br />
+          <Form.Label>Appointment Notes</Form.Label>
+          <Form.Control
+            as="textarea"
+            name="notes"
+            placeholder="Add appointment specific information or other notes here."
+            onChange={this.handleChange}
+            value={notes}
+            rows={2}
+          />
+        </Modal.Body>
+      );
 
     return (
       <div className="navbar-page">
@@ -651,7 +714,7 @@ class PageAdminAppts extends React.Component {
               >
                 Cancel
               </Button>
-              {disableForm ? null : (
+              {key && appointments[key].complete ? null : (
                 <Button
                   variant="primary"
                   onClick={() => this.editAppointment(this.state.key)}
