@@ -17,6 +17,7 @@ class PageDash extends React.Component {
       modalLoading: false,
       showApptModal: false,
       selectedAppt: null,
+      selectedDate: "",
       apptKey: "",
       reportNotes: "",
       checkbox: false,
@@ -36,6 +37,7 @@ class PageDash extends React.Component {
       apptKey: key,
       modalError: "",
       selectedAppt: this.props.appointments[key],
+      selectedDate: this.props.appointments[key].date,
       reportNotes: "",
       checkbox: false,
       hours: "",
@@ -114,6 +116,23 @@ class PageDash extends React.Component {
     }
   };
 
+  updateDate = () => {
+    const { apptKey, selectedDate } = this.state;
+    const { firebase } = this.props;
+    this.setState({ modalLoading: true, modalError: "" });
+    try {
+      firebase.set(`/appointments/${apptKey}/date`, selectedDate, () => {
+        this.setState({
+          modalLoading: false,
+          modalError: "",
+          showApptModal: false,
+        });
+      });
+    } catch (error) {
+      this.setState({ modalLoading: false, modalError: error.toString() });
+    }
+  };
+
   handleModalClose = () => this.setState({ showApptModal: false });
 
   render() {
@@ -122,7 +141,7 @@ class PageDash extends React.Component {
       modalLoading,
       showApptModal,
       selectedAppt,
-      apptKey,
+      selectedDate,
       hours,
       reportNotes,
       checkbox,
@@ -280,11 +299,52 @@ class PageDash extends React.Component {
       ? customers[selectedAppt.customer].phoneNumber
       : null;
 
+    const dateOptions = selectedAppt
+      ? [
+          new Date(selectedAppt.originalDate),
+          new Date(selectedAppt.originalDate),
+          new Date(selectedAppt.originalDate),
+        ]
+      : null;
+    if (dateOptions) {
+      dateOptions[0].setDate(dateOptions[1].getDate() - 1);
+      dateOptions[2].setDate(dateOptions[1].getDate() + 1);
+    }
+
     const modalBody = selectedAppt ? (
       <Modal.Body>
         <Form.Row>
           <Col className="label-column">Date:</Col>
-          <Col>{selectedAppt.date}</Col>
+          <Col>
+            <Form.Control
+              className="inline-dropdown"
+              as="select"
+              name="selectedDate"
+              size="sm"
+              onChange={this.handleChange}
+              value={selectedDate}
+            >
+              {dateOptions.map((dateOption, index) => (
+                <option key={index}>
+                  {dateOption.toLocaleDateString("en-US", {
+                    weekday: "short",
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </option>
+              ))}
+            </Form.Control>
+            <Button
+              className="dash-date-button"
+              variant="primary"
+              size="sm"
+              onClick={this.updateDate}
+              disabled={selectedDate === selectedAppt.date || modalLoading}
+            >
+              Update Date
+            </Button>
+          </Col>
         </Form.Row>
         <Form.Row>
           <Col className="label-column">Address:</Col>
@@ -369,7 +429,7 @@ class PageDash extends React.Component {
                   {apptDateMatch ? (
                     <Button
                       variant="success"
-                      onClick={() => this.completeAppointment(apptKey)}
+                      onClick={this.completeAppointment}
                       disabled={modalLoading}
                     >
                       {modalLoading ? (

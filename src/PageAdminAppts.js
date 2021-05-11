@@ -137,13 +137,16 @@ class PageAdminAppts extends React.Component {
       });
     }
 
+    const dateString = date.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+
     const data = {
-      date: date.toLocaleDateString("en-US", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }),
+      date: dateString,
+      originalDate: dateString,
       customer,
       rate: {
         amount: Number(rate),
