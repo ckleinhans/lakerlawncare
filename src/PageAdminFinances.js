@@ -65,7 +65,7 @@ class PageAdminFinances extends React.Component {
       .sort((transaction1, transaction2) => {
         if (transaction2.date === transaction1.date)
           return transaction2.sortPriority - transaction1.sortPriority;
-        else return new Date(transaction2.date) - new Date(transaction1.date);
+        else return new Date(transaction1.date) - new Date(transaction2.date);
       })
       .map((transaction, index) => {
         const { key, date, description, amount, payer } = transaction;
@@ -85,7 +85,8 @@ class PageAdminFinances extends React.Component {
             <td>{`$${runningBalance[index].toFixed(2)}`}</td>
           </tr>
         );
-      });
+      })
+      .reverse();
 
     const table = !isLoaded(finances, customers, users) ? (
       <div>Loading finances...</div>
