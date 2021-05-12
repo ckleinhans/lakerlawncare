@@ -35,11 +35,11 @@ class PageAdminFinances extends React.Component {
     if (finances) {
       Object.keys(finances.staff).forEach((id) => {
         transactions.push(
-          ...Object.keys(finances.staff[id]).map((key) => {
+          ...Object.keys(finances.staff[id].transactions).map((key) => {
             return {
-              ...finances.staff[id][key],
+              ...finances.staff[id].transactions[key],
               key: key,
-              amount: finances.staff[id][key].amount * -1,
+              amount: finances.staff[id].transactions[key].amount * -1,
               payer: users[id].displayName,
               sortPriority: 0,
             };
@@ -48,9 +48,9 @@ class PageAdminFinances extends React.Component {
       });
       Object.keys(finances.customers).forEach((id) => {
         transactions.push(
-          ...Object.keys(finances.customers[id]).map((key) => {
+          ...Object.keys(finances.customers[id].transactions).map((key) => {
             return {
-              ...finances.customers[id][key],
+              ...finances.customers[id].transactions[key],
               key: key,
               payer: customers[id].name,
               sortPriority: 1,

@@ -210,7 +210,7 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
     const custFinanceRef = admin
       .database()
       .ref(`/finances/customers/${appt.customer}`);
-    custFinanceRef.push({
+    custFinanceRef.child("transactions").push({
       date: data.date,
       amount,
       appointment: data.apptKey,
@@ -219,6 +219,12 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
       )} ${appt.rate.type}.`,
       complete: false,
     });
+
+    // Update total customer owes
+    const customerOwed = (await custFinanceRef.child("owed").get()).val();
+    await custFinanceRef
+      .child("owed")
+      .set(customerOwed ? customerOwed + amount : amount);
 
     // Compute staff rate using numStaff and the admin percentage
     const adminPercentage = (
@@ -253,7 +259,7 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
       const staffFinanceRef = admin
         .database()
         .ref(`/finances/staff/${staffId}`);
-      staffFinanceRef.push({
+      staffFinanceRef.child("transactions").push({
         date: data.date,
         amount: staffAmount,
         appointment: data.apptKey,

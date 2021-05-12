@@ -155,8 +155,10 @@ class PageAdminCustomers extends React.Component {
         const phoneNumber = customers[key].phoneNumber;
         const rate = customers[key].rate ? `$${customers[key].rate}` : "None";
         const frequency = customers[key].frequency || "None";
-        const amountOwed = finances[key] ? finances[key].owed : 0;
-        const amountPaid = finances[key] ? finances[key].paid : 0;
+        const amountOwed =
+          finances[key] && finances[key].owed ? finances[key].owed : 0;
+        const amountPaid =
+          finances[key] && finances[key].paid ? finances[key].paid : 0;
 
         return (
           <tr
@@ -341,17 +343,28 @@ class PageAdminCustomers extends React.Component {
 
 const mapStateToProps = (state, props) => {
   return {
-    finances: state.firebase.data["finances"],
-    customers: state.firebase.data["customers"],
+    finances: state.firebase.data.finances,
   };
 };
 
 export default compose(
   firebaseConnect((props) => {
-    return [
-      { path: "/finances/customers", storeAs: "finances" },
-      { path: "/customers", storeAs: "customers" },
-    ];
+    const paths = [];
+    Object.keys(props.customers).forEach((id) => {
+      paths.push(
+        ...[
+          {
+            path: `/finances/customers/${id}/owed`,
+            storeAs: `/finances/${id}/owed`,
+          },
+          {
+            path: `/finances/customers/${id}/paid`,
+            storeAs: `/finances/${id}/paid`,
+          },
+        ]
+      );
+    });
+    return paths;
   }),
   connect(mapStateToProps)
 )(PageAdminCustomers);

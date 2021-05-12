@@ -100,7 +100,7 @@ const mapStateToProps = (state, props) => {
 
 export default compose(
   firebaseConnect((props) => [
-    { path: `/finances/staff/${props.uid}`, storeAs: "transactions" },
+    { path: `/finances/staff/${props.uid}/transactions`, storeAs: "transactions" },
   ]),
   connect(mapStateToProps)
 )(PageBalance);
