@@ -156,9 +156,17 @@ class PageAdminCustomers extends React.Component {
         const rate = customers[key].rate ? `$${customers[key].rate}` : "None";
         const frequency = customers[key].frequency || "None";
         const amountOwed =
-          finances[key] && finances[key].owed ? finances[key].owed : 0;
+          finances.customers &&
+          finances.customers[key] &&
+          finances.customers[key].owed
+            ? finances.customers[key].owed
+            : 0;
         const amountPaid =
-          finances[key] && finances[key].paid ? finances[key].paid : 0;
+          finances.customers &&
+          finances.customers[key] &&
+          finances.customers[key].paid
+            ? finances.customers[key].paid
+            : 0;
 
         return (
           <tr
@@ -355,11 +363,9 @@ export default compose(
         ...[
           {
             path: `/finances/customers/${id}/owed`,
-            storeAs: `/finances/${id}/owed`,
           },
           {
             path: `/finances/customers/${id}/paid`,
-            storeAs: `/finances/${id}/paid`,
           },
         ]
       );

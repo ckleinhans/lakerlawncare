@@ -32,31 +32,33 @@ class PageAdminFinances extends React.Component {
 
     // TODO filter out staff payouts and customer payments (amount is negative) when rendering all results
     const transactions = [];
-    if (finances) {
+    if (finances.staff && finances.customers) {
       Object.keys(finances.staff).forEach((id) => {
-        transactions.push(
-          ...Object.keys(finances.staff[id].transactions).map((key) => {
-            return {
-              ...finances.staff[id].transactions[key],
-              key: key,
-              amount: finances.staff[id].transactions[key].amount * -1,
-              payer: users[id].displayName,
-              sortPriority: 0,
-            };
-          })
-        );
+        if (finances.staff[id].transactions)
+          transactions.push(
+            ...Object.keys(finances.staff[id].transactions).map((key) => {
+              return {
+                ...finances.staff[id].transactions[key],
+                key: key,
+                amount: finances.staff[id].transactions[key].amount * -1,
+                payer: users[id].displayName,
+                sortPriority: 0,
+              };
+            })
+          );
       });
       Object.keys(finances.customers).forEach((id) => {
-        transactions.push(
-          ...Object.keys(finances.customers[id].transactions).map((key) => {
-            return {
-              ...finances.customers[id].transactions[key],
-              key: key,
-              payer: customers[id].name,
-              sortPriority: 1,
-            };
-          })
-        );
+        if (finances.customers[id].transactions)
+          transactions.push(
+            ...Object.keys(finances.customers[id].transactions).map((key) => {
+              return {
+                ...finances.customers[id].transactions[key],
+                key: key,
+                payer: customers[id].name,
+                sortPriority: 1,
+              };
+            })
+          );
       });
     }
 
