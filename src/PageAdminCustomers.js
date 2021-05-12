@@ -148,9 +148,7 @@ class PageAdminCustomers extends React.Component {
     } else if (isEmpty(customers)) {
       table = <div>No customers in the database.</div>;
     } else {
-      const keys = Object.keys(customers);
-
-      const tableContent = keys.map((key) => {
+      const tableContent = Object.keys(customers).map((key) => {
         const name = customers[key].name;
         const address = customers[key].address;
         const email = customers[key].email;
