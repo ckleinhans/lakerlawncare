@@ -1,6 +1,6 @@
 import React from "react";
 import Form from "react-bootstrap/Form";
-import logo from "./graphic.png";
+import logo from "../assets/graphic.png";
 import Spinner from "react-bootstrap/Spinner";
 
 function PageLoadAuth(props) {

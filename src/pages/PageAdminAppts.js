@@ -7,9 +7,9 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
-import Autosuggest from "react-autosuggest";
 import ReactTags from "react-tag-autocomplete";
 import DatePicker from "react-datepicker";
+import Autocomplete from "../components/Autocomplete";
 
 class PageAdminAppts extends React.Component {
   constructor(props) {
@@ -26,7 +26,6 @@ class PageAdminAppts extends React.Component {
       rateType: "Select",
       numStaff: "",
       notes: "",
-      customerSuggestions: [],
       staffSuggestions: [],
     };
   }
@@ -268,45 +267,8 @@ class PageAdminAppts extends React.Component {
     this.setState(data);
   };
 
-  handleCheckboxChange = (event) =>
-    this.setState({ [event.target.name]: event.target.checked });
-
-  handleAddClose = () => this.setState({ showAddModal: false });
-
-  handleEditClose = () => this.setState({ showEditModal: false });
-
-  getSuggestions = (value) => {
-    const { customers } = this.props;
-    const inputValue = value.trim().toLowerCase();
-    const inputLength = inputValue.length;
-
-    return inputLength === 0
-      ? []
-      : Object.values(customers)
-          .map((customer) => customer.name)
-          .filter(
-            (name) => name.toLowerCase().slice(0, inputLength) === inputValue
-          );
-  };
-
-  onSuggestionsClearRequested = () => {
-    this.setState({
-      customerSuggestions: [],
-    });
-  };
-
-  onSuggestionsFetchRequested = ({ value }) => {
-    this.setState({
-      customerSuggestions: this.getSuggestions(value),
-    });
-  };
-
-  renderSuggestion = (suggestion) => <div>{suggestion}</div>;
-
-  getSuggestionValue = (suggestion) => suggestion;
-
   // handles changes to customer autosuggest
-  handleCustomerChange = (e, newValue) => {
+  handleCustomerChange = (newValue) => {
     const { rateType } = this.state;
     const { customers } = this.props;
     const data = { customerName: newValue };
@@ -324,25 +286,12 @@ class PageAdminAppts extends React.Component {
     this.setState(data);
   };
 
-  // reset customer if invalid, called onBlur (when input loses focus)
-  handleCustomerReset = () => {
-    const { customers } = this.props;
-    const { customerName } = this.state;
+  handleCheckboxChange = (event) =>
+    this.setState({ [event.target.name]: event.target.checked });
 
-    // don't reset if valid name
-    if (
-      Object.values(customers)
-        .map((customer) => customer.name)
-        .includes(customerName)
-    ) {
-      return;
-    }
+  handleAddClose = () => this.setState({ showAddModal: false });
 
-    // clear input if invalid
-    this.setState({
-      customerName: "",
-    });
-  };
+  handleEditClose = () => this.setState({ showEditModal: false });
 
   addStaff = (tag) => {
     const staffSuggestions = [].concat(this.state.staffSuggestions, tag);
@@ -494,14 +443,6 @@ class PageAdminAppts extends React.Component {
       </div>
     ) : null;
 
-    const customerSuggestInputProps = {
-      placeholder: "Customer Name",
-      value: customerName,
-      name: "customerName",
-      onBlur: () => this.handleCustomerReset(),
-      onChange: (e, { newValue }) => this.handleCustomerChange(e, newValue),
-    };
-
     const staffNameSuggestions =
       users &&
       Object.keys(users).map((key) => {
@@ -589,13 +530,13 @@ class PageAdminAppts extends React.Component {
           />
           <br />
           <Form.Label>Customer Name</Form.Label>
-          <Autosuggest
-            suggestions={customerSuggestions}
-            onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-            onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-            getSuggestionValue={this.getSuggestionValue}
-            renderSuggestion={this.renderSuggestion}
-            inputProps={customerSuggestInputProps}
+          <Autocomplete
+            valueArray={Object.values(customers).map(
+              (customer) => customer.name
+            )}
+            onChange={this.handleCustomerChange}
+            value={customerName}
+            placeholder="Customer Name"
           />
           <br />
           <Form.Label>Rate</Form.Label>
@@ -657,7 +598,7 @@ class PageAdminAppts extends React.Component {
         <div className="container">
           <h2 className="inline-header">Appointment List</h2>
           <Button
-            className="header-button"
+            className="float-header"
             variant="success"
             onClick={() =>
               this.setState({

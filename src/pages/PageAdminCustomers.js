@@ -277,7 +277,7 @@ class PageAdminCustomers extends React.Component {
         <div className="container">
           <h2 className="inline-header">Customer List</h2>
           <Button
-            className="header-button"
+            className="float-header"
             variant="success"
             onClick={() =>
               this.setState({

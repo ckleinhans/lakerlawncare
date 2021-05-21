@@ -3,7 +3,7 @@ import { firebaseConnect } from "react-redux-firebase";
 import { compose } from "redux";
 import { Link, Redirect } from "react-router-dom";
 import Form from "react-bootstrap/Form";
-import logo from "./graphic.png";
+import logo from "../assets/graphic.png";
 import Button from "react-bootstrap/Button";
 
 class PageRecover extends React.Component {

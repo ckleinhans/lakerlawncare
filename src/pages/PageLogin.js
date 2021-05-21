@@ -4,7 +4,7 @@ import { compose } from "redux";
 import { Link, Redirect } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
-import logo from "./graphic.png";
+import logo from "../assets/graphic.png";
 
 class PageLogin extends React.Component {
   constructor(props) {

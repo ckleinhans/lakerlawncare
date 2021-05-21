@@ -7,7 +7,7 @@ import Navbar from "react-bootstrap/Navbar";
 import Nav from "react-bootstrap/Nav";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import Button from "react-bootstrap/Button";
-import logo from "./graphic.png";
+import logo from "../assets/graphic.png";
 import PageDash from "./PageDash";
 import PageAdminStaff from "./PageAdminStaff";
 import PageAvailable from "./PageAvailable";

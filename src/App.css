@@ -37,9 +37,9 @@
   margin-top: -4px;
 }
 
-/* Styling for buttons in same row as headers */
+/* Styling for buttons, dropdowns and headers in rows as headers */
 @media (min-width: 800px) {
-  .header-button {
+  .float-header {
     float: right;
   }
   .inline-header {
@@ -47,12 +47,22 @@
   }
 }
 @media (max-width: 800px) {
-  .header-button {
+  .float-header {
     margin-bottom: 5px;
   }
   .inline-header {
     display: block;
   }
+}
+
+.header-select {
+  display: inline-block;
+  width: max-content;
+  margin-right: 5px;
+}
+
+.header-input {
+  display: inline-block;
 }
 
 /* Additional CSS tags for signin pages based off of Bootstrap Examples */
@@ -166,16 +176,6 @@
   list-style-type: none;
 }
 
-.react-autosuggest__input {
-  width: 240px;
-  height: 40px;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #b1b1b1;
-  border-radius: 4px;
-  background-color: white;
-}
-
 /* if the input is empty or not focused, don't display the instructions  */
 :not(.react-autosuggest__input--focused):not(.react-autosuggest__input--open)
   + .react-autosuggest__suggestions-container {
@@ -185,7 +185,6 @@
 .react-autosuggest__suggestions-container,
 .react-autosuggest__suggestions-container--open {
   position: absolute;
-  left: 25px;
   display: block;
   border: 1px solid #d1d1d1;
   background: white;

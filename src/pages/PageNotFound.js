@@ -1,7 +1,7 @@
 import React from "react";
 import Form from "react-bootstrap/Form";
-import logo from "./graphic.png";
-import error from "./error.png";
+import logo from "../assets/graphic.png";
+import error from "../assets/error.png";
 import { Link } from "react-router-dom";
 
 function PageLoadAuth(props) {
