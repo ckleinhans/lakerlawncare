@@ -332,7 +332,6 @@ class PageAdminAppts extends React.Component {
       rateType,
       numStaff,
       notes,
-      customerSuggestions,
       staffSuggestions,
       repeat,
       key,
