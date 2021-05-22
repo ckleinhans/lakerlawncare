@@ -148,43 +148,47 @@ class PageAdminCustomers extends React.Component {
     } else if (isEmpty(customers)) {
       table = <div>No customers in the database.</div>;
     } else {
-      const tableContent = Object.keys(customers).map((key) => {
-        const name = customers[key].name;
-        const address = customers[key].address;
-        const email = customers[key].email;
-        const phoneNumber = customers[key].phoneNumber;
-        const rate = customers[key].rate ? `$${customers[key].rate}` : "None";
-        const frequency = customers[key].frequency || "None";
-        const amountOwed =
-          finances.customers &&
-          finances.customers[key] &&
-          finances.customers[key].owed
-            ? finances.customers[key].owed
-            : 0;
-        const amountPaid =
-          finances.customers &&
-          finances.customers[key] &&
-          finances.customers[key].paid
-            ? finances.customers[key].paid
-            : 0;
+      const tableContent = Object.keys(customers)
+        .sort((key1, key2) =>
+          customers[key1].name.localeCompare(customers[key2].name)
+        )
+        .map((key) => {
+          const name = customers[key].name;
+          const address = customers[key].address;
+          const email = customers[key].email;
+          const phoneNumber = customers[key].phoneNumber;
+          const rate = customers[key].rate ? `$${customers[key].rate}` : "None";
+          const frequency = customers[key].frequency || "None";
+          const amountOwed =
+            finances.customers &&
+            finances.customers[key] &&
+            finances.customers[key].owed
+              ? finances.customers[key].owed
+              : 0;
+          const amountPaid =
+            finances.customers &&
+            finances.customers[key] &&
+            finances.customers[key].paid
+              ? finances.customers[key].paid
+              : 0;
 
-        return (
-          <tr
-            key={key}
-            className="clickable-row"
-            onClick={() => this.handleShowEditModal(key)}
-          >
-            <td>{name}</td>
-            <td>{address}</td>
-            <td>{email}</td>
-            <td>{phoneNumber}</td>
-            <td>{rate}</td>
-            <td>{frequency}</td>
-            <td>{`$${amountOwed}`}</td>
-            <td>{`$${amountPaid}`}</td>
-          </tr>
-        );
-      });
+          return (
+            <tr
+              key={key}
+              className="clickable-row"
+              onClick={() => this.handleShowEditModal(key)}
+            >
+              <td>{name}</td>
+              <td>{address}</td>
+              <td>{email}</td>
+              <td>{phoneNumber}</td>
+              <td>{rate}</td>
+              <td>{frequency}</td>
+              <td>{`$${amountOwed}`}</td>
+              <td>{`$${amountPaid}`}</td>
+            </tr>
+          );
+        });
 
       table = (
         <div>
@@ -300,8 +304,8 @@ class PageAdminCustomers extends React.Component {
             <Modal.Header closeButton>
               <Modal.Title>Add Customer</Modal.Title>
             </Modal.Header>
-            {modalErrorBar}
             {modalBody}
+            {modalErrorBar}
             <Modal.Footer>
               <Button
                 variant="secondary"
@@ -324,8 +328,8 @@ class PageAdminCustomers extends React.Component {
             <Modal.Header closeButton>
               <Modal.Title>Edit Customer</Modal.Title>
             </Modal.Header>
-            {modalErrorBar}
             {modalBody}
+            {modalErrorBar}
             <Modal.Footer>
               <Button
                 variant="secondary"

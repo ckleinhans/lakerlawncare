@@ -416,8 +416,8 @@ class PageDash extends React.Component {
                 <Modal.Header closeButton>
                   <Modal.Title>Appointment Report</Modal.Title>
                 </Modal.Header>
-                {modalErrorBar}
                 {modalBody}
+                {modalErrorBar}
                 <Modal.Footer>
                   <Button
                     variant="secondary"

@@ -32,13 +32,8 @@ class PageAvailable extends React.Component {
   claimAppointment = (key) => {
     try {
       this.setState({ modalLoading: true });
-      const {
-        appointments,
-        uid,
-        myApptIds,
-        firebase,
-        availableApptIds,
-      } = this.props;
+      const { appointments, uid, myApptIds, firebase, availableApptIds } =
+        this.props;
       const appt = appointments[key];
       const newAssignedStaff = appt.staffAssigned
         ? [uid].concat(appt.staffAssigned)
@@ -94,13 +89,8 @@ class PageAvailable extends React.Component {
   handleModalClose = () => this.setState({ showApptModal: false });
 
   render() {
-    const {
-      apptKey,
-      selectedAppt,
-      showApptModal,
-      modalError,
-      modalLoading,
-    } = this.state;
+    const { apptKey, selectedAppt, showApptModal, modalError, modalLoading } =
+      this.state;
     const {
       customers,
       users,
@@ -151,6 +141,7 @@ class PageAvailable extends React.Component {
                 rate,
                 staffAssigned,
                 numStaff,
+                complete,
               } = appointments[key];
               const { address, name } = customers[customer];
               const staffString = staffAssigned
@@ -164,11 +155,16 @@ class PageAvailable extends React.Component {
                 rate.type === "flat"
                   ? (rate.amount * (1 - adminPercentage)) / numStaff
                   : rate.amount * (1 - adminPercentage);
+              const style =
+                !complete && new Date(date) < new Date().setHours(0, 0, 0, 0)
+                  ? { background: "#ffa9a9" }
+                  : null;
               return (
                 <tr
                   key={key}
                   className="clickable-row"
                   onClick={() => this.showDetails(key)}
+                  style={style}
                 >
                   <td>{date}</td>
                   <td>{address}</td>

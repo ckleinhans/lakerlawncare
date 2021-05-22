@@ -623,8 +623,8 @@ class PageAdminAppts extends React.Component {
             <Modal.Header closeButton>
               <Modal.Title>Create Appointment</Modal.Title>
             </Modal.Header>
-            {modalErrorBar}
             {modalBody}
+            {modalErrorBar}
             <Modal.Footer>
               <Button
                 variant="secondary"
@@ -647,8 +647,8 @@ class PageAdminAppts extends React.Component {
             <Modal.Header closeButton>
               <Modal.Title>Edit Appointment</Modal.Title>
             </Modal.Header>
-            {modalErrorBar}
             {modalBody}
+            {modalErrorBar}
             <Modal.Footer>
               <Button
                 variant="secondary"

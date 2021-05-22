@@ -14,17 +14,12 @@ class PageBalance extends React.Component {
     };
   }
 
-  // TODO add modal to display appointment information?
-
   showDetails = (key) => {
     this.setState({
       showModal: true,
       apptKey: key,
-      // selectedAppt: this.props.appointments[key],
     });
   };
-
-  //handleModalClose = () => this.setState({ showModal: false });
 
   render() {
     const { transactions } = this.props;
@@ -45,7 +40,6 @@ class PageBalance extends React.Component {
               return (
                 <tr
                   key={key}
-                  //className="clickable-row"
                   onClick={() => this.showDetails(key)}
                 >
                   <td>{date}</td>
@@ -65,7 +59,7 @@ class PageBalance extends React.Component {
       </div>
     ) : (
       <div>
-        Click a transaction to see details (work in progress).
+        View your previous appointments and running balance below.
         <div className="table-container">
           <Table striped bordered hover className="page-table">
             <thead>
