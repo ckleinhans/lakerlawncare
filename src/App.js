@@ -1,7 +1,6 @@
 import React from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
 import { connect } from "react-redux";
-import { isLoaded } from "react-redux-firebase";
 
 import "./App.css";
 import PageLogin from "./pages/PageLogin";
@@ -12,7 +11,7 @@ import PageLoadAuth from "./pages/PageLoadAuth";
 import PageNotFound from "./pages/PageNotFound";
 
 function App(props) {
-  if (!isLoaded(props.auth, props.profile)) {
+  if (!props.isLoaded) {
     return <PageLoadAuth />;
   }
 
@@ -20,7 +19,7 @@ function App(props) {
     <Switch>
       <Route exact path="/">
         {props.auth.uid ? (
-          <Redirect to="/dashboard" />
+          <Redirect to="/app/dashboard" />
         ) : (
           <Redirect to="/login" />
         )}
@@ -34,7 +33,7 @@ function App(props) {
       <Route exact path="/recover">
         <PageRecover isLoggedIn={props.auth.uid} />
       </Route>
-      <Route exact path="/dashboard">
+      <Route path="/app">
         <NavPageMaster isLoggedIn={props.auth.uid} />
       </Route>
       <Route>
@@ -45,7 +44,12 @@ function App(props) {
 }
 
 const mapStateToProps = (state) => {
-  return { auth: state.firebase.auth, profile: state.firebase.profile };
+  const { auth, profile } = state.firebase;
+  return {
+    auth: state.firebase.auth,
+    profile: state.firebase.profile,
+    isLoaded: auth.isLoaded && profile.isLoaded,
+  };
 };
 
 export default connect(mapStateToProps)(App);

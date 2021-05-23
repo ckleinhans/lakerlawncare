@@ -59,7 +59,7 @@ class PageRegister extends React.Component {
     const { isLoggedIn } = this.props;
     const { error, displayName, email, phoneNumber, password } = this.state;
     if (isLoggedIn) {
-      return <Redirect to="/dashboard" />;
+      return <Redirect to="/app/dashboard" />;
     }
 
     const errorBar = error ? (

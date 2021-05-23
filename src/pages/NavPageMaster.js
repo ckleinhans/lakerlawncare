@@ -2,7 +2,7 @@ import React from "react";
 import { firebaseConnect } from "react-redux-firebase";
 import { compose } from "redux";
 import { connect } from "react-redux";
-import { Redirect } from "react-router-dom";
+import { Redirect, Route, NavLink, Switch } from "react-router-dom";
 import Navbar from "react-bootstrap/Navbar";
 import Nav from "react-bootstrap/Nav";
 import NavDropdown from "react-bootstrap/NavDropdown";
@@ -16,12 +16,12 @@ import PageProfile from "./PageProfile";
 import PageAdminAppts from "./PageAdminAppts";
 import PageAdminCustomers from "./PageAdminCustomers";
 import PageAdminFinances from "./PageAdminFinances";
+import PageNotFound from "./PageNotFound";
 
 class NavPageMaster extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      navState: "dash",
       isAdmin: false,
       takeAppts: false,
       financeAccess: false,
@@ -47,10 +47,6 @@ class NavPageMaster extends React.Component {
       });
   }
 
-  navUpdate = (eventKey) => {
-    this.setState({ navState: eventKey });
-  };
-
   render() {
     const {
       isLoggedIn,
@@ -61,70 +57,10 @@ class NavPageMaster extends React.Component {
       adminPercentage,
       firebase,
     } = this.props;
-    const { navState, takeAppts, isAdmin, financeAccess } = this.state;
+    const { takeAppts, isAdmin, financeAccess } = this.state;
 
     if (!isLoggedIn) {
       return <Redirect to="/login" />;
-    }
-
-    let contentSwitch;
-    switch (navState) {
-      case "profile":
-        contentSwitch = (
-          <PageProfile financeAccess={financeAccess} users={users} />
-        );
-        break;
-      case "balance":
-        contentSwitch = <PageBalance uid={isLoggedIn} />;
-        break;
-      case "available":
-        contentSwitch = (
-          <PageAvailable
-            uid={isLoggedIn}
-            users={users}
-            customers={customers}
-            availableApptIds={availableApptIds}
-            myApptIds={myApptIds}
-            adminPercentage={adminPercentage}
-          />
-        );
-        break;
-      case "admin-staff":
-        contentSwitch = <PageAdminStaff users={users} />;
-        break;
-      case "admin-appts":
-        contentSwitch = (
-          <PageAdminAppts
-            users={users}
-            customers={customers}
-            availableApptIds={availableApptIds}
-          />
-        );
-        break;
-      case "admin-customers":
-        contentSwitch = <PageAdminCustomers customers={customers} />;
-        break;
-      case "admin-finances":
-        contentSwitch = (
-          <PageAdminFinances
-            users={users}
-            customers={customers}
-            financeAccess={financeAccess}
-          />
-        );
-        break;
-      default:
-        // "dash"
-        contentSwitch = (
-          <PageDash
-            users={users}
-            customers={customers}
-            myApptIds={myApptIds}
-            takeAppts={takeAppts}
-            adminPercentage={adminPercentage}
-          />
-        );
-        break;
     }
 
     return (
@@ -147,31 +83,38 @@ class NavPageMaster extends React.Component {
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
-            <Nav
-              onSelect={this.navUpdate}
-              activeKey={navState}
-              className="mr-auto"
-            >
-              <Nav.Link eventKey="dash">Dashboard</Nav.Link>
+            <Nav className="mr-auto">
+              <NavLink className="nav-link" to="/app/dashboard">
+                Dashboard
+              </NavLink>
               {takeAppts ? (
-                <Nav.Link eventKey="available">Available</Nav.Link>
+                <NavLink className="nav-link" to="/app/available">
+                  Available
+                </NavLink>
               ) : null}
-              <Nav.Link eventKey="balance">Balance</Nav.Link>
-              <Nav.Link eventKey="profile">Profile</Nav.Link>
+              <NavLink className="nav-link" to="/app/balance">
+                Balance
+              </NavLink>
+              <NavLink className="nav-link" to="/app/profile">
+                Profile
+              </NavLink>
               {isAdmin ? (
                 <NavDropdown title="Admin Panel" id="basic-nav-dropdown">
-                  <NavDropdown.Item eventKey="admin-staff">
+                  <NavLink className="dropdown-item" to="/app/admin/staff">
                     Staff List
-                  </NavDropdown.Item>
-                  <NavDropdown.Item eventKey="admin-appts">
+                  </NavLink>
+                  <NavLink
+                    className="dropdown-item"
+                    to="/app/admin/appointments"
+                  >
                     Appointments
-                  </NavDropdown.Item>
-                  <NavDropdown.Item eventKey="admin-customers">
+                  </NavLink>
+                  <NavLink className="dropdown-item" to="/app/admin/customers">
                     Customers
-                  </NavDropdown.Item>
-                  <NavDropdown.Item eventKey="admin-finances">
+                  </NavLink>
+                  <NavLink className="dropdown-item" to="/app/admin/finances">
                     Finances
-                  </NavDropdown.Item>
+                  </NavLink>
                 </NavDropdown>
               ) : null}
             </Nav>
@@ -182,7 +125,69 @@ class NavPageMaster extends React.Component {
             </Nav>
           </Navbar.Collapse>
         </Navbar>
-        {contentSwitch}
+        <Switch>
+          <Route exact path="/app/dashboard">
+            <PageDash
+              users={users}
+              customers={customers}
+              myApptIds={myApptIds}
+              takeAppts={takeAppts}
+              adminPercentage={adminPercentage}
+            />
+          </Route>
+          <Route exact path="/app/available">
+            {takeAppts ? (
+              <PageAvailable
+                uid={isLoggedIn}
+                users={users}
+                customers={customers}
+                availableApptIds={availableApptIds}
+                myApptIds={myApptIds}
+                adminPercentage={adminPercentage}
+              />
+            ) : (
+              <Redirect to="/app/dashboard" />
+            )}
+          </Route>
+          <Route exact path="/app/balance">
+            <PageBalance uid={isLoggedIn} />;
+          </Route>
+          <Route path="/app/profile">
+            <PageProfile financeAccess={financeAccess} users={users} />
+          </Route>
+
+          <Route path="/app/admin">
+            {isAdmin ? (
+              <Switch>
+                <Route exact path="/app/admin/staff">
+                  <PageAdminStaff users={users} />
+                </Route>
+                <Route exact path="/app/admin/appointments">
+                  <PageAdminAppts
+                    users={users}
+                    customers={customers}
+                    availableApptIds={availableApptIds}
+                  />
+                </Route>
+                <Route exact path="/app/admin/customers">
+                  <PageAdminCustomers customers={customers} />
+                </Route>
+                <Route exact path="/app/admin/finances">
+                  <PageAdminFinances
+                    users={users}
+                    customers={customers}
+                    financeAccess={financeAccess}
+                  />
+                </Route>
+              </Switch>
+            ) : (
+              <Redirect to="/app/dashboard" />
+            )}
+          </Route>
+          <Route>
+            <PageNotFound />
+          </Route>
+        </Switch>
       </div>
     );
   }

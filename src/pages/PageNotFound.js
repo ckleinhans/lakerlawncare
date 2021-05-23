@@ -17,7 +17,7 @@ function PageLoadAuth(props) {
         </h2>
         <div className="spacer" />
         <img src={error} id="page-not-found" alt="" />
-        <Link to="/dashboard">Back to dashboard</Link>
+        <Link to="/app/dashboard">Back to dashboard</Link>
       </Form>
     </div>
   );

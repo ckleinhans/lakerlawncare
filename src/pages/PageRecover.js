@@ -35,7 +35,7 @@ class PageRecover extends React.Component {
 
   render() {
     if (this.props.isLoggedIn) {
-      return <Redirect to="/dashboard" />;
+      return <Redirect to="/app/dashboard" />;
     }
 
     const errorBar = this.state.error ? (
