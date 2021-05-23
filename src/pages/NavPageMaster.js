@@ -2,7 +2,7 @@ import React from "react";
 import { firebaseConnect } from "react-redux-firebase";
 import { compose } from "redux";
 import { connect } from "react-redux";
-import { Redirect, Route, NavLink, Switch } from "react-router-dom";
+import { Redirect, Route, NavLink, Switch, withRouter } from "react-router-dom";
 import Navbar from "react-bootstrap/Navbar";
 import Nav from "react-bootstrap/Nav";
 import NavDropdown from "react-bootstrap/NavDropdown";
@@ -25,6 +25,7 @@ class NavPageMaster extends React.Component {
       isAdmin: false,
       takeAppts: false,
       financeAccess: false,
+      navExpanded: false,
     };
     props.firebase
       .auth()
@@ -56,12 +57,15 @@ class NavPageMaster extends React.Component {
       availableApptIds,
       adminPercentage,
       firebase,
+      location,
     } = this.props;
-    const { takeAppts, isAdmin, financeAccess } = this.state;
+    const { takeAppts, isAdmin, financeAccess, navExpanded, showDropdown } =
+      this.state;
 
     if (!isLoggedIn) {
       return <Redirect to="/login" />;
     }
+    console.log(location);
 
     return (
       <div>
@@ -70,7 +74,8 @@ class NavPageMaster extends React.Component {
           variant="dark"
           expand="md"
           fixed="top"
-          collapseOnSelect="true"
+          expanded={navExpanded}
+          onToggle={(navExpanded) => this.setState({ navExpanded })}
         >
           <Navbar.Brand>
             <img
@@ -84,35 +89,78 @@ class NavPageMaster extends React.Component {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="mr-auto">
-              <NavLink className="nav-link" to="/app/dashboard">
+              <NavLink
+                className="nav-link"
+                to="/app/dashboard"
+                onClick={() => this.setState({ navExpanded: false })}
+              >
                 Dashboard
               </NavLink>
               {takeAppts ? (
-                <NavLink className="nav-link" to="/app/available">
+                <NavLink
+                  className="nav-link"
+                  to="/app/available"
+                  onClick={() => this.setState({ navExpanded: false })}
+                >
                   Available
                 </NavLink>
               ) : null}
-              <NavLink className="nav-link" to="/app/balance">
+              <NavLink
+                className="nav-link"
+                to="/app/balance"
+                onClick={() => this.setState({ navExpanded: false })}
+              >
                 Balance
               </NavLink>
-              <NavLink className="nav-link" to="/app/profile">
+              <NavLink
+                className="nav-link"
+                to="/app/profile"
+                onClick={() => this.setState({ navExpanded: false })}
+              >
                 Profile
               </NavLink>
               {isAdmin ? (
-                <NavDropdown title="Admin Panel" id="basic-nav-dropdown">
-                  <NavLink className="dropdown-item" to="/app/admin/staff">
+                <NavDropdown
+                  show={showDropdown}
+                  active={location.pathname.includes("/app/admin")}
+                  onToggle={(showDropdown) => this.setState({ showDropdown })}
+                  title="Admin Panel"
+                  id="basic-nav-dropdown"
+                >
+                  <NavLink
+                    className="dropdown-item"
+                    to="/app/admin/staff"
+                    onClick={() =>
+                      this.setState({ navExpanded: false, showDropdown: false })
+                    }
+                  >
                     Staff List
                   </NavLink>
                   <NavLink
                     className="dropdown-item"
                     to="/app/admin/appointments"
+                    onClick={() =>
+                      this.setState({ navExpanded: false, showDropdown: false })
+                    }
                   >
                     Appointments
                   </NavLink>
-                  <NavLink className="dropdown-item" to="/app/admin/customers">
+                  <NavLink
+                    className="dropdown-item"
+                    to="/app/admin/customers"
+                    onClick={() =>
+                      this.setState({ navExpanded: false, showDropdown: false })
+                    }
+                  >
                     Customers
                   </NavLink>
-                  <NavLink className="dropdown-item" to="/app/admin/finances">
+                  <NavLink
+                    className="dropdown-item"
+                    to="/app/admin/finances"
+                    onClick={() =>
+                      this.setState({ navExpanded: false, showDropdown: false })
+                    }
+                  >
                     Finances
                   </NavLink>
                 </NavDropdown>
@@ -204,6 +252,7 @@ const mapStateToProps = (state, props) => {
 };
 
 export default compose(
+  withRouter,
   firebaseConnect((props) => [
     { path: `/users`, storeAs: "users" },
     { path: `/customers`, storeAs: "customers" },
