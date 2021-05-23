@@ -6,12 +6,16 @@ import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Modal from "react-bootstrap/Modal";
+import DatePicker from "react-datepicker";
 import Autocomplete from "../components/Autocomplete";
 
 class PageAdminFinances extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      date: "",
+      transactionMethod: "Transaction Method",
+      description: "",
       showCustomerModal: false,
       showStaffModal: false,
       showTransactionModal: false,
@@ -35,6 +39,12 @@ class PageAdminFinances extends React.Component {
       data.staffName = "";
     }
     this.setState(data);
+  };
+
+  handleCheckboxChange = (event) => {
+    const checkboxes = this.state.checkboxes;
+    checkboxes[event.target.name] = event.target.checked;
+    this.setState({ checkboxes });
   };
 
   handleCustomerChange = (newValue) => {
@@ -73,6 +83,10 @@ class PageAdminFinances extends React.Component {
       showCustomerModal: false,
       showStaffModal: false,
       showTransactionModal: false,
+      date: "",
+      transactionMethod: "Transaction Method",
+      description: "",
+      modalLoading: false,
     });
 
   addTransaction = () => {
@@ -84,12 +98,72 @@ class PageAdminFinances extends React.Component {
   };
 
   customerPayment = () => {
-    alert("Recording customer payments is still under construction.");
+    this.setState({ modalLoading: true });
+    const { firebase, finances, financeAccess } = this.props;
+    const { customerId, checkboxes, date, description, transactionMethod } =
+      this.state;
+
+    if (!financeAccess) {
+      return this.setState({
+        modalLoading: false,
+        modalError: "You do not have permission to edit financial data.",
+      });
+    }
+    if (!description || !date || transactionMethod === "Transaction Method") {
+      return this.setState({
+        modalLoading: false,
+        modalError: "All fields are required.",
+      });
+    }
+
+    let owed = finances.customers[customerId].owed || 0;
+    let paid = finances.customers[customerId].paid || 0;
+    const transactions = { ...finances.customers[customerId].transactions };
+
+    let totalAmount = 0;
+    Object.keys(checkboxes)
+      .filter((key) => checkboxes[key])
+      .forEach((key) => {
+        totalAmount += transactions[key].amount;
+        transactions[key].complete = true;
+      });
+
+    const key = this.props.firebase.push(
+      `/finances/customers/${customerId}/transactions`
+    ).key;
+    transactions[key] = {
+      amount: totalAmount * -1,
+      date: date.toLocaleDateString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      complete: true,
+      method: transactionMethod,
+      description: `(${transactionMethod}) ${description}`,
+    };
+
+    owed -= totalAmount;
+    paid += totalAmount;
+
+    const data = { owed, paid, transactions };
+
+    firebase.update(
+      `/finances/customers/${customerId}`,
+      data,
+      this.handleModalClose
+    );
   };
 
   render() {
     const { customers, users, finances } = this.props;
     const {
+      date,
+      transactionMethod,
+      description,
       showCustomerModal,
       showStaffModal,
       showTransactionModal,
@@ -318,6 +392,39 @@ class PageAdminFinances extends React.Component {
 
     const modalBody = (
       <Modal.Body>
+        {typeSelect === "Customers" ? (
+          <div>
+            <DatePicker
+              selected={date}
+              onChange={(date) => this.setState({ date })}
+              placeholderText="Transaction Date"
+              showTimeSelect
+              dateFormat="MM/dd/yyyy h:mm aa"
+            />
+            <br />
+            <Form.Control
+              as="select"
+              name="transactionMethod"
+              onChange={this.handleChange}
+              value={transactionMethod}
+            >
+              <option disabled>Transaction Method</option>
+              <option>Venmo</option>
+              <option>Check</option>
+              <option>Cash</option>
+            </Form.Control>
+            <br />
+          </div>
+        ) : null}
+        <Form.Control
+          as="textarea"
+          name="description"
+          placeholder="Write a brief transaction description"
+          onChange={this.handleChange}
+          value={description}
+          rows={2}
+        />
+        <br />
         <Table size="sm" hover>
           <thead>
             <tr>
@@ -330,7 +437,22 @@ class PageAdminFinances extends React.Component {
                 <span style={{ float: "right" }}>Selected:</span>
               </th>
               <th>{`$${totalSelected.toFixed(2)}`}</th>
-              <th>Check</th>
+              <th>
+                <Form.Check
+                  type="checkbox"
+                  name="selectAll"
+                  checked={
+                    !Object.keys(checkboxes).find((key) => !checkboxes[key])
+                  }
+                  onChange={(event) => {
+                    const { checkboxes } = this.state;
+                    Object.keys(checkboxes).forEach(
+                      (key) => (checkboxes[key] = event.target.checked)
+                    );
+                    this.setState({ checkboxes });
+                  }}
+                />
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -342,7 +464,14 @@ class PageAdminFinances extends React.Component {
                   <tr key={key}>
                     <td>{date}</td>
                     <td>{`$${amount.toFixed(2)}`}</td>
-                    <td>Check</td>
+                    <td>
+                      <Form.Check
+                        type="checkbox"
+                        name={key}
+                        checked={checkboxes[key]}
+                        onChange={this.handleCheckboxChange}
+                      />
+                    </td>
                   </tr>
                 );
               })}
@@ -388,7 +517,7 @@ class PageAdminFinances extends React.Component {
               </Button>
               <Button
                 variant="success"
-                onClick={this.recordPayment}
+                onClick={this.customerPayment}
                 disabled={modalLoading || !totalSelected}
               >
                 Record Payment of {`$${totalSelected.toFixed(2)}`}

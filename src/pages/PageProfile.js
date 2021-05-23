@@ -18,17 +18,13 @@ class PageProfile extends React.Component {
       oldPassword: "",
       profileUpdated: false,
       loading: false,
+      financialManagerName: this.props.profile.displayName,
     };
   }
 
   updateProfile = async (event) => {
-    const {
-      displayName,
-      phoneNumber,
-      oldPassword,
-      email,
-      newPassword,
-    } = this.state;
+    const { displayName, phoneNumber, oldPassword, email, newPassword } =
+      this.state;
     const { firebase, profile } = this.props;
     event.preventDefault();
     if (!/^[a-zA-Z ]+$/.test(displayName.trim())) {
@@ -87,8 +83,34 @@ class PageProfile extends React.Component {
     this.setState({ [event.target.id]: event.target.value, error: "" });
   };
 
+  setFinancialManager = async () => {
+    this.setState({ loading: true });
+    const { financialManagerName } = this.state;
+    const { users } = this.props;
+    const uid = Object.keys(users).find(
+      (key) => users[key].displayName === financialManagerName
+    );
+    const setFinanceRole = this.props.firebase
+      .functions()
+      .httpsCallable("setFinanceRole");
+    try {
+      const result = await setFinanceRole({ uid });
+      this.setState({
+        functionResult: result.data.message,
+        loading: false,
+        functionError: result.data.error,
+      });
+    } catch (error) {
+      this.setState({
+        functionResult: error.message,
+        loading: false,
+        functionError: true,
+      });
+    }
+  };
+
   render() {
-    const { profile } = this.props;
+    const { profile, financeAccess, users } = this.props;
     const {
       displayName,
       phoneNumber,
@@ -98,6 +120,9 @@ class PageProfile extends React.Component {
       error,
       loading,
       profileUpdated,
+      financialManagerName,
+      functionResult,
+      functionError,
     } = this.state;
 
     const disable = !oldPassword.trim();
@@ -180,6 +205,20 @@ class PageProfile extends React.Component {
       </div>
     );
 
+    const messageBox = functionResult ? (
+      functionError ? (
+        <div>
+          <Alert variant="danger">{functionResult}</Alert>
+          <br />
+        </div>
+      ) : (
+        <div>
+          <Alert variant="success">{functionResult}</Alert>
+          <br />
+        </div>
+      )
+    ) : null;
+
     return (
       <div className="navbar-page">
         <div className="container">
@@ -190,12 +229,57 @@ class PageProfile extends React.Component {
           <br />
           Phone number: {profile.phoneNumber}
           <br />
+          Venmo Integration coming soon!
+          <br />
           <br />
           <Form onSubmit={this.updateProfile}>
             <h4>Update Profile Info</h4>
             {errorBar}
             {formContent}
           </Form>
+          {financeAccess ? (
+            <div>
+              <br />
+              <h4>Financial Manager Options</h4>
+              <Form.Label>Change Financial Manager</Form.Label>
+              <br />
+              <Form.Control
+                as="select"
+                className="header-select"
+                id="financialManagerName"
+                onChange={this.handleInputChange}
+                value={financialManagerName}
+              >
+                {Object.keys(users).map((key) => (
+                  <option key={key}>{users[key].displayName}</option>
+                ))}
+              </Form.Control>
+              <Button
+                className="inline-button"
+                onClick={this.setFinancialManager}
+                disabled={
+                  loading || financialManagerName === profile.displayName
+                }
+                variant="primary"
+                size="sm"
+              >
+                {loading ? (
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  "Set New Financial Manager"
+                )}
+              </Button>
+              <br />
+              {messageBox}
+              COMPANY VENMO INTEGRATION GOES HERE
+            </div>
+          ) : null}
         </div>
       </div>
     );

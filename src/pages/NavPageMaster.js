@@ -24,21 +24,26 @@ class NavPageMaster extends React.Component {
       navState: "dash",
       isAdmin: false,
       takeAppts: false,
+      financeAccess: false,
     };
     props.firebase
       .auth()
       .currentUser.getIdTokenResult(true)
       .then((idTokenResult) => {
-        // Confirm the user is an Admin.
-        if (idTokenResult.claims && idTokenResult.claims.admin === true) {
-          this.setState({ isAdmin: true });
+        const permissions = {};
+        // Check if user has been approved
+        if (idTokenResult.claims && idTokenResult.claims.appointments) {
+          permissions.takeAppts = true;
         }
-        if (
-          idTokenResult.claims &&
-          idTokenResult.claims.appointments === true
-        ) {
-          this.setState({ takeAppts: true });
+        // Check if the user is an Admin.
+        if (idTokenResult.claims && idTokenResult.claims.admin) {
+          permissions.isAdmin = true;
         }
+        // Check if user can edit finances
+        if (idTokenResult.claims && idTokenResult.claims.finances) {
+          permissions.financeAccess = true;
+        }
+        this.setState(permissions);
       });
   }
 
@@ -56,7 +61,7 @@ class NavPageMaster extends React.Component {
       adminPercentage,
       firebase,
     } = this.props;
-    const { navState, takeAppts, isAdmin } = this.state;
+    const { navState, takeAppts, isAdmin, financeAccess } = this.state;
 
     if (!isLoggedIn) {
       return <Redirect to="/login" />;
@@ -65,10 +70,12 @@ class NavPageMaster extends React.Component {
     let contentSwitch;
     switch (navState) {
       case "profile":
-        contentSwitch = <PageProfile />;
+        contentSwitch = (
+          <PageProfile financeAccess={financeAccess} users={users} />
+        );
         break;
       case "balance":
-        contentSwitch = <PageBalance uid={isLoggedIn}/>;
+        contentSwitch = <PageBalance uid={isLoggedIn} />;
         break;
       case "available":
         contentSwitch = (
@@ -99,7 +106,11 @@ class NavPageMaster extends React.Component {
         break;
       case "admin-finances":
         contentSwitch = (
-          <PageAdminFinances users={users} customers={customers} />
+          <PageAdminFinances
+            users={users}
+            customers={customers}
+            financeAccess={financeAccess}
+          />
         );
         break;
       default:

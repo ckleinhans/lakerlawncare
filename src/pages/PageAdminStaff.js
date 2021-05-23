@@ -23,7 +23,7 @@ class PageAdminStaff extends React.Component {
       .functions()
       .httpsCallable("addAdminRole");
     try {
-      const result = await addAdminRole({ uid: uid });
+      const result = await addAdminRole({ uid });
       this.setState({
         result: result.data.message,
         loading: false,
@@ -46,7 +46,7 @@ class PageAdminStaff extends React.Component {
       .functions()
       .httpsCallable("removeAdminRole");
     try {
-      const result = await removeAdminRole({ uid: uid });
+      const result = await removeAdminRole({ uid });
       this.setState({
         result: result.data.message,
         loading: false,
@@ -69,7 +69,7 @@ class PageAdminStaff extends React.Component {
       .functions()
       .httpsCallable("addAppointmentsRole");
     try {
-      const result = await addAdminRole({ uid: uid });
+      const result = await addAdminRole({ uid });
       this.setState({
         result: result.data.message,
         loading: false,
@@ -92,7 +92,7 @@ class PageAdminStaff extends React.Component {
       .functions()
       .httpsCallable("removeAppointmentsRole");
     try {
-      const result = await removeAdminRole({ uid: uid });
+      const result = await removeAdminRole({ uid });
       this.setState({
         result: result.data.message,
         loading: false,

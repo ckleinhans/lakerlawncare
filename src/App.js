@@ -9,7 +9,7 @@ import PageRegister from "./pages/PageRegister";
 import PageRecover from "./pages/PageRecover";
 import NavPageMaster from "./pages/NavPageMaster";
 import PageLoadAuth from "./pages/PageLoadAuth";
-import PageNotFound from "./pages/PageNotFound"
+import PageNotFound from "./pages/PageNotFound";
 
 function App(props) {
   if (!isLoaded(props.auth, props.profile)) {

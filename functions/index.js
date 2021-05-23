@@ -171,6 +171,42 @@ exports.removeAppointmentsRole = functions.https.onCall(
   }
 );
 
+// TODO remove company venmo integration when finance person changed
+exports.setFinanceRole = functions.https.onCall(async (data, context) => {
+  try {
+    // check calling user is current finance manager
+    const caller = await admin.auth().getUser(context.auth.uid);
+    if (caller.customClaims && caller.customClaims.finances === true) {
+      // get user & set finances custom claim
+      const user = await admin.auth().getUser(data.uid);
+      const claims = user.customClaims ? user.customClaims : {};
+      claims.finances = true;
+
+      // Remove finance access from caller's claims
+      caller.customClaims.finances = false;
+
+      // push updated user & caller claims
+      await admin.auth().setCustomUserClaims(user.uid, claims);
+      await admin.auth().setCustomUserClaims(caller.uid, caller.customClaims);
+
+      // return success message
+      return {
+        error: false,
+        message: `Successfully switched financial manager to ${user.email}.`,
+      };
+    } else {
+      // return insufficient permission message
+      return {
+        error: true,
+        message:
+          "Error: You must be the current financial manager to switch who is the financial manager.",
+      };
+    }
+  } catch (error) {
+    return error;
+  }
+});
+
 exports.completeAppointment = functions.https.onCall(async (data, context) => {
   try {
     // Get appointment

@@ -336,7 +336,7 @@ class PageDash extends React.Component {
               ))}
             </Form.Control>
             <Button
-              className="dash-date-button"
+              className="inline-button"
               variant="primary"
               size="sm"
               onClick={this.updateDate}
