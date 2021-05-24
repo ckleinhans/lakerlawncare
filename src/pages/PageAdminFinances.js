@@ -21,6 +21,7 @@ class PageAdminFinances extends React.Component {
       showTransactionModal: false,
       modalError: "",
       modalLoading: false,
+      payLinkClicked: false,
       checkboxes: {},
       typeSelect: "All Transactions",
       customerName: "",
@@ -87,6 +88,7 @@ class PageAdminFinances extends React.Component {
       transactionMethod: "Transaction Method",
       description: "",
       modalLoading: false,
+      payLinkClicked: false,
     });
 
   addTransaction = () => {
@@ -94,7 +96,54 @@ class PageAdminFinances extends React.Component {
   };
 
   payStaff = () => {
-    this.setState({ modalError: "Modal error test" });
+    this.setState({ modalLoading: true });
+    const { firebase, finances, financeAccess } = this.props;
+    const { staffId, checkboxes, description } = this.state;
+
+    if (!financeAccess) {
+      return this.setState({
+        modalLoading: false,
+        modalError: "You do not have permission to edit financial data.",
+      });
+    }
+    if (!description) {
+      return this.setState({
+        modalLoading: false,
+        modalError: "Description is required.",
+      });
+    }
+
+    const date = new Date();
+
+    const transactions = { ...finances.staff[staffId].transactions };
+
+    let totalAmount = 0;
+    Object.keys(checkboxes)
+      .filter((key) => checkboxes[key])
+      .forEach((key) => {
+        totalAmount += transactions[key].amount;
+        transactions[key].complete = true;
+      });
+
+    const key = firebase.push(`/finances/staff/${staffId}/transactions`).key;
+    transactions[key] = {
+      amount: totalAmount * -1,
+      date: date.toLocaleDateString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      complete: true,
+      method: "Venmo",
+      description: `${description}`,
+    };
+
+    const data = { transactions };
+
+    firebase.update(`/finances/staff/${staffId}`, data, this.handleModalClose);
   };
 
   customerPayment = () => {
@@ -128,7 +177,7 @@ class PageAdminFinances extends React.Component {
         transactions[key].complete = true;
       });
 
-    const key = this.props.firebase.push(
+    const key = firebase.push(
       `/finances/customers/${customerId}/transactions`
     ).key;
     transactions[key] = {
@@ -175,6 +224,7 @@ class PageAdminFinances extends React.Component {
       customerId,
       staffName,
       staffId,
+      payLinkClicked,
     } = this.state;
 
     const transactions = [];
@@ -422,6 +472,7 @@ class PageAdminFinances extends React.Component {
           placeholder="Write a brief transaction description"
           onChange={this.handleChange}
           value={description}
+          disabled={payLinkClicked}
           rows={2}
         />
         <br />
@@ -444,6 +495,7 @@ class PageAdminFinances extends React.Component {
                   checked={
                     !Object.keys(checkboxes).find((key) => !checkboxes[key])
                   }
+                  disabled={payLinkClicked}
                   onChange={(event) => {
                     const { checkboxes } = this.state;
                     Object.keys(checkboxes).forEach(
@@ -469,6 +521,7 @@ class PageAdminFinances extends React.Component {
                         type="checkbox"
                         name={key}
                         checked={checkboxes[key]}
+                        disabled={payLinkClicked}
                         onChange={this.handleCheckboxChange}
                       />
                     </td>
@@ -477,6 +530,39 @@ class PageAdminFinances extends React.Component {
               })}
           </tbody>
         </Table>
+        {typeSelect === "Staff" ? (
+          <div>
+            <br />
+            {staffId && users[staffId].venmo ? (
+              !payLinkClicked ? (
+                <a
+                  href={`https://venmo.com/${
+                    users[staffId].venmo
+                  }?txn=pay&amount=${totalSelected}&audience=private&note=${encodeURIComponent(
+                    description
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => this.setState({ payLinkClicked: true })}
+                  style={{ textAlign: "center", display: "block" }}
+                >
+                  Click to complete Venmo transaction, then return to submit
+                  transaction.
+                </a>
+              ) : (
+                <div style={{ textAlign: "center" }}>
+                  Link clicked, confirm transaction success and click button
+                  below.
+                </div>
+              )
+            ) : (
+              <div style={{ color: "#c70000", textAlign: "center" }}>
+                User has not linked their Venmo account!
+              </div>
+            )}
+            <br />
+          </div>
+        ) : null}
       </Modal.Body>
     );
 
@@ -542,9 +628,9 @@ class PageAdminFinances extends React.Component {
               <Button
                 variant="success"
                 onClick={this.payStaff}
-                disabled={modalLoading || !totalSelected}
+                disabled={modalLoading || !totalSelected || !payLinkClicked}
               >
-                Pay Staff {`$${totalSelected.toFixed(2)}`}
+                Log Payment of {`$${totalSelected.toFixed(2)}`}
               </Button>
             </Modal.Footer>
           </Modal>

@@ -2,6 +2,7 @@ import React from "react";
 import { firebaseConnect } from "react-redux-firebase";
 import { connect } from "react-redux";
 import { compose } from "redux";
+import InputGroup from "react-bootstrap/InputGroup";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Alert from "react-bootstrap/Alert";
@@ -16,6 +17,7 @@ class PageProfile extends React.Component {
       phoneNumber: this.props.profile.phoneNumber,
       newPassword: "",
       oldPassword: "",
+      venmo: this.props.profile.venmo || "",
       profileUpdated: false,
       loading: false,
       financialManagerName: this.props.profile.displayName,
@@ -23,21 +25,25 @@ class PageProfile extends React.Component {
   }
 
   updateProfile = async (event) => {
-    const { displayName, phoneNumber, oldPassword, email, newPassword } =
+    const { displayName, phoneNumber, oldPassword, email, newPassword, venmo } =
       this.state;
     const { firebase, profile } = this.props;
     event.preventDefault();
     if (!/^[a-zA-Z ]+$/.test(displayName.trim())) {
       event.stopPropagation();
-      this.setState({ error: "Name must only contain spaces and letters." });
-      return;
+      return this.setState({
+        error: "Name must only contain spaces and letters.",
+      });
     }
     if (!/^([0-9]{3}-[0-9]{3}-[0-9]{4})$/.test(phoneNumber)) {
       event.stopPropagation();
-      this.setState({
+      return this.setState({
         error: "Phone number must be formatted as 123-456-7890.",
       });
-      return;
+    }
+    if (venmo.includes(" ")) {
+      event.stopPropagation();
+      return this.setState({ error: "Venmo username cannot contain spaces." });
     }
     this.setState({ loading: true });
 
@@ -58,6 +64,7 @@ class PageProfile extends React.Component {
       displayName,
       email: email.toLowerCase(),
       phoneNumber,
+      venmo,
     };
 
     firebase.update(`/users/${user.uid}`, updates, async (error) => {
@@ -123,6 +130,7 @@ class PageProfile extends React.Component {
       financialManagerName,
       functionResult,
       functionError,
+      venmo,
     } = this.state;
 
     const disable = !oldPassword.trim();
@@ -188,6 +196,21 @@ class PageProfile extends React.Component {
             value={email}
           />
         </Form.Group>
+        <Form.Group controlId="venmo">
+          <Form.Label>Venmo Username</Form.Label>
+          <InputGroup>
+            <InputGroup.Prepend>
+              <InputGroup.Text>@</InputGroup.Text>
+            </InputGroup.Prepend>
+            <Form.Control
+              type="text"
+              placeholder="Username"
+              onChange={this.handleInputChange}
+              disabled={disable}
+              value={venmo}
+            />
+          </InputGroup>
+        </Form.Group>
         <Form.Group controlId="newPassword">
           <Form.Label>New Password (Optional)</Form.Label>
           <Form.Control
@@ -209,12 +232,10 @@ class PageProfile extends React.Component {
       functionError ? (
         <div>
           <Alert variant="danger">{functionResult}</Alert>
-          <br />
         </div>
       ) : (
         <div>
           <Alert variant="success">{functionResult}</Alert>
-          <br />
         </div>
       )
     ) : null;
@@ -229,7 +250,20 @@ class PageProfile extends React.Component {
           <br />
           Phone number: {profile.phoneNumber}
           <br />
-          Venmo Integration coming soon!
+          {venmo ? (
+            <span>
+              Linked Venmo Account:{" "}
+              <a
+                href={`https://venmo.com/${venmo}`}
+                target="_blank"
+                rel="noreferrer"
+              >{`@${venmo}`}</a>
+            </span>
+          ) : (
+            <span style={{ color: "#c70000" }}>
+              Venmo account not linked! Enter username below to link.
+            </span>
+          )}
           <br />
           <br />
           <Form onSubmit={this.updateProfile}>
@@ -272,12 +306,11 @@ class PageProfile extends React.Component {
                     aria-hidden="true"
                   />
                 ) : (
-                  "Set New Financial Manager"
+                  "Set New Manager"
                 )}
               </Button>
               <br />
               {messageBox}
-              COMPANY VENMO INTEGRATION GOES HERE
             </div>
           ) : null}
         </div>

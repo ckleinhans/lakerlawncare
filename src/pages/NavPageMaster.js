@@ -65,7 +65,6 @@ class NavPageMaster extends React.Component {
     if (!isLoggedIn) {
       return <Redirect to="/login" />;
     }
-    console.log(location);
 
     return (
       <div>
