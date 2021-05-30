@@ -335,12 +335,14 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
         // Update appt date using customer frequency & clear assigned staff
         const apptDate = new Date(appt.date);
         apptDate.setDate(apptDate.getDate() + Number(custFreq));
-        appt.date = apptDate.toLocaleDateString("en-US", {
+        const newDateString = apptDate.toLocaleDateString("en-US", {
           weekday: "short",
           year: "numeric",
           month: "short",
           day: "numeric",
         });
+        appt.date = newDateString;
+        appt.originalDate = newDateString;
         appt.staffAssigned = null;
         const apptsRef = admin.database().ref("/appointments");
         const newApptKey = (await apptsRef.push()).key;

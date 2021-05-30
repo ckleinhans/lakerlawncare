@@ -229,37 +229,46 @@ class PageAdminFinances extends React.Component {
 
     const transactions = [];
     if (finances && finances.staff && finances.customers) {
-      if (typeSelect === "Customers" && customerId) {
-        if (
-          finances.customers[customerId] &&
-          finances.customers[customerId].transactions
-        ) {
-          transactions.push(
-            ...Object.keys(finances.customers[customerId].transactions).map(
-              (key) => {
-                return {
-                  ...finances.customers[customerId].transactions[key],
-                  key: key,
-                  payer: customers[customerId].name,
-                  sortPriority: 1,
-                };
-              }
-            )
-          );
-        }
-      } else if (typeSelect === "Staff" && staffId) {
-        if (finances.staff[staffId] && finances.staff[staffId].transactions) {
-          transactions.push(
-            ...Object.keys(finances.staff[staffId].transactions).map((key) => {
-              return {
-                ...finances.staff[staffId].transactions[key],
-                key: key,
-                payer: users[staffId].displayName,
-                sortPriority: 0,
-              };
-            })
-          );
-        }
+      if (typeSelect === "Customers") {
+        Object.keys(finances.customers)
+          .filter((id) => !customerId || customerId === id)
+          .forEach((id) => {
+            if (finances.customers[id].transactions)
+              transactions.push(
+                ...Object.keys(finances.customers[id].transactions)
+                  .filter(
+                    (key) => finances.customers[id].transactions[key].amount > 0
+                  )
+                  .map((key) => {
+                    return {
+                      ...finances.customers[id].transactions[key],
+                      key: key,
+                      payer: customers[id].name,
+                      sortPriority: 1,
+                    };
+                  })
+              );
+          });
+      } else if (typeSelect === "Staff") {
+        Object.keys(finances.staff)
+          .filter((id) => !staffId || staffId === id)
+          .forEach((id) => {
+            if (finances.staff[id].transactions)
+              transactions.push(
+                ...Object.keys(finances.staff[id].transactions)
+                  .filter(
+                    (key) => finances.staff[id].transactions[key].amount > 0
+                  )
+                  .map((key) => {
+                    return {
+                      ...finances.staff[id].transactions[key],
+                      key: key,
+                      payer: users[id].displayName,
+                      sortPriority: 0,
+                    };
+                  })
+              );
+          });
       } else {
         // "All Transactions"
         Object.keys(finances.staff).forEach((id) => {
