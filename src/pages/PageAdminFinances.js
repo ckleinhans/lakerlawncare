@@ -19,6 +19,7 @@ class PageAdminFinances extends React.Component {
       showCustomerModal: false,
       showStaffModal: false,
       showTransactionModal: false,
+      showInvoiceModal: false,
       modalError: "",
       modalLoading: false,
       payLinkClicked: false,
@@ -84,6 +85,7 @@ class PageAdminFinances extends React.Component {
       showCustomerModal: false,
       showStaffModal: false,
       showTransactionModal: false,
+      showInvoiceModal: false,
       date: "",
       transactionMethod: "Transaction Method",
       description: "",
@@ -207,6 +209,10 @@ class PageAdminFinances extends React.Component {
     );
   };
 
+  sendInvoice = () => {
+    alert("Automated invoice sending is still under construction.");
+  };
+
   render() {
     const { customers, users, finances } = this.props;
     const {
@@ -216,6 +222,7 @@ class PageAdminFinances extends React.Component {
       showCustomerModal,
       showStaffModal,
       showTransactionModal,
+      showInvoiceModal,
       modalError,
       modalLoading,
       checkboxes,
@@ -229,7 +236,7 @@ class PageAdminFinances extends React.Component {
 
     const transactions = [];
     if (finances && finances.staff && finances.customers) {
-      if (typeSelect === "Customers") {
+      if (typeSelect !== "Staff") {
         Object.keys(finances.customers)
           .filter((id) => !customerId || customerId === id)
           .forEach((id) => {
@@ -237,7 +244,9 @@ class PageAdminFinances extends React.Component {
               transactions.push(
                 ...Object.keys(finances.customers[id].transactions)
                   .filter(
-                    (key) => finances.customers[id].transactions[key].amount > 0
+                    (key) =>
+                      customerId ||
+                      finances.customers[id].transactions[key].amount > 0
                   )
                   .map((key) => {
                     return {
@@ -249,7 +258,8 @@ class PageAdminFinances extends React.Component {
                   })
               );
           });
-      } else if (typeSelect === "Staff") {
+      }
+      if (typeSelect !== "Customers") {
         Object.keys(finances.staff)
           .filter((id) => !staffId || staffId === id)
           .forEach((id) => {
@@ -257,55 +267,24 @@ class PageAdminFinances extends React.Component {
               transactions.push(
                 ...Object.keys(finances.staff[id].transactions)
                   .filter(
-                    (key) => finances.staff[id].transactions[key].amount > 0
+                    (key) =>
+                      staffId || finances.staff[id].transactions[key].amount > 0
                   )
                   .map((key) => {
+                    const amount =
+                      typeSelect === "All Transactions"
+                        ? finances.staff[id].transactions[key].amount * -1
+                        : finances.staff[id].transactions[key].amount;
                     return {
                       ...finances.staff[id].transactions[key],
                       key: key,
+                      amount,
                       payer: users[id].displayName,
                       sortPriority: 0,
                     };
                   })
               );
           });
-      } else {
-        // "All Transactions"
-        Object.keys(finances.staff).forEach((id) => {
-          if (finances.staff[id].transactions)
-            transactions.push(
-              ...Object.keys(finances.staff[id].transactions)
-                .filter(
-                  (key) => finances.staff[id].transactions[key].amount > 0
-                )
-                .map((key) => {
-                  return {
-                    ...finances.staff[id].transactions[key],
-                    key: key,
-                    amount: finances.staff[id].transactions[key].amount * -1,
-                    payer: users[id].displayName,
-                    sortPriority: 0,
-                  };
-                })
-            );
-        });
-        Object.keys(finances.customers).forEach((id) => {
-          if (finances.customers[id].transactions)
-            transactions.push(
-              ...Object.keys(finances.customers[id].transactions)
-                .filter(
-                  (key) => finances.customers[id].transactions[key].amount > 0
-                )
-                .map((key) => {
-                  return {
-                    ...finances.customers[id].transactions[key],
-                    key: key,
-                    payer: customers[id].name,
-                    sortPriority: 1,
-                  };
-                })
-            );
-        });
       }
     }
 
@@ -375,7 +354,23 @@ class PageAdminFinances extends React.Component {
             });
           }}
         >
-          Record Payment by {customers[customerId].name}
+          Record Payment
+        </Button>
+        <Button
+          className="float-header"
+          variant="secondary"
+          onClick={() => {
+            const checkboxes = {};
+            transactions
+              .filter((transaction) => !transaction.complete)
+              .forEach((transaction) => (checkboxes[transaction.key] = true));
+            this.setState({
+              showInvoiceModal: true,
+              checkboxes,
+            });
+          }}
+        >
+          Generate Invoice
         </Button>
       </div>
     ) : staffId ? (
@@ -575,6 +570,14 @@ class PageAdminFinances extends React.Component {
       </Modal.Body>
     );
 
+    const dateURI = encodeURIComponent(
+      new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+      })
+    );
+
     return (
       <div className="navbar-page">
         <div className="container">
@@ -666,6 +669,100 @@ class PageAdminFinances extends React.Component {
                 disabled={modalLoading}
               >
                 Add Transaction
+              </Button>
+            </Modal.Footer>
+          </Modal>
+
+          <Modal show={showInvoiceModal} onHide={this.handleModalClose}>
+            <Modal.Header closeButton>
+              <Modal.Title>
+                Invoice for {customerId && customers[customerId].name}
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body style={{ overflowX: "auto" }}>
+              Hello {customerId && customers[customerId].name.split(" ")[0]},
+              <br />
+              <br />
+              Thank you again for choosing Laker Lawn Care for your lawn
+              service! Please see your balance due below and pay as soon as you
+              are able. If you have any questions, feel free to reply to this
+              email and we will get back to you as soon as possible.
+              <br />
+              <br />
+              <Table size="sm">
+                <tbody>
+                  {transactions
+                    .filter((transaction) => !transaction.complete)
+                    .map((transaction) => {
+                      const { date, amount, key } = transaction;
+                      return (
+                        <tr key={key}>
+                          <td>
+                            {new Date(date).toLocaleDateString("en-US", {
+                              weekday: "short",
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </td>
+                          <td> </td>
+                          <td>${amount.toFixed(2)}</td>
+                        </tr>
+                      );
+                    })}
+                  <tr>
+                    <td>
+                      <b>Total Owed:</b>
+                    </td>
+                    <td> </td>
+                    <td>
+                      <b>${totalSelected.toFixed(2)}</b>
+                    </td>
+                  </tr>
+                </tbody>
+              </Table>
+              <br />
+              Please Venmo @Caelan-Kleinhans or use this link:
+              <br />
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href={`https://venmo.com/Caelan-Kleinhans?txn=pay&audience=private&amount=
+              ${totalSelected}&note=Laker%20Lawn%20Care%20
+              ${dateURI}%20Invoice`}
+              >
+                https://venmo.com/Caelan-Kleinhans?txn=pay&audience=private&amount=
+                {totalSelected}&note=Laker%20Lawn%20Care%20
+                {dateURI}%20Invoice
+              </a>
+              <br />
+              <br />
+              If you don't have Venmo you can Zelle lakerlawncare612@gmail.com
+              or send a check to:
+              <br />
+              Caelan Kleinhans
+              <br />
+              1311 W Dayton St, Apt 4<br />
+              Madison, WI 53715
+              <br />
+              <br />
+              Thank you!
+            </Modal.Body>
+            {modalErrorBar}
+            <Modal.Footer>
+              <Button
+                variant="secondary"
+                onClick={this.handleModalClose}
+                disabled={modalLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={this.sendInvoice}
+                disabled={modalLoading}
+              >
+                Send to {customerId && customers[customerId].email}
               </Button>
             </Modal.Footer>
           </Modal>

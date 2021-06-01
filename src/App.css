@@ -41,6 +41,7 @@
 /* Styling for buttons, dropdowns and headers in rows as headers */
 @media (min-width: 800px) {
   .float-header {
+    margin-left: 5px;
     float: right;
   }
   .inline-header {
@@ -50,6 +51,7 @@
 @media (max-width: 800px) {
   .float-header {
     margin-bottom: 5px;
+    margin-right: 5px;
   }
   .inline-header {
     display: block;
