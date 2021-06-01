@@ -359,6 +359,7 @@ class PageAdminFinances extends React.Component {
         <Button
           className="float-header"
           variant="secondary"
+          disabled={!transactions.find((transaction) => !transaction.complete)}
           onClick={() => {
             const checkboxes = {};
             transactions
@@ -727,9 +728,7 @@ class PageAdminFinances extends React.Component {
               <a
                 target="_blank"
                 rel="noreferrer"
-                href={`https://venmo.com/Caelan-Kleinhans?txn=pay&audience=private&amount=
-              ${totalSelected}&note=Laker%20Lawn%20Care%20
-              ${dateURI}%20Invoice`}
+                href={`https://venmo.com/Caelan-Kleinhans?txn=pay&audience=private&amount=${totalSelected}&note=Laker%20Lawn%20Care%20${dateURI}%20Invoice`}
               >
                 https://venmo.com/Caelan-Kleinhans?txn=pay&audience=private&amount=
                 {totalSelected}&note=Laker%20Lawn%20Care%20
