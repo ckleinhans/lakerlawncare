@@ -309,7 +309,7 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
 
     // If appt is listed as available, remove it from available list
     const availableApptsRef = admin.database().ref("/availableAppointments");
-    const availableAppts = (await availableApptsRef.get()).val();
+    let availableAppts = (await availableApptsRef.get()).val();
     if (availableAppts && availableAppts.includes(data.apptKey)) {
       availableAppts.splice(availableAppts.indexOf(data.apptKey), 1);
       await availableApptsRef.set(availableAppts);
