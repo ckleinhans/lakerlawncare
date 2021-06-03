@@ -350,7 +350,11 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
         apptsRef.child(newApptKey).set({ ...appt });
 
         // Add the new appt to the list of available appts
-        availableAppts.push(newApptKey);
+        if (availableAppts) {
+          availableAppts.push(newApptKey);
+        } else {
+          availableAppts = [newApptKey];
+        }
         await availableApptsRef.set(availableAppts);
       }
     }
