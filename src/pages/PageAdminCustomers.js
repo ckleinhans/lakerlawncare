@@ -362,18 +362,20 @@ const mapStateToProps = (state, props) => {
 export default compose(
   firebaseConnect((props) => {
     const paths = [];
-    Object.keys(props.customers).forEach((id) => {
-      paths.push(
-        ...[
-          {
-            path: `/finances/customers/${id}/owed`,
-          },
-          {
-            path: `/finances/customers/${id}/paid`,
-          },
-        ]
-      );
-    });
+    if (props.customers) {
+      Object.keys(props.customers).forEach((id) => {
+        paths.push(
+          ...[
+            {
+              path: `/finances/customers/${id}/owed`,
+            },
+            {
+              path: `/finances/customers/${id}/paid`,
+            },
+          ]
+        );
+      });
+    }
     return paths;
   }),
   connect(mapStateToProps)

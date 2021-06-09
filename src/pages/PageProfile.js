@@ -11,16 +11,17 @@ import Spinner from "react-bootstrap/Spinner";
 class PageProfile extends React.Component {
   constructor(props) {
     super(props);
+    const { profile } = this.props;
     this.state = {
-      email: this.props.profile.email,
-      displayName: this.props.profile.displayName,
-      phoneNumber: this.props.profile.phoneNumber,
+      email: profile.email,
+      displayName: profile.displayName,
+      phoneNumber: profile.phoneNumber,
       newPassword: "",
       oldPassword: "",
-      venmo: this.props.profile.venmo || "",
+      venmo: profile.venmo || "",
       profileUpdated: false,
       loading: false,
-      financialManagerName: this.props.profile.displayName,
+      financialManagerName: profile.displayName,
     };
   }
 
@@ -117,7 +118,7 @@ class PageProfile extends React.Component {
   };
 
   render() {
-    const { profile, financeAccess, users } = this.props;
+    const { profile, users } = this.props;
     const {
       displayName,
       phoneNumber,
@@ -271,7 +272,7 @@ class PageProfile extends React.Component {
             {errorBar}
             {formContent}
           </Form>
-          {financeAccess ? (
+          {profile.token.claims.finances ? (
             <div>
               <br />
               <h4>Financial Manager Options</h4>
@@ -284,9 +285,10 @@ class PageProfile extends React.Component {
                 onChange={this.handleInputChange}
                 value={financialManagerName}
               >
-                {Object.keys(users).map((key) => (
-                  <option key={key}>{users[key].displayName}</option>
-                ))}
+                {users &&
+                  Object.keys(users).map((key) => (
+                    <option key={key}>{users[key].displayName}</option>
+                  ))}
               </Form.Control>
               <Button
                 className="inline-button"

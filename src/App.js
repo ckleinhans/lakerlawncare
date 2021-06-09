@@ -15,26 +15,24 @@ function App(props) {
     return <PageLoadAuth />;
   }
 
+  const { auth, profile } = props;
+
   return (
     <Switch>
       <Route exact path="/">
-        {props.auth.uid ? (
-          <Redirect to="/app/dashboard" />
-        ) : (
-          <Redirect to="/login" />
-        )}
+        {auth.uid ? <Redirect to="/app/dashboard" /> : <Redirect to="/login" />}
       </Route>
       <Route exact path="/login">
-        <PageLogin isLoggedIn={props.auth.uid} />
+        <PageLogin isLoggedIn={!!auth.uid} />
       </Route>
       <Route exact path="/register">
-        <PageRegister isLoggedIn={props.auth.uid} />
+        <PageRegister isLoggedIn={!!auth.uid} />
       </Route>
       <Route exact path="/recover">
-        <PageRecover isLoggedIn={props.auth.uid} />
+        <PageRecover isLoggedIn={!!auth.uid} />
       </Route>
       <Route path="/app">
-        <NavPageMaster isLoggedIn={props.auth.uid} />
+        <NavPageMaster uid={auth.uid} profile={profile} />
       </Route>
       <Route>
         <PageNotFound />

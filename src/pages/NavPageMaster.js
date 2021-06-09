@@ -22,35 +22,14 @@ class NavPageMaster extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isAdmin: false,
-      takeAppts: false,
-      financeAccess: false,
       navExpanded: false,
     };
-    props.firebase
-      .auth()
-      .currentUser.getIdTokenResult(true)
-      .then((idTokenResult) => {
-        const permissions = {};
-        // Check if user has been approved
-        if (idTokenResult.claims && idTokenResult.claims.appointments) {
-          permissions.takeAppts = true;
-        }
-        // Check if the user is an Admin.
-        if (idTokenResult.claims && idTokenResult.claims.admin) {
-          permissions.isAdmin = true;
-        }
-        // Check if user can edit finances
-        if (idTokenResult.claims && idTokenResult.claims.finances) {
-          permissions.financeAccess = true;
-        }
-        this.setState(permissions);
-      });
   }
 
   render() {
     const {
-      isLoggedIn,
+      uid,
+      profile,
       users,
       customers,
       myApptIds,
@@ -59,12 +38,13 @@ class NavPageMaster extends React.Component {
       firebase,
       location,
     } = this.props;
-    const { takeAppts, isAdmin, financeAccess, navExpanded, showDropdown } =
-      this.state;
 
-    if (!isLoggedIn) {
+    if (!uid) {
       return <Redirect to="/login" />;
     }
+
+    const { admin, appointments, finances } = profile.token.claims;
+    const { navExpanded, showDropdown } = this.state;
 
     return (
       <div>
@@ -95,7 +75,7 @@ class NavPageMaster extends React.Component {
               >
                 Dashboard
               </NavLink>
-              {takeAppts ? (
+              {appointments ? (
                 <NavLink
                   className="nav-link"
                   to="/app/available"
@@ -118,7 +98,7 @@ class NavPageMaster extends React.Component {
               >
                 Profile
               </NavLink>
-              {isAdmin ? (
+              {admin ? (
                 <NavDropdown
                   show={showDropdown}
                   active={location.pathname.includes("/app/admin")}
@@ -178,14 +158,14 @@ class NavPageMaster extends React.Component {
               users={users}
               customers={customers}
               myApptIds={myApptIds}
-              takeAppts={takeAppts}
+              takeAppts={appointments}
               adminPercentage={adminPercentage}
             />
           </Route>
           <Route exact path="/app/available">
-            {takeAppts ? (
+            {appointments ? (
               <PageAvailable
-                uid={isLoggedIn}
+                uid={uid}
                 users={users}
                 customers={customers}
                 availableApptIds={availableApptIds}
@@ -197,14 +177,14 @@ class NavPageMaster extends React.Component {
             )}
           </Route>
           <Route exact path="/app/balance">
-            <PageBalance uid={isLoggedIn} />;
+            <PageBalance uid={uid} />;
           </Route>
-          <Route path="/app/profile">
-            <PageProfile financeAccess={financeAccess} users={users} />
+          <Route exact path="/app/profile">
+            <PageProfile profile={profile} users={users} />
           </Route>
 
           <Route path="/app/admin">
-            {isAdmin ? (
+            {admin ? (
               <Switch>
                 <Route exact path="/app/admin/staff">
                   <PageAdminStaff users={users} />
@@ -223,7 +203,7 @@ class NavPageMaster extends React.Component {
                   <PageAdminFinances
                     users={users}
                     customers={customers}
-                    financeAccess={financeAccess}
+                    financeAccess={finances}
                   />
                 </Route>
               </Switch>
@@ -256,7 +236,7 @@ export default compose(
     { path: `/users`, storeAs: "users" },
     { path: `/customers`, storeAs: "customers" },
     {
-      path: `/assignedAppointments/${props.isLoggedIn}`,
+      path: `/assignedAppointments/${props.uid}`,
       storeAs: "myApptIds",
     },
     { path: `/availableAppointments`, storeAs: "availableApptIds" },

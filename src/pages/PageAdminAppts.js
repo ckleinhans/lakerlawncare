@@ -530,9 +530,10 @@ class PageAdminAppts extends React.Component {
           <br />
           <Form.Label>Customer Name</Form.Label>
           <Autocomplete
-            valueArray={Object.values(customers).map(
-              (customer) => customer.name
-            )}
+            valueArray={
+              customers &&
+              Object.values(customers).map((customer) => customer.name)
+            }
             onChange={this.handleCustomerChange}
             value={customerName}
             placeholder="Customer Name"

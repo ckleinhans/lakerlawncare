@@ -235,8 +235,8 @@ class PageAdminFinances extends React.Component {
     } = this.state;
 
     const transactions = [];
-    if (finances && finances.staff && finances.customers) {
-      if (typeSelect !== "Staff") {
+    if (finances) {
+      if (typeSelect !== "Staff" && customers && finances.customers) {
         Object.keys(finances.customers)
           .filter((id) => !customerId || customerId === id)
           .forEach((id) => {
@@ -259,7 +259,7 @@ class PageAdminFinances extends React.Component {
               );
           });
       }
-      if (typeSelect !== "Customers") {
+      if (typeSelect !== "Customers" && users && finances.staff) {
         Object.keys(finances.staff)
           .filter((id) => !staffId || staffId === id)
           .forEach((id) => {

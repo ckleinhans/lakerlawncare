@@ -10,20 +10,23 @@ exports.addAdminRole = functions.https.onCall(async (data, context) => {
     // check calling user is admin
     const caller = await admin.auth().getUser(context.auth.uid);
     if (caller.customClaims && caller.customClaims.admin === true) {
-      // get user
+      // get user & custom claims if they exist
       const user = await admin.auth().getUser(data.uid);
-      // get user's custom claims or create empty object if none
       const claims = user.customClaims ? user.customClaims : {};
-      // set admin custom claim to true
+
+      // set admin custom claim to true & add user to admin list
       claims.admin = true;
-      // get admin list in database
       const admins = (await admin.database().ref("/admins/").get()).val();
-      // add new uid to list
       admins.push(user.uid);
-      // push updated user claims
       await admin.auth().setCustomUserClaims(user.uid, claims);
-      // update admins array in database
       await admin.database().ref("/admins/").set(admins);
+
+      // update user's refresh token to random string to push updated claims to client
+      admin
+        .database()
+        .ref(`/users/${user.uid}/refreshToken`)
+        .set(Math.random().toString(16).substr(2, 8));
+
       // return success message
       return {
         error: false,
@@ -46,27 +49,31 @@ exports.removeAdminRole = functions.https.onCall(async (data, context) => {
     // check calling user is admin
     const caller = await admin.auth().getUser(context.auth.uid);
     if (caller.customClaims && caller.customClaims.admin === true) {
-      // get user
+      // get user & custom claims if they exist
       const user = await admin.auth().getUser(data.uid);
-      // if user is Caelan, prevent removing admin
-      if (user.email === "calexk@live.com") {
+      const claims = user.customClaims ? user.customClaims : {};
+      // if user is financial manager, prevent removing admin
+      if (user.customClaims && user.customClaims.finances) {
         return {
           error: true,
-          message: `Cannot remove admin permissions from ${user.email}`,
+          message:
+            "Cannot remove admin permissions from the financial manager.",
         };
       }
-      // get user's custom claims or create empty object if none
-      const claims = user.customClaims ? user.customClaims : {};
-      // set admin custom claim to true
+
+      // remove admin custom claim & remove from admin list
       claims.admin = false;
-      // get admin list in database
       const admins = (await admin.database().ref("/admins/").get()).val();
-      // add new uid to list
       admins.splice(admins.indexOf(user.uid), 1);
-      // set admin user claim
       await admin.auth().setCustomUserClaims(user.uid, claims);
-      // update admins array in database
       await admin.database().ref("/admins/").set(admins);
+
+      // update user's refresh token to random string to push updated claims to client
+      admin
+        .database()
+        .ref(`/users/${user.uid}/refreshToken`)
+        .set(Math.random().toString(16).substr(2, 8));
+
       // return success message
       return {
         error: false,
@@ -89,22 +96,25 @@ exports.addAppointmentsRole = functions.https.onCall(async (data, context) => {
     // check calling user is admin
     const caller = await admin.auth().getUser(context.auth.uid);
     if (caller.customClaims && caller.customClaims.admin === true) {
-      // get user
+      // get user & custom claims if they exist
       const user = await admin.auth().getUser(data.uid);
-      // get user's custom claims or create empty object if none
       const claims = user.customClaims ? user.customClaims : {};
-      // set admin custom claim to true
+
+      // set admin custom claim to true & add uid to appt user list
       claims.appointments = true;
-      // get admin list in database
       const appointmentUsers = await (
         await admin.database().ref("/appointmentUsers/").get()
       ).val();
-      // add new uid to list
       appointmentUsers.push(user.uid);
-      // push updated user claims
       await admin.auth().setCustomUserClaims(user.uid, claims);
-      // update admins array in database
       await admin.database().ref("/appointmentUsers/").set(appointmentUsers);
+
+      // update user's refresh token to random string to push updated claims to client
+      admin
+        .database()
+        .ref(`/users/${user.uid}/refreshToken`)
+        .set(Math.random().toString(16).substr(2, 8));
+
       // return success message
       return {
         error: false,
@@ -140,18 +150,23 @@ exports.removeAppointmentsRole = functions.https.onCall(
               "Error: Cannot remove last user with appointment privileges.",
           };
         }
-        // get user
+
+        // get user & custom claims (if they exist)
         const user = await admin.auth().getUser(data.uid);
-        // get user's custom claims or create empty object if none
         const claims = user.customClaims ? user.customClaims : {};
-        // set admin custom claim to true
+
+        // remove appt custom claim to true & remove from appt users list
         claims.appointments = false;
-        // add new uid to list
         appointmentUsers.splice(appointmentUsers.indexOf(user.uid), 1);
-        // set admin user claim
         await admin.auth().setCustomUserClaims(user.uid, claims);
-        // update admins array in database
         await admin.database().ref("/appointmentUsers/").set(appointmentUsers);
+
+        // update user's refresh token to random string to push updated claims to client
+        admin
+          .database()
+          .ref(`/users/${user.uid}/refreshToken`)
+          .set(Math.random().toString(16).substr(2, 8));
+
         // return success message
         return {
           error: false,
@@ -188,6 +203,12 @@ exports.setFinanceRole = functions.https.onCall(async (data, context) => {
       // push updated user & caller claims
       await admin.auth().setCustomUserClaims(user.uid, claims);
       await admin.auth().setCustomUserClaims(caller.uid, caller.customClaims);
+
+      // update new manager's refresh token to random string to push updated claims to client
+      admin
+        .database()
+        .ref(`/users/${user.uid}/refreshToken`)
+        .set(Math.random().toString(16).substr(2, 8));
 
       // return success message
       return {

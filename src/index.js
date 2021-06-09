@@ -32,6 +32,7 @@ const store = createStore(rootReducer, composeWithDevTools());
 // react-redux-firebase config
 const rrfConfig = {
   userProfile: "users",
+  enableClaims: true,
 };
 
 const rrfProps = {
