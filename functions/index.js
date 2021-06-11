@@ -206,6 +206,9 @@ exports.setFinanceRole = functions.https.onCall(async (data, context) => {
       claims.finances = true;
       caller.customClaims.finances = false;
 
+      // remove current company venmo account
+      admin.database().ref("/companyVenmo").remove();
+
       // push updated user & caller claims
       await admin.auth().setCustomUserClaims(user.uid, claims);
       await admin.auth().setCustomUserClaims(caller.uid, caller.customClaims);
