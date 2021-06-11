@@ -8,6 +8,7 @@ import Form from "react-bootstrap/Form";
 import Modal from "react-bootstrap/Modal";
 import DatePicker from "react-datepicker";
 import Autocomplete from "../components/Autocomplete";
+import { Link } from "react-router-dom";
 
 class PageAdminFinances extends React.Component {
   constructor(props) {
@@ -214,7 +215,7 @@ class PageAdminFinances extends React.Component {
   };
 
   render() {
-    const { customers, users, finances } = this.props;
+    const { customers, users, finances, companyVenmo } = this.props;
     const {
       date,
       transactionMethod,
@@ -680,73 +681,83 @@ class PageAdminFinances extends React.Component {
                 Invoice for {customerId && customers[customerId].name}
               </Modal.Title>
             </Modal.Header>
-            <Modal.Body style={{ overflowX: "auto" }}>
-              Hello {customerId && customers[customerId].name.split(" ")[0]},
-              <br />
-              <br />
-              Thank you again for choosing Laker Lawn Care for your lawn
-              service! Please see your balance due below and pay as soon as you
-              are able. If you have any questions, feel free to reply to this
-              email and we will get back to you as soon as possible.
-              <br />
-              <br />
-              <Table size="sm">
-                <tbody>
-                  {transactions
-                    .filter((transaction) => !transaction.complete)
-                    .map((transaction) => {
-                      const { date, amount, key } = transaction;
-                      return (
-                        <tr key={key}>
-                          <td>
-                            {new Date(date).toLocaleDateString("en-US", {
-                              weekday: "short",
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </td>
-                          <td> </td>
-                          <td>${amount.toFixed(2)}</td>
-                        </tr>
-                      );
-                    })}
-                  <tr>
-                    <td>
-                      <b>Total Owed:</b>
-                    </td>
-                    <td> </td>
-                    <td>
-                      <b>${totalSelected.toFixed(2)}</b>
-                    </td>
-                  </tr>
-                </tbody>
-              </Table>
-              <br />
-              Please Venmo @Caelan-Kleinhans or use this link:
-              <br />
-              <a
-                target="_blank"
-                rel="noreferrer"
-                href={`https://venmo.com/Caelan-Kleinhans?txn=pay&audience=private&amount=${totalSelected}&note=Laker%20Lawn%20Care%20${dateURI}%20Invoice`}
-              >
-                https://venmo.com/Caelan-Kleinhans?txn=pay&audience=private&amount=
-                {totalSelected}&note=Laker%20Lawn%20Care%20
-                {dateURI}%20Invoice
-              </a>
-              <br />
-              <br />
-              If you don't have Venmo you can Zelle lakerlawncare612@gmail.com
-              or send a check to:
-              <br />
-              Caelan Kleinhans
-              <br />
-              1311 W Dayton St, Apt 4<br />
-              Madison, WI 53715
-              <br />
-              <br />
-              Thank you!
-            </Modal.Body>
+            {companyVenmo ? (
+              <Modal.Body style={{ overflowX: "auto" }}>
+                Hello {customerId && customers[customerId].name.split(" ")[0]},
+                <br />
+                <br />
+                Thank you again for choosing Laker Lawn Care for your lawn
+                service! Please see your balance due below and pay as soon as
+                you are able. If you have any questions, feel free to reply to
+                this email and we will get back to you as soon as possible.
+                <br />
+                <br />
+                <Table size="sm">
+                  <tbody>
+                    {transactions
+                      .filter((transaction) => !transaction.complete)
+                      .map((transaction) => {
+                        const { date, amount, key } = transaction;
+                        return (
+                          <tr key={key}>
+                            <td>
+                              {new Date(date).toLocaleDateString("en-US", {
+                                weekday: "short",
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </td>
+                            <td> </td>
+                            <td>${amount.toFixed(2)}</td>
+                          </tr>
+                        );
+                      })}
+                    <tr>
+                      <td>
+                        <b>Total Owed:</b>
+                      </td>
+                      <td> </td>
+                      <td>
+                        <b>${totalSelected.toFixed(2)}</b>
+                      </td>
+                    </tr>
+                  </tbody>
+                </Table>
+                <br />
+                Please Venmo @{companyVenmo} or use this link:
+                <br />
+                <a
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`https://venmo.com/${companyVenmo}?txn=pay&audience=private&amount=${totalSelected}&note=Laker%20Lawn%20Care%20${dateURI}%20Invoice`}
+                >
+                  https://venmo.com/{companyVenmo}
+                  ?txn=pay&audience=private&amount=
+                  {totalSelected}&note=Laker%20Lawn%20Care%20
+                  {dateURI}%20Invoice
+                </a>
+                <br />
+                <br />
+                If you don't have Venmo you can Zelle lakerlawncare612@gmail.com
+                or send a check to:
+                <br />
+                Caelan Kleinhans
+                <br />
+                1311 W Dayton St, Apt 4<br />
+                Madison, WI 53715
+                <br />
+                <br />
+                Thank you!
+              </Modal.Body>
+            ) : (
+              <Modal.Body style={{ color: "#c70000" }}>
+                The financial manager must link a company Venmo account from the{" "}
+                <Link to="/app/profile">Profile Page</Link> before generating
+                invoices.
+              </Modal.Body>
+            )}
+
             {modalErrorBar}
             <Modal.Footer>
               <Button
@@ -754,15 +765,17 @@ class PageAdminFinances extends React.Component {
                 onClick={this.handleModalClose}
                 disabled={modalLoading}
               >
-                Cancel
+                Close
               </Button>
-              <Button
-                variant="primary"
-                onClick={this.sendInvoice}
-                disabled={modalLoading}
-              >
-                Send to {customerId && customers[customerId].email}
-              </Button>
+              {companyVenmo && customerId && customers[customerId].email ? (
+                <Button
+                  variant="primary"
+                  onClick={this.sendInvoice}
+                  disabled={modalLoading}
+                >
+                  Send to {customers[customerId].email}
+                </Button>
+              ) : null}
             </Modal.Footer>
           </Modal>
         </div>

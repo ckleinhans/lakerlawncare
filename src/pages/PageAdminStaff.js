@@ -111,6 +111,8 @@ class PageAdminStaff extends React.Component {
 
   render() {
     const { users, admins, appointmentUsers } = this.props;
+    const { error, result, loading, adminKeyLoading, apptUsersKeyLoading } =
+      this.state;
     let table;
     if (!isLoaded(users, admins, appointmentUsers)) {
       table = <div>Loading staff...</div>;
@@ -142,11 +144,11 @@ class PageAdminStaff extends React.Component {
           const adminButton = admins.includes(key) ? (
             <Button
               onClick={() => this.removeAdmin(key)}
-              disabled={this.state.loading}
+              disabled={loading}
               variant="danger"
               size="sm"
             >
-              {this.state.adminKeyLoading === key ? (
+              {adminKeyLoading === key ? (
                 <Spinner
                   as="span"
                   animation="border"
@@ -161,11 +163,11 @@ class PageAdminStaff extends React.Component {
           ) : (
             <Button
               onClick={() => this.setAdmin(key)}
-              disabled={this.state.loading}
+              disabled={loading}
               variant="success"
               size="sm"
             >
-              {this.state.adminKeyLoading === key ? (
+              {adminKeyLoading === key ? (
                 <Spinner
                   as="span"
                   animation="border"
@@ -182,11 +184,11 @@ class PageAdminStaff extends React.Component {
           const apptUserButton = appointmentUsers.includes(key) ? (
             <Button
               onClick={() => this.removeApptUser(key)}
-              disabled={this.state.loading}
+              disabled={loading}
               variant="danger"
               size="sm"
             >
-              {this.state.apptUsersKeyLoading === key ? (
+              {apptUsersKeyLoading === key ? (
                 <Spinner
                   as="span"
                   animation="border"
@@ -201,11 +203,11 @@ class PageAdminStaff extends React.Component {
           ) : (
             <Button
               onClick={() => this.setApptUser(key)}
-              disabled={this.state.loading}
+              disabled={loading}
               variant="success"
               size="sm"
             >
-              {this.state.apptUsersKeyLoading === key ? (
+              {apptUsersKeyLoading === key ? (
                 <Spinner
                   as="span"
                   animation="border"
@@ -251,11 +253,11 @@ class PageAdminStaff extends React.Component {
       );
     }
 
-    const messageBox = this.state.result ? (
-      this.state.error ? (
-        <Alert variant="danger">{this.state.result}</Alert>
+    const messageBox = result ? (
+      error ? (
+        <Alert variant="danger">{result}</Alert>
       ) : (
-        <Alert variant="success">{this.state.result}</Alert>
+        <Alert variant="success">{result}</Alert>
       )
     ) : null;
 
@@ -265,6 +267,7 @@ class PageAdminStaff extends React.Component {
           <h2>Staff List</h2>
           {messageBox}
           {table}
+          {messageBox}
         </div>
       </div>
     );

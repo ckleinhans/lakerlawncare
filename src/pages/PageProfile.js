@@ -11,7 +11,7 @@ import Spinner from "react-bootstrap/Spinner";
 class PageProfile extends React.Component {
   constructor(props) {
     super(props);
-    const { profile } = this.props;
+    const { profile, companyVenmo } = this.props;
     this.state = {
       email: profile.email,
       displayName: profile.displayName,
@@ -22,6 +22,7 @@ class PageProfile extends React.Component {
       profileUpdated: false,
       loading: false,
       financialManagerName: profile.displayName,
+      companyVenmoInput: companyVenmo || "",
     };
   }
 
@@ -118,7 +119,7 @@ class PageProfile extends React.Component {
   };
 
   render() {
-    const { profile, users } = this.props;
+    const { profile, users, companyVenmo } = this.props;
     const {
       displayName,
       phoneNumber,
@@ -132,6 +133,7 @@ class PageProfile extends React.Component {
       functionResult,
       functionError,
       venmo,
+      companyVenmoInput,
     } = this.state;
 
     const disable = !oldPassword.trim();
@@ -251,14 +253,14 @@ class PageProfile extends React.Component {
           <br />
           Phone number: {profile.phoneNumber}
           <br />
-          {venmo ? (
+          {profile.venmo ? (
             <span>
               Linked Venmo Account:{" "}
               <a
-                href={`https://venmo.com/${venmo}`}
+                href={`https://venmo.com/${profile.venmo}`}
                 target="_blank"
                 rel="noreferrer"
-              >{`@${venmo}`}</a>
+              >{`@${profile.venmo}`}</a>
             </span>
           ) : (
             <span style={{ color: "#c70000" }}>
@@ -272,10 +274,16 @@ class PageProfile extends React.Component {
             {errorBar}
             {formContent}
           </Form>
-          {profile.token.claims.finances ? (
+          {profile.token.claims.admin ? (
             <div>
               <br />
-              <h4>Financial Manager Options</h4>
+              <h3>Administrator Options</h3>
+              <p>Company Gmail account integration coming soon!</p>
+            </div>
+          ) : null}
+          {profile.token.claims.finances ? (
+            <div>
+              <h3>Financial Manager Options</h3>
               <Form.Label>Change Financial Manager</Form.Label>
               <br />
               <Form.Control
@@ -313,6 +321,58 @@ class PageProfile extends React.Component {
               </Button>
               <br />
               {messageBox}
+              {companyVenmo ? (
+                <Form.Label style={{ marginTop: "8px" }}>
+                  Linked Company Venmo Account:{" "}
+                  <a
+                    href={`https://venmo.com/${companyVenmo}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >{`@${companyVenmo}`}</a>
+                </Form.Label>
+              ) : (
+                <Form.Label style={{ marginTop: "8px", color: "#c70000" }}>
+                  Company Venmo account not linked! Enter username below to
+                  link.
+                </Form.Label>
+              )}
+              <br />
+              <Form.Group
+                className="header-select"
+                controlId="companyVenmoInput"
+              >
+                <InputGroup>
+                  <InputGroup.Prepend>
+                    <InputGroup.Text>@</InputGroup.Text>
+                  </InputGroup.Prepend>
+                  <Form.Control
+                    type="text"
+                    placeholder="Username"
+                    onChange={this.handleInputChange}
+                    value={companyVenmoInput}
+                  />
+                </InputGroup>
+              </Form.Group>
+              <Button
+                className="inline-button"
+                onClick={() => {
+                  this.setState({ loading: true });
+                  this.props.firebase.set(
+                    "/companyVenmo",
+                    this.state.companyVenmoInput,
+                    () => this.setState({ loading: false })
+                  );
+                }}
+                disabled={
+                  loading ||
+                  !companyVenmoInput ||
+                  companyVenmoInput === companyVenmo
+                }
+                variant="primary"
+                size="sm"
+              >
+                Update
+              </Button>
             </div>
           ) : null}
         </div>

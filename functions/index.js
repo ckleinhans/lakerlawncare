@@ -191,13 +191,19 @@ exports.setFinanceRole = functions.https.onCall(async (data, context) => {
   try {
     // check calling user is current finance manager
     const caller = await admin.auth().getUser(context.auth.uid);
-    if (caller.customClaims && caller.customClaims.finances === true) {
-      // get user & set finances custom claim
+    if (caller.customClaims && caller.customClaims.finances) {
+      // get user & check they are an admin
       const user = await admin.auth().getUser(data.uid);
       const claims = user.customClaims ? user.customClaims : {};
-      claims.finances = true;
+      if (!claims.admin) {
+        return {
+          error: true,
+          message: `To make ${user.email} the new financial manager, they must be an administrator.`,
+        };
+      }
 
-      // Remove finance access from caller's claims
+      // Update user & caller finances permissions
+      claims.finances = true;
       caller.customClaims.finances = false;
 
       // push updated user & caller claims

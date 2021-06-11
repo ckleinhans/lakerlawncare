@@ -28,6 +28,7 @@ class NavPageMaster extends React.Component {
 
   render() {
     const {
+      companyVenmo,
       uid,
       profile,
       users,
@@ -180,7 +181,11 @@ class NavPageMaster extends React.Component {
             <PageBalance uid={uid} />;
           </Route>
           <Route exact path="/app/profile">
-            <PageProfile profile={profile} users={users} />
+            <PageProfile
+              profile={profile}
+              users={users}
+              companyVenmo={companyVenmo}
+            />
           </Route>
 
           <Route path="/app/admin">
@@ -204,6 +209,7 @@ class NavPageMaster extends React.Component {
                     users={users}
                     customers={customers}
                     financeAccess={finances}
+                    companyVenmo={companyVenmo}
                   />
                 </Route>
               </Switch>
@@ -222,6 +228,7 @@ class NavPageMaster extends React.Component {
 
 const mapStateToProps = (state, props) => {
   return {
+    companyVenmo: state.firebase.data.companyVenmo,
     users: state.firebase.data.users,
     customers: state.firebase.data.customers,
     myApptIds: state.firebase.data.myApptIds,
@@ -233,6 +240,7 @@ const mapStateToProps = (state, props) => {
 export default compose(
   withRouter,
   firebaseConnect((props) => [
+    { path: `/companyVenmo`, storeAs: "companyVenmo" },
     { path: `/users`, storeAs: "users" },
     { path: `/customers`, storeAs: "customers" },
     {
