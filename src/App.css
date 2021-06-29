@@ -2,8 +2,16 @@
 .clickable-row {
   cursor: pointer;
 }
-.page-table {
-  margin-top: 4px;
+@media (min-width: 800px) {
+  .page-table {
+    margin-top: 4px;
+  }
+}
+@media (max-width: 800px) {
+  .page-table {
+    margin-top: 4px;
+    min-width: max-content;
+  }
 }
 .table-container {
   overflow-x: auto;
