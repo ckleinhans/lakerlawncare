@@ -1012,7 +1012,7 @@ class PageAdminFinances extends React.Component {
 
 const mapStateToProps = (state, props) => {
   return {
-    finances: state.firebase.data["finances"],
+    finances: state.firebase.data.finances,
   };
 };
 

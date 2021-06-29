@@ -11,7 +11,7 @@ import Spinner from "react-bootstrap/Spinner";
 class PageProfile extends React.Component {
   constructor(props) {
     super(props);
-    const { profile, companyVenmo } = this.props;
+    const { profile, companyVenmo, adminEmail } = this.props;
     this.state = {
       email: profile.email,
       displayName: profile.displayName,
@@ -23,6 +23,8 @@ class PageProfile extends React.Component {
       loading: false,
       financialManagerName: profile.displayName,
       companyVenmoInput: companyVenmo || "",
+      adminEmailInput: adminEmail || "",
+      adminEmailPassword: "",
     };
   }
 
@@ -105,13 +107,72 @@ class PageProfile extends React.Component {
     try {
       const result = await setFinanceRole({ uid });
       this.setState({
-        functionResult: result.data.message,
+        financeResult: result.data.message,
         loading: false,
         functionError: result.data.error,
       });
     } catch (error) {
       this.setState({
-        functionResult: error.message,
+        financeResult: error.message,
+        loading: false,
+        functionError: true,
+      });
+    }
+  };
+
+  setAdminEmail = async () => {
+    this.setState({ loading: true });
+    const { adminEmailInput, adminEmailPassword } = this.state;
+    const { firebase } = this.props;
+
+    if (
+      !/^[a-z0-9](\.?[a-z0-9]){5,}@gmail\.com$/.test(adminEmailInput) ||
+      !adminEmailPassword
+    )
+      return this.setState({
+        emailResult: "A valid Gmail address and password are required.",
+        loading: false,
+        functionError: true,
+      });
+
+    try {
+      firebase.update(
+        "/adminEmail",
+        { username: adminEmailInput, password: adminEmailPassword },
+        async (error) => {
+          if (error)
+            return this.setState({
+              emailResult: error.message,
+              loading: false,
+              functionError: true,
+            });
+
+          const sendEmail = this.props.firebase
+            .functions()
+            .httpsCallable("sendEmail");
+          try {
+            const result = await sendEmail({
+              email: adminEmailInput,
+              subject: "Email Integration Activation",
+              text: "This is an email confirming this email address is set up to use the Laker Lawn Care company email integration.",
+            });
+            this.setState({
+              emailResult: result.data.message,
+              loading: false,
+              functionError: result.data.error,
+            });
+          } catch (error) {
+            this.setState({
+              emailResult: error.message,
+              loading: false,
+              functionError: true,
+            });
+          }
+        }
+      );
+    } catch (error) {
+      this.setState({
+        emailResult: error.message,
         loading: false,
         functionError: true,
       });
@@ -119,7 +180,7 @@ class PageProfile extends React.Component {
   };
 
   render() {
-    const { profile, users, companyVenmo } = this.props;
+    const { profile, users, companyVenmo, adminEmail } = this.props;
     const {
       displayName,
       phoneNumber,
@@ -130,10 +191,13 @@ class PageProfile extends React.Component {
       loading,
       profileUpdated,
       financialManagerName,
-      functionResult,
+      financeResult,
+      emailResult,
       functionError,
       venmo,
       companyVenmoInput,
+      adminEmailInput,
+      adminEmailPassword,
     } = this.state;
 
     const disable = !oldPassword.trim();
@@ -231,14 +295,26 @@ class PageProfile extends React.Component {
       </div>
     );
 
-    const messageBox = functionResult ? (
+    const financeMessageBox = financeResult ? (
       functionError ? (
         <div>
-          <Alert variant="danger">{functionResult}</Alert>
+          <Alert variant="danger">{financeResult}</Alert>
         </div>
       ) : (
         <div>
-          <Alert variant="success">{functionResult}</Alert>
+          <Alert variant="success">{financeResult}</Alert>
+        </div>
+      )
+    ) : null;
+
+    const emailMessageBox = emailResult ? (
+      functionError ? (
+        <div>
+          <Alert variant="danger">{emailResult}</Alert>
+        </div>
+      ) : (
+        <div>
+          <Alert variant="success">{emailResult}</Alert>
         </div>
       )
     ) : null;
@@ -274,13 +350,63 @@ class PageProfile extends React.Component {
             {errorBar}
             {formContent}
           </Form>
-          {profile.token.claims.admin ? (
-            <div>
-              <br />
-              <h3>Administrator Options</h3>
-              <p>Company Gmail account integration coming soon!</p>
-            </div>
-          ) : null}
+          {
+            // TODO add field for entering username/password for email account. Make password in db unreadable by anyone
+            profile.token.claims.admin ? (
+              <div>
+                <br />
+                <h3>Administrator Options</h3>
+                {adminEmail ? (
+                  <div>Linked Company Email Account: {adminEmail}</div>
+                ) : (
+                  <div style={{ color: "#c70000" }}>
+                    Email account not linked! Enter credentials below to link.
+                  </div>
+                )}
+                <Form.Label>Company Gmail Account Integration</Form.Label>
+                <br />
+                <Form.Control
+                  placeholder="Email Address"
+                  id="adminEmailInput"
+                  className="dynamic-input"
+                  onChange={this.handleInputChange}
+                  value={adminEmailInput}
+                />
+                <Form.Control
+                  type="password"
+                  placeholder="Password"
+                  id="adminEmailPassword"
+                  className="dynamic-input"
+                  onChange={this.handleInputChange}
+                  value={adminEmailPassword}
+                />
+                <Button
+                  className="dynamic-button"
+                  onClick={this.setAdminEmail}
+                  disabled={
+                    loading ||
+                    !adminEmailInput ||
+                    adminEmailInput === adminEmail
+                  }
+                  variant="primary"
+                  size="sm"
+                >
+                  {loading ? (
+                    <Spinner
+                      as="span"
+                      animation="border"
+                      size="sm"
+                      role="status"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    "Update Company Email"
+                  )}
+                </Button>
+                {emailMessageBox}
+              </div>
+            ) : null
+          }
           {profile.token.claims.finances ? (
             <div>
               <h3>Financial Manager Options</h3>
@@ -320,7 +446,7 @@ class PageProfile extends React.Component {
                 )}
               </Button>
               <br />
-              {messageBox}
+              {financeMessageBox}
               {companyVenmo ? (
                 <Form.Label style={{ marginTop: "8px" }}>
                   Linked Company Venmo Account:{" "}
@@ -382,10 +508,15 @@ class PageProfile extends React.Component {
 }
 
 const mapStateToProps = (state, props) => {
-  return { profile: state.firebase.profile };
+  return {
+    profile: state.firebase.profile,
+    adminEmail: state.firebase.data.adminEmail,
+  };
 };
 
 export default compose(
-  firebaseConnect(),
+  firebaseConnect((props) => {
+    return [{ path: "/adminEmail/username", storeAs: "adminEmail" }];
+  }),
   connect(mapStateToProps)
 )(PageProfile);

@@ -1,5 +1,6 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const nodemailer = require("nodemailer");
 admin.initializeApp();
 
 // // Create and Deploy Your First Cloud Functions
@@ -186,7 +187,6 @@ exports.removeAppointmentsRole = functions.https.onCall(
   }
 );
 
-// TODO remove company venmo integration when finance person changed
 exports.setFinanceRole = functions.https.onCall(async (data, context) => {
   try {
     // check calling user is current finance manager
@@ -207,16 +207,20 @@ exports.setFinanceRole = functions.https.onCall(async (data, context) => {
       caller.customClaims.finances = false;
 
       // remove current company venmo account
-      admin.database().ref("/companyVenmo").remove();
+      await admin.database().ref("/companyVenmo").remove();
 
       // push updated user & caller claims
       await admin.auth().setCustomUserClaims(user.uid, claims);
       await admin.auth().setCustomUserClaims(caller.uid, caller.customClaims);
 
-      // update new manager's refresh token to random string to push updated claims to client
+      // update both refresh tokens to random string to push updated claims to client
       admin
         .database()
         .ref(`/users/${user.uid}/refreshToken`)
+        .set(Math.random().toString(16).substr(2, 8));
+      admin
+        .database()
+        .ref(`/users/${caller.uid}/refreshToken`)
         .set(Math.random().toString(16).substr(2, 8));
 
       // return success message
@@ -390,6 +394,47 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
     }
 
     return { error: false };
+  } catch (error) {
+    return {
+      error: true,
+      message: error.toString(),
+    };
+  }
+});
+
+exports.sendEmail = functions.https.onCall(async (data, context) => {
+  try {
+    // Get company email information from database
+    const { username, password } = (
+      await admin.database().ref("/adminEmail/").get()
+    ).val();
+
+    // Set up nodemailer transporter using company email account
+    var transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: username,
+        pass: password,
+      },
+    });
+
+    const mailOptions = {
+      from: username,
+      to: data.email,
+      subject: data.subject,
+      text: data.text, // plain text body
+      html: data.html, // html body
+    };
+
+    // Send email
+    await transporter.sendMail(mailOptions);
+
+    return {
+      error: false,
+      message: `Successfully sent email to ${data.email} with subject ${data.subject}`,
+    };
   } catch (error) {
     return {
       error: true,

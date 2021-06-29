@@ -17,6 +17,30 @@
   overflow-x: auto;
 }
 
+/* CSS for PageProfile admin email form */
+@media (min-width: 800px) {
+  .dynamic-input {
+    width: 250px;
+    display: inline-block;
+    margin-right: 5px;
+    margin-bottom: 10px;
+  }
+  .dynamic-button {
+    margin-top: -4px;
+  }
+}
+@media (max-width: 800px) {
+  .dynamic-input {
+    width: 250px;
+    display: block;
+    margin-right: 5px;
+    margin-bottom: 2px;
+  }
+  .dynamic-button {
+    margin-bottom: 10px;
+  }
+}
+
 /* Css for PageDash appointment modal */
 @media (min-width: 800px) {
   .label-column {
