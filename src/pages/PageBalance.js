@@ -38,10 +38,7 @@ class PageBalance extends React.Component {
               const { amount, description, date } = transactions[key];
               runningBalance[index] = amount + (runningBalance[index - 1] || 0);
               return (
-                <tr
-                  key={key}
-                  onClick={() => this.showDetails(key)}
-                >
+                <tr key={key} onClick={() => this.showDetails(key)}>
                   <td>{date}</td>
                   <td>{description}</td>
                   <td>{`$${amount.toFixed(2)}`}</td>
@@ -49,6 +46,7 @@ class PageBalance extends React.Component {
                 </tr>
               );
             })
+            .reverse()
         : null;
 
     const table = !isLoaded(transactions) ? (
@@ -94,7 +92,10 @@ const mapStateToProps = (state, props) => {
 
 export default compose(
   firebaseConnect((props) => [
-    { path: `/finances/staff/${props.uid}/transactions`, storeAs: "transactions" },
+    {
+      path: `/finances/staff/${props.uid}/transactions`,
+      storeAs: "transactions",
+    },
   ]),
   connect(mapStateToProps)
 )(PageBalance);
