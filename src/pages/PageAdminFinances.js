@@ -25,6 +25,12 @@ class PageAdminFinances extends React.Component {
       modalLoading: false,
       payLinkClicked: false,
       checkboxes: {},
+      modalTypeSelect: "Payer/Payee",
+      modalCustomerName: "",
+      modalCustomerId: "",
+      modalStaffName: "",
+      modalStaffId: "",
+      modalTransactionAmount: "",
       typeSelect: "All Transactions",
       customerName: "",
       customerId: "",
@@ -40,6 +46,11 @@ class PageAdminFinances extends React.Component {
       data.customerId = "";
       data.staffId = "";
       data.staffName = "";
+    } else if (event.target.name === "modalTypeSelect") {
+      data.modalCustomerName = "";
+      data.modalCustomerId = "";
+      data.modalStaffId = "";
+      data.modalStaffName = "";
     }
     this.setState(data);
   };
@@ -50,32 +61,30 @@ class PageAdminFinances extends React.Component {
     this.setState({ checkboxes });
   };
 
-  handleCustomerChange = (newValue) => {
+  handleCustomerChange = (newValue, propertyName) => {
     const { customers } = this.props;
-    const data = { customerName: newValue };
+    const data = {};
+    data[`${propertyName}Name`] = newValue;
 
     // If custmer is valid, set customer ID
     const customerId = Object.keys(customers).find(
       (id) => customers[id].name === newValue
     );
-    if (customerId) {
-      data.customerId = customerId;
-    }
+    data[`${propertyName}Id`] = customerId || "";
 
     this.setState(data);
   };
 
-  handleStaffChange = (newValue) => {
+  handleStaffChange = (newValue, propertyName) => {
     const { users } = this.props;
-    const data = { staffName: newValue };
+    const data = {};
+    data[`${propertyName}Name`] = newValue;
 
     // If staff is valid, set staff ID
     const staffId = Object.keys(users).find(
       (id) => users[id].displayName === newValue
     );
-    if (staffId) {
-      data.staffId = staffId;
-    }
+    data[`${propertyName}Id`] = staffId || "";
 
     this.setState(data);
   };
@@ -92,10 +101,97 @@ class PageAdminFinances extends React.Component {
       description: "",
       modalLoading: false,
       payLinkClicked: false,
+      modalTypeSelect: "Payer/Payee",
+      modalCustomerName: "",
+      modalCustomerId: "",
+      modalStaffName: "",
+      modalStaffId: "",
+      modalTransactionAmount: "",
     });
 
   addTransaction = () => {
-    alert("Adding Transactions is still under construction.");
+    this.setState({ modalLoading: true });
+    const { firebase, financeAccess } = this.props;
+    const {
+      modalCustomerId,
+      modalStaffId,
+      modalTransactionAmount,
+      modalTypeSelect,
+      description,
+      date,
+      transactionMethod,
+    } = this.state;
+    if (!financeAccess) {
+      return this.setState({
+        modalLoading: false,
+        modalError: "You do not have permission to edit financial data.",
+      });
+    }
+    if (!date) {
+      return this.setState({
+        modalLoading: false,
+        modalError: "Transaction date is required.",
+      });
+    }
+    if (
+      modalTypeSelect === "Payer/Payee" ||
+      (modalTypeSelect === "Customer" && !modalCustomerId) ||
+      (modalTypeSelect === "Staff" && !modalStaffId)
+    ) {
+      return this.setState({
+        modalLoading: false,
+        modalError: "Payer/Payee is required.",
+      });
+    }
+    if (transactionMethod === "Transaction Method") {
+      return this.setState({
+        modalLoading: false,
+        modalError: "Transaction method is required.",
+      });
+    }
+    if (
+      !modalTransactionAmount ||
+      !/^([0-9.]+)$/.test(modalTransactionAmount)
+    ) {
+      return this.setState({
+        modalLoading: false,
+        modalError: "Transaction amount must be a valid number.",
+      });
+    }
+    if (!description) {
+      return this.setState({
+        modalLoading: false,
+        modalError: "Description is required.",
+      });
+    }
+
+    const dataPath =
+      modalTypeSelect === "Staff"
+        ? `/finances/staff/${modalStaffId}/transactions`
+        : modalTypeSelect === "Customer"
+        ? `/finances/customers/${modalCustomerId}/transactions`
+        : "/finances/company/transactions";
+
+    firebase.ref(dataPath).push(
+      {
+        amount:
+          modalTypeSelect === "Staff"
+            ? Number(modalTransactionAmount) * -1
+            : Number(modalTransactionAmount),
+        date: date.toLocaleDateString("en-US", {
+          weekday: "short",
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        }),
+        complete: true,
+        method: transactionMethod,
+        description: `(${transactionMethod}) ${description}`,
+      },
+      this.handleModalClose
+    );
   };
 
   payStaff = () => {
@@ -233,6 +329,10 @@ class PageAdminFinances extends React.Component {
       staffName,
       staffId,
       payLinkClicked,
+      modalTypeSelect,
+      modalCustomerName,
+      modalStaffName,
+      modalTransactionAmount,
     } = this.state;
 
     const transactions = [];
@@ -287,6 +387,22 @@ class PageAdminFinances extends React.Component {
               );
           });
       }
+      if (
+        typeSelect === "All Transactions" &&
+        finances.company &&
+        finances.company.transactions
+      ) {
+        transactions.push(
+          ...Object.keys(finances.company.transactions).map((key) => {
+            return {
+              ...finances.company.transactions[key],
+              key: key,
+              payer: "COMPANY",
+              sortPriority: 0,
+            };
+          })
+        );
+      }
     }
 
     const runningBalance = [];
@@ -304,7 +420,7 @@ class PageAdminFinances extends React.Component {
         const style = !complete ? { color: "#d20000" } : null;
         return (
           <tr key={key} style={style}>
-            <td>{date}</td>
+            <td style={{ whiteSpace: "nowrap" }}>{date}</td>
             <td>{payer}</td>
             <td>{description}</td>
             <td>{`$${amount.toFixed(2)}`}</td>
@@ -322,7 +438,9 @@ class PageAdminFinances extends React.Component {
             valueArray={Object.values(customers).map(
               (customer) => customer.name
             )}
-            onChange={this.handleCustomerChange}
+            onChange={(newValue) =>
+              this.handleCustomerChange(newValue, "customer")
+            }
             value={customerName}
             placeholder="Customer Name"
           />
@@ -331,7 +449,7 @@ class PageAdminFinances extends React.Component {
         <div className="header-input">
           <Autocomplete
             valueArray={Object.values(users).map((user) => user.displayName)}
-            onChange={this.handleStaffChange}
+            onChange={(newValue) => this.handleStaffChange(newValue, "staff")}
             value={staffName}
             placeholder="Staff Name"
           />
@@ -654,7 +772,85 @@ class PageAdminFinances extends React.Component {
               <Modal.Title>Add Transaction</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              Transaction modal body is under construction.
+              <DatePicker
+                selected={date}
+                onChange={(date) => this.setState({ date })}
+                placeholderText="Transaction Date"
+                showTimeSelect
+                dateFormat="MM/dd/yyyy h:mm aa"
+              />
+              <br />
+              <div className="inline-header">
+                <Form.Control
+                  as="select"
+                  className="header-select"
+                  name="modalTypeSelect"
+                  onChange={this.handleChange}
+                  value={modalTypeSelect}
+                >
+                  <option disabled>Payer/Payee</option>
+                  <option>Company</option>
+                  <option>Customer</option>
+                  <option>Staff</option>
+                </Form.Control>
+              </div>
+              {modalTypeSelect === "Customer" ? (
+                <div className="header-input">
+                  <Autocomplete
+                    valueArray={Object.values(customers).map(
+                      (customer) => customer.name
+                    )}
+                    onChange={(newValue) =>
+                      this.handleCustomerChange(newValue, "modalCustomer")
+                    }
+                    value={modalCustomerName}
+                    placeholder="Customer Name"
+                  />
+                </div>
+              ) : modalTypeSelect === "Staff" ? (
+                <div className="header-input">
+                  <Autocomplete
+                    valueArray={Object.values(users).map(
+                      (user) => user.displayName
+                    )}
+                    onChange={(newValue) =>
+                      this.handleStaffChange(newValue, "modalStaff")
+                    }
+                    value={modalStaffName}
+                    placeholder="Staff Name"
+                  />
+                </div>
+              ) : null}
+              <br />
+              <br />
+              <Form.Control
+                as="select"
+                name="transactionMethod"
+                onChange={this.handleChange}
+                value={transactionMethod}
+              >
+                <option disabled>Transaction Method</option>
+                <option>Venmo</option>
+                <option>Check</option>
+                <option>Cash</option>
+              </Form.Control>
+              <br />
+              <Form.Control
+                name="modalTransactionAmount"
+                onChange={this.handleChange}
+                placeholder="Amount ($)"
+                value={modalTransactionAmount}
+              />
+              <br />
+              <Form.Control
+                as="textarea"
+                name="description"
+                placeholder="Write a brief transaction description"
+                onChange={this.handleChange}
+                value={description}
+                disabled={payLinkClicked}
+                rows={2}
+              />
             </Modal.Body>
             {modalErrorBar}
             <Modal.Footer>

@@ -4,6 +4,7 @@ import { connect } from "react-redux";
 import { compose } from "redux";
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
+import Spinner from "react-bootstrap/Spinner";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 
@@ -159,18 +160,28 @@ class PageAdminCustomers extends React.Component {
           const phoneNumber = customers[key].phoneNumber;
           const rate = customers[key].rate ? `$${customers[key].rate}` : "None";
           const frequency = customers[key].frequency || "None";
-          const amountOwed =
-            finances.customers &&
-            finances.customers[key] &&
-            finances.customers[key].owed
-              ? finances.customers[key].owed
-              : 0;
-          const amountPaid =
-            finances.customers &&
-            finances.customers[key] &&
-            finances.customers[key].paid
-              ? finances.customers[key].paid
-              : 0;
+          const amountOwed = isLoaded(finances.customers[key]) ? (
+            `$${finances.customers[key].owed || 0}`
+          ) : (
+            <Spinner
+              as="span"
+              animation="border"
+              size="sm"
+              role="status"
+              aria-hidden="true"
+            />
+          );
+          const amountPaid = isLoaded(finances.customers[key]) ? (
+            `$${finances.customers[key].owed || 0}`
+          ) : (
+            <Spinner
+              as="span"
+              animation="border"
+              size="sm"
+              role="status"
+              aria-hidden="true"
+            />
+          );
 
           return (
             <tr
@@ -184,8 +195,8 @@ class PageAdminCustomers extends React.Component {
               <td>{phoneNumber}</td>
               <td>{rate}</td>
               <td>{frequency}</td>
-              <td>{`$${amountOwed}`}</td>
-              <td>{`$${amountPaid}`}</td>
+              <td>{amountOwed}</td>
+              <td>{amountPaid}</td>
             </tr>
           );
         });
