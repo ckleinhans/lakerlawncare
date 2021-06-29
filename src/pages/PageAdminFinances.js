@@ -31,6 +31,7 @@ class PageAdminFinances extends React.Component {
       modalStaffName: "",
       modalStaffId: "",
       modalTransactionAmount: "",
+      modalComplete: false,
       typeSelect: "All Transactions",
       customerName: "",
       customerId: "",
@@ -107,6 +108,7 @@ class PageAdminFinances extends React.Component {
       modalStaffName: "",
       modalStaffId: "",
       modalTransactionAmount: "",
+      modalComplete: false,
     });
 
   addTransaction = () => {
@@ -120,6 +122,7 @@ class PageAdminFinances extends React.Component {
       description,
       date,
       transactionMethod,
+      modalComplete,
     } = this.state;
     if (!financeAccess) {
       return this.setState({
@@ -143,15 +146,18 @@ class PageAdminFinances extends React.Component {
         modalError: "Payer/Payee is required.",
       });
     }
-    if (transactionMethod === "Transaction Method") {
+    if (
+      (modalTypeSelect === "Company" || modalComplete) &&
+      transactionMethod === "Transaction Method"
+    ) {
       return this.setState({
         modalLoading: false,
-        modalError: "Transaction method is required.",
+        modalError: "Transaction method is required for complete transactions.",
       });
     }
     if (
       !modalTransactionAmount ||
-      !/^([0-9.]+)$/.test(modalTransactionAmount)
+      !/^([0-9.-]+)$/.test(modalTransactionAmount)
     ) {
       return this.setState({
         modalLoading: false,
@@ -186,9 +192,12 @@ class PageAdminFinances extends React.Component {
           hour: "numeric",
           minute: "2-digit",
         }),
-        complete: true,
+        complete: modalTypeSelect === "Company" || modalComplete,
         method: transactionMethod,
-        description: `(${transactionMethod}) ${description}`,
+        description:
+          modalTypeSelect === "Company" || modalComplete
+            ? `(${transactionMethod}) ${description}`
+            : description,
       },
       this.handleModalClose
     );
@@ -333,6 +342,7 @@ class PageAdminFinances extends React.Component {
       modalCustomerName,
       modalStaffName,
       modalTransactionAmount,
+      modalComplete,
     } = this.state;
 
     const transactions = [];
@@ -421,7 +431,7 @@ class PageAdminFinances extends React.Component {
         return (
           <tr key={key} style={style}>
             <td style={{ whiteSpace: "nowrap" }}>{date}</td>
-            <td>{payer}</td>
+            <td style={{ whiteSpace: "nowrap" }}>{payer}</td>
             <td>{description}</td>
             <td>{`$${amount.toFixed(2)}`}</td>
             <td>{`$${runningBalance[index].toFixed(2)}`}</td>
@@ -780,20 +790,18 @@ class PageAdminFinances extends React.Component {
                 dateFormat="MM/dd/yyyy h:mm aa"
               />
               <br />
-              <div className="inline-header">
-                <Form.Control
-                  as="select"
-                  className="header-select"
-                  name="modalTypeSelect"
-                  onChange={this.handleChange}
-                  value={modalTypeSelect}
-                >
-                  <option disabled>Payer/Payee</option>
-                  <option>Company</option>
-                  <option>Customer</option>
-                  <option>Staff</option>
-                </Form.Control>
-              </div>
+              <Form.Control
+                as="select"
+                className="header-select"
+                name="modalTypeSelect"
+                onChange={this.handleChange}
+                value={modalTypeSelect}
+              >
+                <option disabled>Payer/Payee</option>
+                <option>Company</option>
+                <option>Customer</option>
+                <option>Staff</option>
+              </Form.Control>
               {modalTypeSelect === "Customer" ? (
                 <div className="header-input">
                   <Autocomplete
@@ -808,7 +816,7 @@ class PageAdminFinances extends React.Component {
                   />
                 </div>
               ) : modalTypeSelect === "Staff" ? (
-                <div className="header-input">
+                <div className="inline-header">
                   <Autocomplete
                     valueArray={Object.values(users).map(
                       (user) => user.displayName
@@ -823,24 +831,46 @@ class PageAdminFinances extends React.Component {
               ) : null}
               <br />
               <br />
-              <Form.Control
-                as="select"
-                name="transactionMethod"
-                onChange={this.handleChange}
-                value={transactionMethod}
-              >
-                <option disabled>Transaction Method</option>
-                <option>Venmo</option>
-                <option>Check</option>
-                <option>Cash</option>
-              </Form.Control>
-              <br />
+              {modalTypeSelect === "Customer" || modalTypeSelect === "Staff" ? (
+                <div>
+                  <Form.Check
+                    type="checkbox"
+                    name="modalComplete"
+                    label="Transaction completed?"
+                    checked={modalComplete}
+                    onChange={(event) =>
+                      this.setState({ modalComplete: event.target.checked })
+                    }
+                  />
+                  <br />
+                </div>
+              ) : null}
+              {modalTypeSelect === "Company" || modalComplete ? (
+                <div>
+                  <Form.Control
+                    as="select"
+                    name="transactionMethod"
+                    onChange={this.handleChange}
+                    value={transactionMethod}
+                  >
+                    <option disabled>Transaction Method</option>
+                    <option>Venmo</option>
+                    <option>Check</option>
+                    <option>Cash</option>
+                  </Form.Control>
+                  <br />
+                </div>
+              ) : null}
               <Form.Control
                 name="modalTransactionAmount"
                 onChange={this.handleChange}
                 placeholder="Amount ($)"
                 value={modalTransactionAmount}
               />
+              <Form.Text muted>
+                Enter positive numbers for company revenue, negative for company
+                expenses.
+              </Form.Text>
               <br />
               <Form.Control
                 as="textarea"
