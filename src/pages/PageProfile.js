@@ -350,63 +350,58 @@ class PageProfile extends React.Component {
             {errorBar}
             {formContent}
           </Form>
-          {
-            // TODO add field for entering username/password for email account. Make password in db unreadable by anyone
-            profile.token.claims.admin ? (
-              <div>
-                <br />
-                <h3>Administrator Options</h3>
-                {adminEmail ? (
-                  <div>Linked Company Email Account: {adminEmail}</div>
+          {profile.token.claims.admin ? (
+            <div>
+              <br />
+              <h3>Administrator Options</h3>
+              {adminEmail ? (
+                <div>Linked Company Email Account: {adminEmail}</div>
+              ) : (
+                <div style={{ color: "#c70000" }}>
+                  Email account not linked! Enter credentials below to link.
+                </div>
+              )}
+              <Form.Label>Company Gmail Account Integration</Form.Label>
+              <br />
+              <Form.Control
+                placeholder="Email Address"
+                id="adminEmailInput"
+                className="dynamic-input"
+                onChange={this.handleInputChange}
+                value={adminEmailInput}
+              />
+              <Form.Control
+                type="password"
+                placeholder="Password"
+                id="adminEmailPassword"
+                className="dynamic-input"
+                onChange={this.handleInputChange}
+                value={adminEmailPassword}
+              />
+              <Button
+                className="dynamic-button"
+                onClick={this.setAdminEmail}
+                disabled={
+                  loading || !adminEmailInput || adminEmailInput === adminEmail
+                }
+                variant="primary"
+                size="sm"
+              >
+                {loading ? (
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
                 ) : (
-                  <div style={{ color: "#c70000" }}>
-                    Email account not linked! Enter credentials below to link.
-                  </div>
+                  "Update Company Email"
                 )}
-                <Form.Label>Company Gmail Account Integration</Form.Label>
-                <br />
-                <Form.Control
-                  placeholder="Email Address"
-                  id="adminEmailInput"
-                  className="dynamic-input"
-                  onChange={this.handleInputChange}
-                  value={adminEmailInput}
-                />
-                <Form.Control
-                  type="password"
-                  placeholder="Password"
-                  id="adminEmailPassword"
-                  className="dynamic-input"
-                  onChange={this.handleInputChange}
-                  value={adminEmailPassword}
-                />
-                <Button
-                  className="dynamic-button"
-                  onClick={this.setAdminEmail}
-                  disabled={
-                    loading ||
-                    !adminEmailInput ||
-                    adminEmailInput === adminEmail
-                  }
-                  variant="primary"
-                  size="sm"
-                >
-                  {loading ? (
-                    <Spinner
-                      as="span"
-                      animation="border"
-                      size="sm"
-                      role="status"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    "Update Company Email"
-                  )}
-                </Button>
-                {emailMessageBox}
-              </div>
-            ) : null
-          }
+              </Button>
+              {emailMessageBox}
+            </div>
+          ) : null}
           {profile.token.claims.finances ? (
             <div>
               <h3>Financial Manager Options</h3>

@@ -1,4 +1,5 @@
 import React from "react";
+import ReactDOMServer from "react-dom/server";
 import { firebaseConnect, isLoaded, isEmpty } from "react-redux-firebase";
 import { connect } from "react-redux";
 import { compose } from "redux";
@@ -9,6 +10,7 @@ import Modal from "react-bootstrap/Modal";
 import DatePicker from "react-datepicker";
 import Autocomplete from "../components/Autocomplete";
 import { Link } from "react-router-dom";
+import Invoice from "../components/Invoice";
 
 class PageAdminFinances extends React.Component {
   constructor(props) {
@@ -315,35 +317,55 @@ class PageAdminFinances extends React.Component {
     );
   };
 
-  sendInvoice = () => {
-    alert("Automated invoice sending is still under construction.");
+  sendInvoice = async () => {
+    const { customers, companyVenmo } = this.props;
+    const { customerId } = this.state;
+
+    this.setState({ modalLoading: true });
+
+    const transactions = this.getTransactions();
+    const date = new Date().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    });
+
+    const html = ReactDOMServer.renderToStaticMarkup(
+      <Invoice
+        customerName={customerId && customers[customerId].name}
+        transactions={transactions}
+        companyVenmo={companyVenmo}
+      />
+    );
+
+    const sendEmail = this.props.firebase
+      .functions()
+      .httpsCallable("sendEmail");
+
+    try {
+      const result = await sendEmail({
+        email: customers[customerId].email,
+        subject: `Laker Lawn Care ${date} Invoice`,
+        html,
+      });
+
+      if (result.data.error)
+        this.setState({
+          modalError: result.data.message,
+          modalLoading: false,
+        });
+      else this.handleModalClose();
+    } catch (error) {
+      this.setState({
+        modalError: error.message,
+        modalLoading: false,
+      });
+    }
   };
 
-  render() {
-    const { customers, users, finances, companyVenmo } = this.props;
-    const {
-      date,
-      transactionMethod,
-      description,
-      showCustomerModal,
-      showStaffModal,
-      showTransactionModal,
-      showInvoiceModal,
-      modalError,
-      modalLoading,
-      checkboxes,
-      typeSelect,
-      customerName,
-      customerId,
-      staffName,
-      staffId,
-      payLinkClicked,
-      modalTypeSelect,
-      modalCustomerName,
-      modalStaffName,
-      modalTransactionAmount,
-      modalComplete,
-    } = this.state;
+  getTransactions = () => {
+    const { finances, customers, users } = this.props;
+    const { customerId, typeSelect, staffId } = this.state;
 
     const transactions = [];
     if (finances) {
@@ -415,13 +437,43 @@ class PageAdminFinances extends React.Component {
       }
     }
 
+    return transactions.sort((transaction1, transaction2) => {
+      if (transaction2.date === transaction1.date)
+        return transaction2.sortPriority - transaction1.sortPriority;
+      else return new Date(transaction1.date) - new Date(transaction2.date);
+    });
+  };
+
+  render() {
+    const { customers, users, finances, companyVenmo } = this.props;
+    const {
+      date,
+      transactionMethod,
+      description,
+      showCustomerModal,
+      showStaffModal,
+      showTransactionModal,
+      showInvoiceModal,
+      modalError,
+      modalLoading,
+      checkboxes,
+      typeSelect,
+      customerName,
+      customerId,
+      staffName,
+      staffId,
+      payLinkClicked,
+      modalTypeSelect,
+      modalCustomerName,
+      modalStaffName,
+      modalTransactionAmount,
+      modalComplete,
+    } = this.state;
+
+    const transactions = this.getTransactions();
+
     const runningBalance = [];
     const tableContent = transactions
-      .sort((transaction1, transaction2) => {
-        if (transaction2.date === transaction1.date)
-          return transaction2.sortPriority - transaction1.sortPriority;
-        else return new Date(transaction1.date) - new Date(transaction2.date);
-      })
       .map((transaction, index) => {
         const { key, date, description, amount, payer, complete } = transaction;
         runningBalance[index] = runningBalance[index - 1]
@@ -700,14 +752,6 @@ class PageAdminFinances extends React.Component {
       </Modal.Body>
     );
 
-    const dateURI = encodeURIComponent(
-      new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-      })
-    );
-
     return (
       <div className="navbar-page">
         <div className="container">
@@ -909,72 +953,11 @@ class PageAdminFinances extends React.Component {
             </Modal.Header>
             {companyVenmo ? (
               <Modal.Body style={{ overflowX: "auto" }}>
-                Hello {customerId && customers[customerId].name.split(" ")[0]},
-                <br />
-                <br />
-                Thank you again for choosing Laker Lawn Care for your lawn
-                service! Please see your balance due below and pay as soon as
-                you are able. If you have any questions, feel free to reply to
-                this email and we will get back to you as soon as possible.
-                <br />
-                <br />
-                <Table size="sm">
-                  <tbody>
-                    {transactions
-                      .filter((transaction) => !transaction.complete)
-                      .map((transaction) => {
-                        const { date, amount, key } = transaction;
-                        return (
-                          <tr key={key}>
-                            <td>
-                              {new Date(date).toLocaleDateString("en-US", {
-                                weekday: "short",
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              })}
-                            </td>
-                            <td> </td>
-                            <td>${amount.toFixed(2)}</td>
-                          </tr>
-                        );
-                      })}
-                    <tr>
-                      <td>
-                        <b>Total Owed:</b>
-                      </td>
-                      <td> </td>
-                      <td>
-                        <b>${totalSelected.toFixed(2)}</b>
-                      </td>
-                    </tr>
-                  </tbody>
-                </Table>
-                <br />
-                Please Venmo @{companyVenmo} or use this link:
-                <br />
-                <a
-                  target="_blank"
-                  rel="noreferrer"
-                  href={`https://venmo.com/${companyVenmo}?txn=pay&audience=private&amount=${totalSelected}&note=Laker%20Lawn%20Care%20${dateURI}%20Invoice`}
-                >
-                  https://venmo.com/{companyVenmo}
-                  ?txn=pay&audience=private&amount=
-                  {totalSelected}&note=Laker%20Lawn%20Care%20
-                  {dateURI}%20Invoice
-                </a>
-                <br />
-                <br />
-                If you don't have Venmo you can Zelle lakerlawncare612@gmail.com
-                or send a check to:
-                <br />
-                Caelan Kleinhans
-                <br />
-                1311 W Dayton St, Apt 4<br />
-                Madison, WI 53715
-                <br />
-                <br />
-                Thank you!
+                <Invoice
+                  customerName={customerId && customers[customerId].name}
+                  transactions={transactions}
+                  companyVenmo={companyVenmo}
+                />
               </Modal.Body>
             ) : (
               <Modal.Body style={{ color: "#c70000" }}>
