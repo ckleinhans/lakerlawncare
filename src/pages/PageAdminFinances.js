@@ -323,6 +323,8 @@ class PageAdminFinances extends React.Component {
 
     this.setState({ modalLoading: true });
 
+    // TODO check date of last sent email (create field in database) to prevent duplicate sending
+
     const transactions = this.getTransactions();
     const date = new Date().toLocaleDateString("en-US", {
       year: "numeric",

@@ -284,7 +284,7 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
       date: data.date,
       amount,
       appointment: data.apptKey,
-      description: `Owed from appointment for with rate $${appt.rate.amount.toFixed(
+      description: `Owed from appointment with rate $${appt.rate.amount.toFixed(
         2
       )} ${appt.rate.type}.`,
       complete: false,
