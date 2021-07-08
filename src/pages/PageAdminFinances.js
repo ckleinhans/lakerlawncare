@@ -358,26 +358,18 @@ class PageAdminFinances extends React.Component {
         subject: `Laker Lawn Care ${date} Invoice`,
         html,
       });
-
-      if (result.data.error)
-        this.setState({
-          modalError: result.data.message,
-          modalLoading: false,
-        });
-      else {
-        firebase.set(
-          `/customers/${customerId}/invoiceSendDate`,
-          new Date().toLocaleDateString("en-US", {
-            weekday: "short",
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-          }),
-          this.handleModalClose
-        );
-      }
+      firebase.set(
+        `/customers/${customerId}/invoiceSendDate`,
+        new Date().toLocaleDateString("en-US", {
+          weekday: "short",
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        }),
+        this.handleModalClose
+      );
     } catch (error) {
       this.setState({
         modalError: error.message,

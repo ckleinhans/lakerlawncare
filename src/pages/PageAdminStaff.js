@@ -28,7 +28,7 @@ class PageAdminStaff extends React.Component {
         result: result.data.message,
         loading: false,
         adminKeyLoading: "",
-        error: result.data.error,
+        error: false,
       });
     } catch (error) {
       this.setState({
@@ -51,7 +51,7 @@ class PageAdminStaff extends React.Component {
         result: result.data.message,
         loading: false,
         adminKeyLoading: "",
-        error: result.data.error,
+        error: false,
       });
     } catch (error) {
       this.setState({
@@ -74,7 +74,7 @@ class PageAdminStaff extends React.Component {
         result: result.data.message,
         loading: false,
         apptUsersKeyLoading: "",
-        error: result.data.error,
+        error: false,
       });
     } catch (error) {
       this.setState({
@@ -97,7 +97,7 @@ class PageAdminStaff extends React.Component {
         result: result.data.message,
         loading: false,
         apptUsersKeyLoading: "",
-        error: result.data.error,
+        error: false,
       });
     } catch (error) {
       this.setState({

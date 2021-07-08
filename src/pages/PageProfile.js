@@ -109,7 +109,7 @@ class PageProfile extends React.Component {
       this.setState({
         financeResult: result.data.message,
         loading: false,
-        functionError: result.data.error,
+        functionError: false,
       });
     } catch (error) {
       this.setState({

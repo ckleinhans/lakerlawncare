@@ -91,27 +91,20 @@ class PageDash extends React.Component {
       .functions()
       .httpsCallable("completeAppointment");
     try {
-      const result = await completeAppointment({
+      await completeAppointment({
         apptKey,
         hours,
         reportNotes,
         date,
       });
-      if (result.data.error) {
-        this.setState({
-          modalLoading: false,
-          modalError: result.data.message,
-        });
-      } else {
-        this.setState({
-          modalLoading: false,
-          showApptModal: false,
-        });
-      }
+      this.setState({
+        modalLoading: false,
+        showApptModal: false,
+      });
     } catch (error) {
       this.setState({
         modalLoading: false,
-        modalError: error.toString(),
+        modalError: error.message,
       });
     }
   };
