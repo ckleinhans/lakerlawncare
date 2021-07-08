@@ -671,6 +671,7 @@ class PageAdminFinances extends React.Component {
               <option>Venmo</option>
               <option>Check</option>
               <option>Cash</option>
+              <option>Zelle</option>
             </Form.Control>
             <br />
           </div>
