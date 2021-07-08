@@ -6,6 +6,7 @@ import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/auth";
 import "firebase/functions";
+import "firebase/app-check";
 import { FIREBASE_CONFIG } from "./FirebaseConfig";
 
 import { Provider } from "react-redux";
@@ -20,6 +21,9 @@ import { composeWithDevTools } from "redux-devtools-extension";
 firebase.initializeApp(FIREBASE_CONFIG);
 //firebase.functions().useEmulator("localhost", 5001); // Comment out before deploy
 //firebase.database().useEmulator("localhost", 9000); // Comment out before deploy
+
+const appCheck = firebase.appCheck();
+appCheck.activate("6LcetYIbAAAAALulFXBbrkUWgtpaTel9vVC3EYyN");
 
 const rootReducer = combineReducers({
   firebase: firebaseReducer,

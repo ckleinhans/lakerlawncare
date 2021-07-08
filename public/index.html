@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
 
     <!-- Favicon icon -->
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
@@ -19,14 +22,19 @@
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
+    <!--
+      Allows development access through reCAPTCHA App Check.
+      Comment out before deploy.
+    -->
+    <script>
+      //self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    </script>
+
     <meta
       name="description"
       content="Laker Lawn Care Online Business Management Portal"
     />
-    <meta
-      name="author"
-      content="Caelan Kleinhans"
-    />
+    <meta name="author" content="Caelan Kleinhans" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <!--
       manifest.json provides metadata used when your web app is installed on a
