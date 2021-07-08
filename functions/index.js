@@ -404,6 +404,15 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
 
 exports.sendEmail = functions.https.onCall(async (data, context) => {
   try {
+    // Check calling user is an admin
+    const caller = await admin.auth().getUser(context.auth.uid);
+    if (!caller.customClaims || caller.customClaims.admin !== true) {
+      return {
+        error: true,
+        message: `Only administrators can send automated emails.`,
+      };
+    }
+
     // Get company email information from database
     const { username, password } = (
       await admin.database().ref("/adminEmail/").get()
