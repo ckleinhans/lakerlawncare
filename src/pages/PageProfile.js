@@ -11,7 +11,7 @@ import Spinner from "react-bootstrap/Spinner";
 class PageProfile extends React.Component {
   constructor(props) {
     super(props);
-    const { profile, companyVenmo, adminEmail } = this.props;
+    const { profile, companyVenmo } = this.props;
     this.state = {
       email: profile.email,
       displayName: profile.displayName,
@@ -23,7 +23,7 @@ class PageProfile extends React.Component {
       loading: false,
       financialManagerName: profile.displayName,
       companyVenmoInput: companyVenmo || "",
-      adminEmailInput: adminEmail || "",
+      adminEmailInput: "",
       adminEmailPassword: "",
     };
   }
@@ -180,7 +180,7 @@ class PageProfile extends React.Component {
   };
 
   render() {
-    const { profile, users, companyVenmo, adminEmail } = this.props;
+    const { profile, users, companyVenmo, adminEmail, firebase } = this.props;
     const {
       displayName,
       phoneNumber,
@@ -355,13 +355,14 @@ class PageProfile extends React.Component {
               <br />
               <h3>Administrator Options</h3>
               {adminEmail ? (
-                <div>Linked Company Email Account: {adminEmail}</div>
+                <Form.Label>
+                  Linked Company Email Account: {adminEmail}
+                </Form.Label>
               ) : (
-                <div style={{ color: "#c70000" }}>
+                <Form.Label style={{ color: "#c70000" }}>
                   Email account not linked! Enter credentials below to link.
-                </div>
+                </Form.Label>
               )}
-              <Form.Label>Company Gmail Account Integration</Form.Label>
               <br />
               <Form.Control
                 placeholder="Email Address"
@@ -378,27 +379,37 @@ class PageProfile extends React.Component {
                 onChange={this.handleInputChange}
                 value={adminEmailPassword}
               />
-              <Button
-                className="dynamic-button"
-                onClick={this.setAdminEmail}
-                disabled={
-                  loading || !adminEmailInput || adminEmailInput === adminEmail
-                }
-                variant="primary"
-                size="sm"
-              >
-                {loading ? (
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                  />
-                ) : (
-                  "Update Company Email"
-                )}
-              </Button>
+              {adminEmailInput || !adminEmail ? (
+                <Button
+                  className="dynamic-button"
+                  onClick={this.setAdminEmail}
+                  disabled={loading || !adminEmailInput}
+                  variant="primary"
+                  size="sm"
+                >
+                  {loading ? (
+                    <Spinner
+                      as="span"
+                      animation="border"
+                      size="sm"
+                      role="status"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    "Update Company Email"
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  className="dynamic-button"
+                  onClick={() => firebase.remove("/adminEmail")}
+                  disabled={loading}
+                  variant="danger"
+                  size="sm"
+                >
+                  Remove Company Email
+                </Button>
+              )}
               {emailMessageBox}
             </div>
           ) : null}
