@@ -318,12 +318,20 @@ class PageAdminFinances extends React.Component {
   };
 
   sendInvoice = async () => {
-    const { customers, companyVenmo } = this.props;
+    const { customers, companyVenmo, firebase } = this.props;
     const { customerId } = this.state;
 
     this.setState({ modalLoading: true });
 
-    // TODO check date of last sent email (create field in database) to prevent duplicate sending
+    // check date of last invoice sent to customer to prevent duplicate sending
+    const prevInvoice = new Date(customers[customerId].invoiceSendDate);
+    prevInvoice.setHours(prevInvoice.getHours() + 36);
+    if (prevInvoice >= new Date()) {
+      return this.setState({
+        modalError: `Invoice was sent in last 36 hours: ${customers[customerId].invoiceSendDate}`,
+        modalLoading: false,
+      });
+    }
 
     const transactions = this.getTransactions();
     const date = new Date().toLocaleDateString("en-US", {
@@ -356,7 +364,20 @@ class PageAdminFinances extends React.Component {
           modalError: result.data.message,
           modalLoading: false,
         });
-      else this.handleModalClose();
+      else {
+        firebase.set(
+          `/customers/${customerId}/invoiceSendDate`,
+          new Date().toLocaleDateString("en-US", {
+            weekday: "short",
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          }),
+          this.handleModalClose
+        );
+      }
     } catch (error) {
       this.setState({
         modalError: error.message,
