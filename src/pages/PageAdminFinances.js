@@ -353,7 +353,7 @@ class PageAdminFinances extends React.Component {
       .httpsCallable("sendEmail");
 
     try {
-      const result = await sendEmail({
+      await sendEmail({
         email: customers[customerId].email,
         subject: `Laker Lawn Care ${date} Invoice`,
         html,
