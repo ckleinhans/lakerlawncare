@@ -172,7 +172,7 @@ class PageAdminCustomers extends React.Component {
             />
           );
           const amountPaid = isLoaded(finances.customers[key]) ? (
-            `$${finances.customers[key].owed || 0}`
+            `$${finances.customers[key].paid || 0}`
           ) : (
             <Spinner
               as="span"
