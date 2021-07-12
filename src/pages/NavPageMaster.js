@@ -47,181 +47,192 @@ class NavPageMaster extends React.Component {
     const { admin, appointments, finances } = profile.token.claims;
     const { navExpanded, showDropdown } = this.state;
 
-    return (
-      <div>
-        <Navbar
-          bg="dark"
-          variant="dark"
-          expand="md"
-          fixed="top"
-          expanded={navExpanded}
-          onToggle={(navExpanded) => this.setState({ navExpanded })}
-        >
-          <Navbar.Brand>
-            <img
-              src={logo}
-              height="40px"
-              alt=""
-              className="d-inline-block align-top"
-            />
-            <span className="spacer">Laker Lawn Care Portal</span>
-          </Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="mr-auto">
+    const navBar = (
+      <Navbar
+        bg="dark"
+        variant="dark"
+        expand="md"
+        fixed="top"
+        expanded={navExpanded}
+        onToggle={(navExpanded) => this.setState({ navExpanded })}
+      >
+        <Navbar.Brand>
+          <img
+            src={logo}
+            height="40px"
+            alt=""
+            className="d-inline-block align-top"
+          />
+          <span className="spacer">Laker Lawn Care Portal</span>
+        </Navbar.Brand>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="mr-auto">
+            <NavLink
+              className="nav-link"
+              to="/app/dashboard"
+              onClick={() => this.setState({ navExpanded: false })}
+            >
+              Dashboard
+            </NavLink>
+            {appointments ? (
               <NavLink
                 className="nav-link"
-                to="/app/dashboard"
+                to="/app/available"
                 onClick={() => this.setState({ navExpanded: false })}
               >
-                Dashboard
+                Available
               </NavLink>
-              {appointments ? (
+            ) : null}
+            <NavLink
+              className="nav-link"
+              to="/app/balance"
+              onClick={() => this.setState({ navExpanded: false })}
+            >
+              Balance
+            </NavLink>
+            <NavLink
+              className="nav-link"
+              to="/app/profile"
+              onClick={() => this.setState({ navExpanded: false })}
+            >
+              Profile
+            </NavLink>
+            {admin ? (
+              <NavDropdown
+                show={showDropdown}
+                active={location.pathname.includes("/app/admin")}
+                onToggle={(showDropdown) => this.setState({ showDropdown })}
+                title="Admin Panel"
+                id="basic-nav-dropdown"
+              >
                 <NavLink
-                  className="nav-link"
-                  to="/app/available"
-                  onClick={() => this.setState({ navExpanded: false })}
+                  className="dropdown-item"
+                  to="/app/admin/staff"
+                  onClick={() =>
+                    this.setState({ navExpanded: false, showDropdown: false })
+                  }
                 >
-                  Available
+                  Staff List
                 </NavLink>
-              ) : null}
-              <NavLink
-                className="nav-link"
-                to="/app/balance"
-                onClick={() => this.setState({ navExpanded: false })}
-              >
-                Balance
-              </NavLink>
-              <NavLink
-                className="nav-link"
-                to="/app/profile"
-                onClick={() => this.setState({ navExpanded: false })}
-              >
-                Profile
-              </NavLink>
-              {admin ? (
-                <NavDropdown
-                  show={showDropdown}
-                  active={location.pathname.includes("/app/admin")}
-                  onToggle={(showDropdown) => this.setState({ showDropdown })}
-                  title="Admin Panel"
-                  id="basic-nav-dropdown"
+                <NavLink
+                  className="dropdown-item"
+                  to="/app/admin/appointments"
+                  onClick={() =>
+                    this.setState({ navExpanded: false, showDropdown: false })
+                  }
                 >
-                  <NavLink
-                    className="dropdown-item"
-                    to="/app/admin/staff"
-                    onClick={() =>
-                      this.setState({ navExpanded: false, showDropdown: false })
-                    }
-                  >
-                    Staff List
-                  </NavLink>
-                  <NavLink
-                    className="dropdown-item"
-                    to="/app/admin/appointments"
-                    onClick={() =>
-                      this.setState({ navExpanded: false, showDropdown: false })
-                    }
-                  >
-                    Appointments
-                  </NavLink>
-                  <NavLink
-                    className="dropdown-item"
-                    to="/app/admin/customers"
-                    onClick={() =>
-                      this.setState({ navExpanded: false, showDropdown: false })
-                    }
-                  >
-                    Customers
-                  </NavLink>
-                  <NavLink
-                    className="dropdown-item"
-                    to="/app/admin/finances"
-                    onClick={() =>
-                      this.setState({ navExpanded: false, showDropdown: false })
-                    }
-                  >
-                    Finances
-                  </NavLink>
-                </NavDropdown>
-              ) : null}
-            </Nav>
-            <Nav>
-              <Button onClick={() => firebase.logout()} variant="danger">
-                Logout
-              </Button>
-            </Nav>
-          </Navbar.Collapse>
-        </Navbar>
-        <Switch>
-          <Route exact path="/app/dashboard">
-            <PageDash
+                  Appointments
+                </NavLink>
+                <NavLink
+                  className="dropdown-item"
+                  to="/app/admin/customers"
+                  onClick={() =>
+                    this.setState({ navExpanded: false, showDropdown: false })
+                  }
+                >
+                  Customers
+                </NavLink>
+                <NavLink
+                  className="dropdown-item"
+                  to="/app/admin/finances"
+                  onClick={() =>
+                    this.setState({ navExpanded: false, showDropdown: false })
+                  }
+                >
+                  Finances
+                </NavLink>
+              </NavDropdown>
+            ) : null}
+          </Nav>
+          <Nav>
+            <Button onClick={() => firebase.logout()} variant="danger">
+              Logout
+            </Button>
+          </Nav>
+        </Navbar.Collapse>
+      </Navbar>
+    );
+
+    return (
+      <Switch>
+        <Route exact path="/app/dashboard">
+          {navBar}
+          <PageDash
+            users={users}
+            customers={customers}
+            myApptIds={myApptIds}
+            takeAppts={appointments}
+            adminPercentage={adminPercentage}
+          />
+        </Route>
+        <Route exact path="/app/available">
+          {navBar}
+          {appointments ? (
+            <PageAvailable
+              uid={uid}
               users={users}
               customers={customers}
+              availableApptIds={availableApptIds}
               myApptIds={myApptIds}
-              takeAppts={appointments}
               adminPercentage={adminPercentage}
             />
-          </Route>
-          <Route exact path="/app/available">
-            {appointments ? (
-              <PageAvailable
-                uid={uid}
-                users={users}
-                customers={customers}
-                availableApptIds={availableApptIds}
-                myApptIds={myApptIds}
-                adminPercentage={adminPercentage}
-              />
-            ) : (
-              <Redirect to="/app/dashboard" />
-            )}
-          </Route>
-          <Route exact path="/app/balance">
-            <PageBalance uid={uid} />;
-          </Route>
-          <Route exact path="/app/profile">
-            <PageProfile
-              profile={profile}
-              users={users}
-              companyVenmo={companyVenmo}
-            />
-          </Route>
-
-          <Route path="/app/admin">
-            {admin ? (
-              <Switch>
-                <Route exact path="/app/admin/staff">
-                  <PageAdminStaff users={users} />
-                </Route>
-                <Route exact path="/app/admin/appointments">
-                  <PageAdminAppts
-                    users={users}
-                    customers={customers}
-                    availableApptIds={availableApptIds}
-                  />
-                </Route>
-                <Route exact path="/app/admin/customers">
-                  <PageAdminCustomers customers={customers} />
-                </Route>
-                <Route exact path="/app/admin/finances">
-                  <PageAdminFinances
-                    users={users}
-                    customers={customers}
-                    financeAccess={finances}
-                    companyVenmo={companyVenmo}
-                  />
-                </Route>
-              </Switch>
-            ) : (
-              <Redirect to="/app/dashboard" />
-            )}
-          </Route>
-          <Route>
-            <PageNotFound />
-          </Route>
-        </Switch>
-      </div>
+          ) : (
+            <Redirect to="/app/dashboard" />
+          )}
+        </Route>
+        <Route exact path="/app/balance">
+          {navBar}
+          <PageBalance uid={uid} />;
+        </Route>
+        <Route exact path="/app/profile">
+          {navBar}
+          <PageProfile
+            profile={profile}
+            users={users}
+            companyVenmo={companyVenmo}
+          />
+        </Route>
+        <Route path="/app/admin">
+          {admin ? (
+            <Switch>
+              <Route exact path="/app/admin/staff">
+                {navBar}
+                <PageAdminStaff users={users} />
+              </Route>
+              <Route exact path="/app/admin/appointments">
+                {navBar}
+                <PageAdminAppts
+                  users={users}
+                  customers={customers}
+                  availableApptIds={availableApptIds}
+                />
+              </Route>
+              <Route exact path="/app/admin/customers">
+                {navBar}
+                <PageAdminCustomers customers={customers} />
+              </Route>
+              <Route exact path="/app/admin/finances">
+                {navBar}
+                <PageAdminFinances
+                  users={users}
+                  customers={customers}
+                  financeAccess={finances}
+                  companyVenmo={companyVenmo}
+                />
+              </Route>
+              <Route>
+                <PageNotFound />
+              </Route>
+            </Switch>
+          ) : (
+            <Redirect to="/app/dashboard" />
+          )}
+        </Route>
+        <Route>
+          <PageNotFound />
+        </Route>
+      </Switch>
     );
   }
 }

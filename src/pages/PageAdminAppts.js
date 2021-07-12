@@ -125,7 +125,7 @@ class PageAdminAppts extends React.Component {
     }
     if (!/^([0-9]+)$/.test(numStaff)) {
       return this.setState({
-        modalError: "Number of staff must be a number.",
+        modalError: "Number of staff must be a positive number.",
         modalLoading: false,
       });
     }
