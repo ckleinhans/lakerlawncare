@@ -433,7 +433,7 @@ class PageAdminAppts extends React.Component {
                   <th>Status</th>
                   <th>Customer</th>
                   <th>Rate</th>
-                  <th># Staff</th>
+                  <th style={{ whiteSpace: "nowrap" }}># Staff</th>
                   <th>Staff</th>
                 </tr>
               </thead>
