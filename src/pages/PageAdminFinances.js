@@ -102,6 +102,7 @@ class PageAdminFinances extends React.Component {
       date: "",
       transactionMethod: "Transaction Method",
       description: "",
+      modalError: "",
       modalLoading: false,
       payLinkClicked: false,
       modalTypeSelect: "Payer/Payee",

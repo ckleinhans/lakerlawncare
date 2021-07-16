@@ -26,7 +26,7 @@ function verifyContext(context, requiredClaims) {
         );
       }
     });
-};
+}
 
 exports.addAdminRole = functions.https.onCall(async (data, context) => {
   verifyContext(context, ["admin"]);
@@ -221,6 +221,7 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
     appt.rate.type === "hourly"
       ? appt.rate.amount * newNumStaff * data.hours
       : appt.rate.amount;
+
   const customerName = (
     await admin.database().ref(`/customers/${appt.customer}/name`).get()
   ).val();

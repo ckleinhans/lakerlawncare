@@ -10,6 +10,8 @@ import Col from "react-bootstrap/Col";
 import ReactTags from "react-tag-autocomplete";
 import DatePicker from "react-datepicker";
 import Autocomplete from "../components/Autocomplete";
+import error from "../assets/error.png";
+import check from "../assets/check.png";
 
 class PageAdminAppts extends React.Component {
   constructor(props) {
@@ -143,19 +145,23 @@ class PageAdminAppts extends React.Component {
       day: "numeric",
     });
 
-    const data = {
-      date: dateString,
-      originalDate: dateString,
-      customer,
-      rate: {
-        amount: Number(rate),
-        type: rateType,
-      },
-      numStaff: Number(numStaff),
-      staffAssigned,
-      notes: notes || null,
-      repeat,
-    };
+    // If numStaff is 0, delete the appointment
+    const data =
+      Number(numStaff) === 0
+        ? null
+        : {
+            date: dateString,
+            originalDate: dateString,
+            customer,
+            rate: {
+              amount: Number(rate),
+              type: rateType,
+            },
+            numStaff: Number(numStaff),
+            staffAssigned,
+            notes: notes || null,
+            repeat,
+          };
 
     // Decide if available status changed & compute potential new available list
     const availableChanged =
@@ -220,6 +226,7 @@ class PageAdminAppts extends React.Component {
                 modalError: "",
                 showAddModal: false,
                 showEditModal: false,
+                key: "",
               });
             }
           );
@@ -230,6 +237,7 @@ class PageAdminAppts extends React.Component {
             modalError: "",
             showAddModal: false,
             showEditModal: false,
+            key: "",
           });
         };
 
@@ -374,7 +382,11 @@ class PageAdminAppts extends React.Component {
         .map((key) => {
           const customer = customers[appointments[key].customer].name;
           const date = appointments[key].date;
-          const status = appointments[key].complete ? "Complete" : "Incomplete";
+          const status = appointments[key].complete ? (
+            <img src={check} className="appt-icon" alt="Complete" />
+          ) : (
+            <img src={error} className="appt-icon" alt="Incomplete" />
+          );
           const rate = `$${appointments[key].rate.amount.toFixed(2)} ${
             appointments[key].rate.type
           }`;
@@ -400,10 +412,10 @@ class PageAdminAppts extends React.Component {
               onClick={() => this.handleShowEditModal(key)}
               style={style}
             >
-              <td>{date}</td>
+              <td style={{ whiteSpace: "nowrap" }}>{date}</td>
               <td>{status}</td>
-              <td>{customer}</td>
-              <td>{rate}</td>
+              <td style={{ whiteSpace: "nowrap" }}>{customer}</td>
+              <td style={{ whiteSpace: "nowrap" }}>{rate}</td>
               <td>{numStaff}</td>
               <td>{staffAssigned}</td>
             </tr>
@@ -449,7 +461,7 @@ class PageAdminAppts extends React.Component {
       });
 
     const modalBody =
-      key && appointments[key].complete ? (
+      key && appointments[key] && appointments[key].complete ? (
         <Modal.Body>
           <Form.Row>
             <Col className="label-column">Date:</Col>
@@ -569,6 +581,7 @@ class PageAdminAppts extends React.Component {
             placeholder="# Staff"
             value={numStaff}
           />
+          <Form.Text muted>Set this to 0 to delete the appointment.</Form.Text>
           <br />
           <Form.Label>Staff Assigned</Form.Label>
           <ReactTags
@@ -658,7 +671,7 @@ class PageAdminAppts extends React.Component {
               >
                 Cancel
               </Button>
-              {key && appointments[key].complete ? null : (
+              {key && appointments[key] && appointments[key].complete ? null : (
                 <Button
                   variant="primary"
                   onClick={() => this.editAppointment(this.state.key)}
