@@ -225,7 +225,7 @@ class PageAdminStaff extends React.Component {
             <tr key={key}>
               <td>{name}</td>
               <td>{email}</td>
-              <td>{phoneNumber}</td>
+              <td className="nowrap">{phoneNumber}</td>
               <td style={{ textAlign: "center" }}>{apptUserButton}</td>
               <td style={{ textAlign: "center" }}>{adminButton}</td>
             </tr>

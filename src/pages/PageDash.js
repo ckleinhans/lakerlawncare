@@ -178,10 +178,10 @@ class PageDash extends React.Component {
                   className="clickable-row"
                   onClick={() => this.showDetails(key)}
                 >
-                  <td>{date}</td>
+                  <td className="nowrap">{date}</td>
                   <td>{address}</td>
                   <td>{name}</td>
-                  <td>{phoneNumber}</td>
+                  <td className="nowrap">{phoneNumber}</td>
                   <td>{staffString || "None"}</td>
                 </tr>
               );

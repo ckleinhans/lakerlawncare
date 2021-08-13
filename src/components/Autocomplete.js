@@ -53,9 +53,9 @@ class Autocomplete extends React.Component {
 
   render() {
     const { suggestions } = this.state;
-    const { value, onChange, className, placeholder } = this.props;
+    const { value, onChange, className, placeholder, disabled } = this.props;
 
-    const customerSuggestInputProps = {
+    const inputProps = {
       placeholder,
       value,
       name: "customerName",
@@ -63,7 +63,11 @@ class Autocomplete extends React.Component {
       onChange: (e, { newValue }) => onChange(newValue),
     };
 
-    if (className) customerSuggestInputProps.className = className;
+    if (className) inputProps.className = className;
+    if (disabled) {
+      inputProps.disabled = disabled;
+      inputProps.style = { backgroundColor: "#e9ecef" };
+    }
 
     return (
       <Autosuggest
@@ -72,7 +76,7 @@ class Autocomplete extends React.Component {
         onSuggestionsClearRequested={this.onSuggestionsClearRequested}
         getSuggestionValue={this.getSuggestionValue}
         renderSuggestion={this.renderSuggestion}
-        inputProps={customerSuggestInputProps}
+        inputProps={inputProps}
       />
     );
   }

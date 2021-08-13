@@ -2,6 +2,9 @@
 .clickable-row {
   cursor: pointer;
 }
+.nowrap {
+  white-space: nowrap;
+}
 @media (min-width: 800px) {
   .page-table {
     margin-top: 4px;

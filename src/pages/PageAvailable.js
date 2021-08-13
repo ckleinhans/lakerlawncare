@@ -166,7 +166,7 @@ class PageAvailable extends React.Component {
                   onClick={() => this.showDetails(key)}
                   style={style}
                 >
-                  <td>{date}</td>
+                  <td className="nowrap">{date}</td>
                   <td>{address}</td>
                   <td>{name}</td>
                   <td>{`$${rateCalc.toFixed(2)} ${rate.type}`}</td>
@@ -211,8 +211,8 @@ class PageAvailable extends React.Component {
                   <th>Date</th>
                   <th>Address</th>
                   <th>Name</th>
-                  <th>Pay Rate</th>
-                  <th>Staff Assigned</th>
+                  <th className="nowrap">Pay Rate</th>
+                  <th className="nowrap">Staff Assigned</th>
                 </tr>
               </thead>
               <tbody>{tableContent}</tbody>

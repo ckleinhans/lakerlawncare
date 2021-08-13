@@ -412,10 +412,10 @@ class PageAdminAppts extends React.Component {
               onClick={() => this.handleShowEditModal(key)}
               style={style}
             >
-              <td style={{ whiteSpace: "nowrap" }}>{date}</td>
+              <td className="nowrap">{date}</td>
               <td>{status}</td>
-              <td style={{ whiteSpace: "nowrap" }}>{customer}</td>
-              <td style={{ whiteSpace: "nowrap" }}>{rate}</td>
+              <td className="nowrap">{customer}</td>
+              <td className="nowrap">{rate}</td>
               <td>{numStaff}</td>
               <td>{staffAssigned}</td>
             </tr>
@@ -433,7 +433,7 @@ class PageAdminAppts extends React.Component {
                   <th>Status</th>
                   <th>Customer</th>
                   <th>Rate</th>
-                  <th style={{ whiteSpace: "nowrap" }}># Staff</th>
+                  <th className="nowrap"># Staff</th>
                   <th>Staff</th>
                 </tr>
               </thead>
