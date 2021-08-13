@@ -4,7 +4,6 @@ import { connect } from "react-redux";
 import { compose } from "redux";
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
-import Spinner from "react-bootstrap/Spinner";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 
@@ -160,28 +159,17 @@ class PageAdminCustomers extends React.Component {
           const phoneNumber = customers[key].phoneNumber;
           const rate = customers[key].rate ? `$${customers[key].rate}` : "None";
           const frequency = customers[key].frequency || "None";
-          const amountOwed = isLoaded(finances.customers[key]) ? (
-            `$${finances.customers[key].owed || 0}`
-          ) : (
-            <Spinner
-              as="span"
-              animation="border"
-              size="sm"
-              role="status"
-              aria-hidden="true"
-            />
-          );
-          const amountPaid = isLoaded(finances.customers[key]) ? (
-            `$${finances.customers[key].paid || 0}`
-          ) : (
-            <Spinner
-              as="span"
-              animation="border"
-              size="sm"
-              role="status"
-              aria-hidden="true"
-            />
-          );
+          const amountOwed = finances.customers[key]
+            ? `$${Object.values(finances.customers[key].transactions)
+                .reduce((total, current) => (total += current.amount), 0)
+                .toFixed(2)}`
+            : "None";
+          const amountPaid = finances.customers[key]
+            ? `$${Object.values(finances.customers[key].transactions)
+                .filter((transaction) => transaction.amount > 0)
+                .reduce((total, current) => (total += current.amount), 0)
+                .toFixed(2)}`
+            : "None";
 
           return (
             <tr
@@ -192,11 +180,11 @@ class PageAdminCustomers extends React.Component {
               <td>{name}</td>
               <td>{address}</td>
               <td>{email}</td>
-              <td>{phoneNumber}</td>
-              <td>{rate}</td>
-              <td>{frequency}</td>
-              <td>{amountOwed}</td>
-              <td>{amountPaid}</td>
+              <td className="nowrap">{phoneNumber}</td>
+              <td className="nowrap">{rate}</td>
+              <td className="nowrap">{frequency}</td>
+              <td className="nowrap">{amountOwed}</td>
+              <td className="nowrap">{amountPaid}</td>
             </tr>
           );
         });
@@ -372,22 +360,7 @@ const mapStateToProps = (state, props) => {
 
 export default compose(
   firebaseConnect((props) => {
-    const paths = [];
-    if (props.customers) {
-      Object.keys(props.customers).forEach((id) => {
-        paths.push(
-          ...[
-            {
-              path: `/finances/customers/${id}/owed`,
-            },
-            {
-              path: `/finances/customers/${id}/paid`,
-            },
-          ]
-        );
-      });
-    }
-    return paths;
+    return [{ path: "/finances/customers" }];
   }),
   connect(mapStateToProps)
 )(PageAdminCustomers);

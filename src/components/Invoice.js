@@ -85,8 +85,11 @@ function Invoice(props) {
       <br />
       <br />
       Thank you!
+      <br />
+      <br />
+      Laker Lawn Care
     </div>
   );
 }
 
-export default (Invoice);
+export default Invoice;

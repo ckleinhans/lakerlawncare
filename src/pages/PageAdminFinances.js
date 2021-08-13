@@ -11,6 +11,7 @@ import DatePicker from "react-datepicker";
 import Autocomplete from "../components/Autocomplete";
 import { Link } from "react-router-dom";
 import Invoice from "../components/Invoice";
+import getTransactions from "../components/GetTransactions";
 
 class PageAdminFinances extends React.Component {
   constructor(props) {
@@ -23,6 +24,7 @@ class PageAdminFinances extends React.Component {
       showStaffModal: false,
       showTransactionModal: false,
       showInvoiceModal: false,
+      showEditModal: false,
       modalError: "",
       modalLoading: false,
       payLinkClicked: false,
@@ -99,6 +101,7 @@ class PageAdminFinances extends React.Component {
       showStaffModal: false,
       showTransactionModal: false,
       showInvoiceModal: false,
+      showEditModal: false,
       date: "",
       transactionMethod: "Transaction Method",
       description: "",
@@ -111,11 +114,11 @@ class PageAdminFinances extends React.Component {
       modalStaffName: "",
       modalStaffId: "",
       modalTransactionAmount: "",
+      modalKey: "",
       modalComplete: false,
     });
 
-  addTransaction = () => {
-    this.setState({ modalLoading: true });
+  pushTransaction = () => {
     const { firebase, financeAccess } = this.props;
     const {
       modalCustomerId,
@@ -126,7 +129,9 @@ class PageAdminFinances extends React.Component {
       date,
       transactionMethod,
       modalComplete,
+      modalKey,
     } = this.state;
+
     if (!financeAccess) {
       return this.setState({
         modalLoading: false,
@@ -181,29 +186,28 @@ class PageAdminFinances extends React.Component {
         ? `/finances/customers/${modalCustomerId}/transactions`
         : "/finances/company/transactions";
 
-    firebase.ref(dataPath).push(
-      {
-        amount:
-          modalTypeSelect === "Staff"
-            ? Number(modalTransactionAmount) * -1
-            : Number(modalTransactionAmount),
-        date: date.toLocaleDateString("en-US", {
-          weekday: "short",
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-        }),
-        complete: modalTypeSelect === "Company" || modalComplete,
-        method: transactionMethod,
-        description:
-          modalTypeSelect === "Company" || modalComplete
-            ? `(${transactionMethod}) ${description}`
-            : description,
-      },
-      this.handleModalClose
-    );
+    const data = {
+      amount:
+        modalTypeSelect === "Staff"
+          ? Number(modalTransactionAmount) * -1
+          : Number(modalTransactionAmount),
+      date: date.toLocaleDateString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      complete: modalTypeSelect === "Company" || modalComplete,
+      method:
+        transactionMethod !== "Transaction Method" ? transactionMethod : null,
+      description,
+    };
+
+    if (modalKey) {
+      firebase.ref(`${dataPath}/${modalKey}`).set(data, this.handleModalClose);
+    } else firebase.ref(dataPath).push(data, this.handleModalClose);
   };
 
   payStaff = () => {
@@ -249,7 +253,7 @@ class PageAdminFinances extends React.Component {
       }),
       complete: true,
       method: "Venmo",
-      description: `${description}`,
+      description,
     };
 
     const data = { transactions };
@@ -303,7 +307,7 @@ class PageAdminFinances extends React.Component {
       }),
       complete: true,
       method: transactionMethod,
-      description: `(${transactionMethod}) ${description}`,
+      description,
     };
 
     owed -= totalAmount;
@@ -379,87 +383,6 @@ class PageAdminFinances extends React.Component {
     }
   };
 
-  getTransactions = () => {
-    const { finances, customers, users } = this.props;
-    const { customerId, typeSelect, staffId } = this.state;
-
-    const transactions = [];
-    if (finances) {
-      if (typeSelect !== "Staff" && customers && finances.customers) {
-        Object.keys(finances.customers)
-          .filter((id) => !customerId || customerId === id)
-          .forEach((id) => {
-            if (finances.customers[id].transactions)
-              transactions.push(
-                ...Object.keys(finances.customers[id].transactions)
-                  .filter(
-                    (key) =>
-                      customerId ||
-                      finances.customers[id].transactions[key].amount > 0
-                  )
-                  .map((key) => {
-                    return {
-                      ...finances.customers[id].transactions[key],
-                      key: key,
-                      payer: customers[id].name,
-                      sortPriority: 1,
-                    };
-                  })
-              );
-          });
-      }
-      if (typeSelect !== "Customers" && users && finances.staff) {
-        Object.keys(finances.staff)
-          .filter((id) => !staffId || staffId === id)
-          .forEach((id) => {
-            if (finances.staff[id].transactions)
-              transactions.push(
-                ...Object.keys(finances.staff[id].transactions)
-                  .filter(
-                    (key) =>
-                      staffId || finances.staff[id].transactions[key].amount > 0
-                  )
-                  .map((key) => {
-                    const amount =
-                      typeSelect === "All Transactions"
-                        ? finances.staff[id].transactions[key].amount * -1
-                        : finances.staff[id].transactions[key].amount;
-                    return {
-                      ...finances.staff[id].transactions[key],
-                      key: key,
-                      amount,
-                      payer: users[id].displayName,
-                      sortPriority: 0,
-                    };
-                  })
-              );
-          });
-      }
-      if (
-        typeSelect === "All Transactions" &&
-        finances.company &&
-        finances.company.transactions
-      ) {
-        transactions.push(
-          ...Object.keys(finances.company.transactions).map((key) => {
-            return {
-              ...finances.company.transactions[key],
-              key: key,
-              payer: "COMPANY",
-              sortPriority: 0,
-            };
-          })
-        );
-      }
-    }
-
-    return transactions.sort((transaction1, transaction2) => {
-      if (transaction2.date === transaction1.date)
-        return transaction2.sortPriority - transaction1.sortPriority;
-      else return new Date(transaction1.date) - new Date(transaction2.date);
-    });
-  };
-
   render() {
     const { customers, users, finances, companyVenmo } = this.props;
     const {
@@ -470,6 +393,7 @@ class PageAdminFinances extends React.Component {
       showStaffModal,
       showTransactionModal,
       showInvoiceModal,
+      showEditModal,
       modalError,
       modalLoading,
       checkboxes,
@@ -484,25 +408,72 @@ class PageAdminFinances extends React.Component {
       modalStaffName,
       modalTransactionAmount,
       modalComplete,
+      modalKey,
     } = this.state;
 
-    const transactions = this.getTransactions();
+    const transactions = getTransactions(
+      finances,
+      customers,
+      users,
+      typeSelect,
+      customerId || staffId,
+      customerName || staffName
+    );
 
     const runningBalance = [];
     const tableContent = transactions
       .map((transaction, index) => {
-        const { key, date, description, amount, payer, complete } = transaction;
+        const {
+          key,
+          date,
+          description,
+          amount,
+          payer,
+          payerType,
+          complete,
+          method,
+        } = transaction;
         runningBalance[index] = runningBalance[index - 1]
           ? runningBalance[index - 1] + amount
           : amount;
-        const style = !complete ? { color: "#d20000" } : null;
         return (
-          <tr key={key} style={style}>
-            <td style={{ whiteSpace: "nowrap" }}>{date}</td>
-            <td style={{ whiteSpace: "nowrap" }}>{payer}</td>
-            <td>{description}</td>
-            <td>{`$${amount.toFixed(2)}`}</td>
-            <td>{`$${runningBalance[index].toFixed(2)}`}</td>
+          <tr
+            className="clickable-row"
+            key={key}
+            style={!complete ? { color: "#d20000" } : null}
+            onClick={() =>
+              this.setState({
+                showEditModal: true,
+                date: new Date(date),
+                modalTypeSelect: payerType,
+                modalComplete: complete,
+                modalCustomerName: payerType === "Customer" ? payer : "",
+                modalCustomerId:
+                  payerType === "Customer"
+                    ? Object.keys(customers).find(
+                        (key) => customers[key].name === payer
+                      )
+                    : "",
+                modalStaffName: payerType === "Staff" ? payer : "",
+                modalStaffId:
+                  payerType === "Staff"
+                    ? Object.keys(users).find(
+                        (key) => users[key].displayName === payer
+                      )
+                    : "",
+                transactionMethod: method ? method : "Transaction Method",
+                modalTransactionAmount:
+                  typeSelect === "Staff" ? amount * -1 : amount,
+                modalKey: key,
+                description,
+              })
+            }
+          >
+            <td className="nowrap">{date}</td>
+            <td className="nowrap">{payer}</td>
+            <td>{method ? `(${method}) ${description}` : description}</td>
+            <td className="nowrap">{`$${amount.toFixed(2)}`}</td>
+            <td className="nowrap">{`$${runningBalance[index].toFixed(2)}`}</td>
           </tr>
         );
       })
@@ -642,7 +613,7 @@ class PageAdminFinances extends React.Component {
       )
       .forEach((transaction) => (totalSelected += transaction.amount));
 
-    const modalBody = (
+    const paymentModalBody = (
       <Modal.Body>
         {typeSelect === "Customers" ? (
           <div>
@@ -769,6 +740,111 @@ class PageAdminFinances extends React.Component {
       </Modal.Body>
     );
 
+    const transactionModalBody = (
+      <Modal.Body>
+        <DatePicker
+          selected={date}
+          onChange={(date) => this.setState({ date })}
+          placeholderText="Transaction Date"
+          showTimeSelect
+          dateFormat="MM/dd/yyyy h:mm aa"
+        />
+        <br />
+        <Form.Control
+          as="select"
+          className="header-select"
+          name="modalTypeSelect"
+          disabled={modalKey}
+          onChange={this.handleChange}
+          value={modalTypeSelect}
+        >
+          <option disabled>Payer/Payee</option>
+          <option>Company</option>
+          <option>Customer</option>
+          <option>Staff</option>
+        </Form.Control>
+        {modalTypeSelect === "Customer" ? (
+          <div className="header-input">
+            <Autocomplete
+              valueArray={Object.values(customers).map(
+                (customer) => customer.name
+              )}
+              onChange={(newValue) =>
+                this.handleCustomerChange(newValue, "modalCustomer")
+              }
+              disabled={!!modalKey}
+              value={modalCustomerName}
+              placeholder="Customer Name"
+            />
+          </div>
+        ) : modalTypeSelect === "Staff" ? (
+          <div className="inline-header">
+            <Autocomplete
+              valueArray={Object.values(users).map((user) => user.displayName)}
+              onChange={(newValue) =>
+                this.handleStaffChange(newValue, "modalStaff")
+              }
+              disabled={modalKey}
+              value={modalStaffName}
+              placeholder="Staff Name"
+            />
+          </div>
+        ) : null}
+        <br />
+        <br />
+        {modalTypeSelect === "Customer" || modalTypeSelect === "Staff" ? (
+          <div>
+            <Form.Check
+              type="checkbox"
+              name="modalComplete"
+              label="Transaction completed?"
+              checked={modalComplete}
+              onChange={(event) =>
+                this.setState({ modalComplete: event.target.checked })
+              }
+            />
+            <br />
+          </div>
+        ) : null}
+        {modalTypeSelect === "Company" || modalComplete ? (
+          <div>
+            <Form.Control
+              as="select"
+              name="transactionMethod"
+              onChange={this.handleChange}
+              value={transactionMethod}
+            >
+              <option disabled>Transaction Method</option>
+              <option>Venmo</option>
+              <option>Check</option>
+              <option>Cash</option>
+            </Form.Control>
+            <br />
+          </div>
+        ) : null}
+        <Form.Control
+          name="modalTransactionAmount"
+          onChange={this.handleChange}
+          placeholder="Amount ($)"
+          value={modalTransactionAmount}
+        />
+        <Form.Text muted>
+          Enter positive numbers for company revenue, negative for company
+          expenses.
+        </Form.Text>
+        <br />
+        <Form.Control
+          as="textarea"
+          name="description"
+          placeholder="Write a brief transaction description"
+          onChange={this.handleChange}
+          value={description}
+          disabled={payLinkClicked}
+          rows={2}
+        />
+      </Modal.Body>
+    );
+
     return (
       <div className="navbar-page">
         <div className="container">
@@ -794,7 +870,7 @@ class PageAdminFinances extends React.Component {
             <Modal.Header closeButton>
               <Modal.Title>Record Payment</Modal.Title>
             </Modal.Header>
-            {modalBody}
+            {paymentModalBody}
             {modalErrorBar}
             <Modal.Footer>
               <Button
@@ -818,7 +894,7 @@ class PageAdminFinances extends React.Component {
             <Modal.Header closeButton>
               <Modal.Title>Pay Staff</Modal.Title>
             </Modal.Header>
-            {modalBody}
+            {paymentModalBody}
             {modalErrorBar}
             <Modal.Footer>
               <Button
@@ -842,107 +918,7 @@ class PageAdminFinances extends React.Component {
             <Modal.Header closeButton>
               <Modal.Title>Add Transaction</Modal.Title>
             </Modal.Header>
-            <Modal.Body>
-              <DatePicker
-                selected={date}
-                onChange={(date) => this.setState({ date })}
-                placeholderText="Transaction Date"
-                showTimeSelect
-                dateFormat="MM/dd/yyyy h:mm aa"
-              />
-              <br />
-              <Form.Control
-                as="select"
-                className="header-select"
-                name="modalTypeSelect"
-                onChange={this.handleChange}
-                value={modalTypeSelect}
-              >
-                <option disabled>Payer/Payee</option>
-                <option>Company</option>
-                <option>Customer</option>
-                <option>Staff</option>
-              </Form.Control>
-              {modalTypeSelect === "Customer" ? (
-                <div className="header-input">
-                  <Autocomplete
-                    valueArray={Object.values(customers).map(
-                      (customer) => customer.name
-                    )}
-                    onChange={(newValue) =>
-                      this.handleCustomerChange(newValue, "modalCustomer")
-                    }
-                    value={modalCustomerName}
-                    placeholder="Customer Name"
-                  />
-                </div>
-              ) : modalTypeSelect === "Staff" ? (
-                <div className="inline-header">
-                  <Autocomplete
-                    valueArray={Object.values(users).map(
-                      (user) => user.displayName
-                    )}
-                    onChange={(newValue) =>
-                      this.handleStaffChange(newValue, "modalStaff")
-                    }
-                    value={modalStaffName}
-                    placeholder="Staff Name"
-                  />
-                </div>
-              ) : null}
-              <br />
-              <br />
-              {modalTypeSelect === "Customer" || modalTypeSelect === "Staff" ? (
-                <div>
-                  <Form.Check
-                    type="checkbox"
-                    name="modalComplete"
-                    label="Transaction completed?"
-                    checked={modalComplete}
-                    onChange={(event) =>
-                      this.setState({ modalComplete: event.target.checked })
-                    }
-                  />
-                  <br />
-                </div>
-              ) : null}
-              {modalTypeSelect === "Company" || modalComplete ? (
-                <div>
-                  <Form.Control
-                    as="select"
-                    name="transactionMethod"
-                    onChange={this.handleChange}
-                    value={transactionMethod}
-                  >
-                    <option disabled>Transaction Method</option>
-                    <option>Venmo</option>
-                    <option>Check</option>
-                    <option>Cash</option>
-                  </Form.Control>
-                  <br />
-                </div>
-              ) : null}
-              <Form.Control
-                name="modalTransactionAmount"
-                onChange={this.handleChange}
-                placeholder="Amount ($)"
-                value={modalTransactionAmount}
-              />
-              <Form.Text muted>
-                Enter positive numbers for company revenue, negative for company
-                expenses.
-              </Form.Text>
-              <br />
-              <Form.Control
-                as="textarea"
-                name="description"
-                placeholder="Write a brief transaction description"
-                onChange={this.handleChange}
-                value={description}
-                disabled={payLinkClicked}
-                rows={2}
-              />
-            </Modal.Body>
+            {transactionModalBody}
             {modalErrorBar}
             <Modal.Footer>
               <Button
@@ -954,10 +930,34 @@ class PageAdminFinances extends React.Component {
               </Button>
               <Button
                 variant="success"
-                onClick={this.addTransaction}
+                onClick={this.pushTransaction}
                 disabled={modalLoading}
               >
                 Add Transaction
+              </Button>
+            </Modal.Footer>
+          </Modal>
+
+          <Modal show={showEditModal} onHide={this.handleModalClose}>
+            <Modal.Header closeButton>
+              <Modal.Title>Edit Transaction</Modal.Title>
+            </Modal.Header>
+            {transactionModalBody}
+            {modalErrorBar}
+            <Modal.Footer>
+              <Button
+                variant="secondary"
+                onClick={this.handleModalClose}
+                disabled={modalLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="success"
+                onClick={this.pushTransaction}
+                disabled={modalLoading}
+              >
+                Save Transaction
               </Button>
             </Modal.Footer>
           </Modal>
