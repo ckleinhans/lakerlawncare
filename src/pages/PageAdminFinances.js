@@ -308,7 +308,7 @@ class PageAdminFinances extends React.Component {
   };
 
   sendInvoice = async () => {
-    const { customers, companyVenmo, firebase } = this.props;
+    const { customers, companyVenmo, firebase, finances } = this.props;
     const { customerId } = this.state;
 
     this.setState({ modalLoading: true });
@@ -323,7 +323,13 @@ class PageAdminFinances extends React.Component {
       });
     }
 
-    const transactions = this.getTransactions();
+    const transactions = getTransactions(
+      finances,
+      customers,
+      null,
+      "Customers",
+      customerId
+    );
     const date = new Date().toLocaleDateString("en-US", {
       year: "numeric",
       month: "numeric",
