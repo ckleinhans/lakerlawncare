@@ -35,12 +35,16 @@ class PageBalance extends React.Component {
                 new Date(transactions[key2].date)
             )
             .map((key, index) => {
-              const { amount, description, date } = transactions[key];
+              const { amount, description, date, method } = transactions[key];
               runningBalance[index] = amount + (runningBalance[index - 1] || 0);
               return (
                 <tr key={key} onClick={() => this.showDetails(key)}>
-                  <td>{date}</td>
-                  <td>{description}</td>
+                  <td className="nowrap">{date}</td>
+                  <td>
+                    {method && method !== "Owed"
+                      ? `${description} (${method})`
+                      : description}
+                  </td>
                   <td>{`$${amount.toFixed(2)}`}</td>
                   <td>{`$${runningBalance[index].toFixed(2)}`}</td>
                 </tr>

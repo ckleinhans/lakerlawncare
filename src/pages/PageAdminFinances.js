@@ -240,25 +240,23 @@ class PageAdminFinances extends React.Component {
         transactions[key].complete = true;
       });
 
-    const key = firebase.push(`/finances/staff/${staffId}/transactions`).key;
-    transactions[key] = {
-      amount: totalAmount * -1,
-      date: date.toLocaleDateString("en-US", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      }),
-      complete: true,
-      method: "Venmo",
-      description,
-    };
-
-    const data = { transactions };
-
-    firebase.update(`/finances/staff/${staffId}`, data, this.handleModalClose);
+    firebase.ref(`/finances/staff/${staffId}/transactions`).push(
+      {
+        amount: totalAmount * -1,
+        date: date.toLocaleDateString("en-US", {
+          weekday: "short",
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        }),
+        complete: true,
+        method: "Venmo",
+        description,
+      },
+      this.handleModalClose
+    );
   };
 
   customerPayment = () => {
@@ -280,8 +278,6 @@ class PageAdminFinances extends React.Component {
       });
     }
 
-    let owed = finances.customers[customerId].owed || 0;
-    let paid = finances.customers[customerId].paid || 0;
     const transactions = { ...finances.customers[customerId].transactions };
 
     let totalAmount = 0;
@@ -292,32 +288,21 @@ class PageAdminFinances extends React.Component {
         transactions[key].complete = true;
       });
 
-    const key = firebase.push(
-      `/finances/customers/${customerId}/transactions`
-    ).key;
-    transactions[key] = {
-      amount: totalAmount * -1,
-      date: date.toLocaleDateString("en-US", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      }),
-      complete: true,
-      method: transactionMethod,
-      description,
-    };
-
-    owed -= totalAmount;
-    paid += totalAmount;
-
-    const data = { owed, paid, transactions };
-
-    firebase.update(
-      `/finances/customers/${customerId}`,
-      data,
+    firebase.ref(`/finances/customers/${customerId}/transactions`).push(
+      {
+        amount: totalAmount * -1,
+        date: date.toLocaleDateString("en-US", {
+          weekday: "short",
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        }),
+        complete: true,
+        method: transactionMethod,
+        description,
+      },
       this.handleModalClose
     );
   };
@@ -461,7 +446,8 @@ class PageAdminFinances extends React.Component {
                         (key) => users[key].displayName === payer
                       )
                     : "",
-                transactionMethod: method ? method : "Transaction Method",
+                transactionMethod:
+                  method && method !== "Owed" ? method : "Transaction Method",
                 modalTransactionAmount:
                   typeSelect === "Staff" ? amount * -1 : amount,
                 modalKey: key,
@@ -471,7 +457,7 @@ class PageAdminFinances extends React.Component {
           >
             <td className="nowrap">{date}</td>
             <td className="nowrap">{payer}</td>
-            <td>{method ? `(${method}) ${description}` : description}</td>
+            <td>{method ? `${description} (${method})` : description}</td>
             <td className="nowrap">{`$${amount.toFixed(2)}`}</td>
             <td className="nowrap">{`$${runningBalance[index].toFixed(2)}`}</td>
           </tr>
@@ -778,13 +764,13 @@ class PageAdminFinances extends React.Component {
             />
           </div>
         ) : modalTypeSelect === "Staff" ? (
-          <div className="inline-header">
+          <div className="header-input">
             <Autocomplete
               valueArray={Object.values(users).map((user) => user.displayName)}
               onChange={(newValue) =>
                 this.handleStaffChange(newValue, "modalStaff")
               }
-              disabled={modalKey}
+              disabled={!!modalKey}
               value={modalStaffName}
               placeholder="Staff Name"
             />
@@ -818,7 +804,12 @@ class PageAdminFinances extends React.Component {
               <option>Venmo</option>
               <option>Check</option>
               <option>Cash</option>
+              <option>Owed</option>
             </Form.Control>
+            <Form.Text muted>
+              For transactions that are not paid directly using a listed
+              transaction method, use the "Owed" designation.
+            </Form.Text>
             <br />
           </div>
         ) : null}

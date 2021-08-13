@@ -238,13 +238,8 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
       2
     )} ${appt.rate.type}.`,
     complete: false,
+    method: "Owed",
   });
-
-  // Update total customer owes
-  const customerOwed = (await custFinanceRef.child("owed").get()).val();
-  custFinanceRef
-    .child("owed")
-    .set(customerOwed ? customerOwed + amount : amount);
 
   // Compute staff rate using numStaff and the admin percentage
   const adminPercentage = (
@@ -283,6 +278,7 @@ exports.completeAppointment = functions.https.onCall(async (data, context) => {
         (1 - adminPercentage)
       ).toFixed(2)} ${appt.rate.type}.`,
       complete: false,
+      method: "Owed",
     });
   });
 
