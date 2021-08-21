@@ -3,6 +3,7 @@ import Table from "react-bootstrap/Table";
 import { firebaseConnect, isLoaded, isEmpty } from "react-redux-firebase";
 import { connect } from "react-redux";
 import { compose } from "redux";
+import { Link } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
@@ -148,57 +149,81 @@ class PageDash extends React.Component {
       takeAppts,
     } = this.props;
 
-    const tableContent =
-      isLoaded(users, appointments, customers) && !isEmpty(appointments)
-        ? Object.keys(appointments)
-            .filter(
-              (key) =>
-                myApptIds &&
-                myApptIds.incomplete &&
-                myApptIds.incomplete.includes(key)
-            )
-            .sort(
-              (key1, key2) =>
-                new Date(appointments[key1].date) -
-                new Date(appointments[key2].date)
-            )
-            .map((key) => {
-              const { customer, date, staffAssigned } = appointments[key];
-              const { address, name, phoneNumber } = customers[customer];
-              const staffString = staffAssigned
-                ? staffAssigned
-                    .map((uid) => {
-                      return users[uid].displayName;
-                    })
-                    .join(", ")
-                : "None";
-              return (
-                <tr
-                  key={key}
-                  className="clickable-row"
-                  onClick={() => this.showDetails(key)}
-                >
-                  <td className="nowrap">{date}</td>
-                  <td>{address}</td>
-                  <td>{name}</td>
-                  <td className="nowrap">{phoneNumber}</td>
-                  <td>{staffString || "None"}</td>
-                </tr>
-              );
-            })
-        : null;
+    const missedAppts = [];
+    const todayAppts = [];
+    const futureAppts = [];
+    if (
+      isLoaded(users, appointments, customers) &&
+      !isEmpty(appointments) &&
+      myApptIds &&
+      myApptIds.incomplete
+    ) {
+      Object.keys(appointments)
+        .filter((key) => myApptIds.incomplete.includes(key))
+        .sort(
+          (key1, key2) =>
+            new Date(appointments[key2].date) -
+            new Date(appointments[key1].date)
+        )
+        .forEach((key) => {
+          const { customer, date, staffAssigned } = appointments[key];
+          const { address, name, phoneNumber } = customers[customer];
+          const staffString = staffAssigned
+            ? staffAssigned
+                .map((uid) => {
+                  return users[uid].displayName;
+                })
+                .join(", ")
+            : "None";
+          const style =
+            new Date(date) < new Date().setHours(0, 0, 0, 0)
+              ? { background: "#ffa9a9" }
+              : null;
+          const tableRow = (
+            <tr
+              key={key}
+              className="clickable-row"
+              style={style}
+              onClick={() => this.showDetails(key)}
+            >
+              <td className="nowrap">{date}</td>
+              <td>{address}</td>
+              <td>{name}</td>
+              <td className="nowrap">{phoneNumber}</td>
+              <td>{staffString || "None"}</td>
+            </tr>
+          );
+          if (new Date(date) < new Date().setHours(0, 0, 0, 0))
+            missedAppts.unshift(tableRow);
+          else if (new Date(date) > new Date().setHours(0, 0, 0, 0))
+            futureAppts.unshift(tableRow);
+          else todayAppts.unshift(tableRow);
+        });
+    }
 
-    const table =
-      !isLoaded(users, customers, myApptIds) ||
-      (!isLoaded(appointments) &&
-        myApptIds &&
-        !isEmpty(myApptIds.incomplete)) ? (
-        <div>Loading appointments...</div>
-      ) : !myApptIds || isEmpty(myApptIds.incomplete) ? (
-        <div>No appointments found. Go take some from the Available tab!</div>
-      ) : (
-        <div>
-          Click an appointment to see details and actions.
+    const missedTable = (
+      <div>
+        <h5 className="table-header">Missed Appointments</h5>
+        <div className="table-container">
+          <Table striped bordered hover className="page-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Address</th>
+                <th>Name</th>
+                <th>Phone #</th>
+                <th>Staff Assigned</th>
+              </tr>
+            </thead>
+            <tbody>{missedAppts}</tbody>
+          </Table>
+        </div>
+      </div>
+    );
+    const todayTable = (
+      <div>
+        <h5 className="table-header">Today</h5>
+        {todayAppts.length ? (
           <div className="table-container">
             <Table striped bordered hover className="page-table">
               <thead>
@@ -210,11 +235,40 @@ class PageDash extends React.Component {
                   <th>Staff Assigned</th>
                 </tr>
               </thead>
-              <tbody>{tableContent}</tbody>
+              <tbody>{todayAppts}</tbody>
             </Table>
           </div>
-        </div>
-      );
+        ) : (
+          "No appointments today! Go do something fun with your time off :)"
+        )}
+      </div>
+    );
+    const futureTable = (
+      <div>
+        <h5  className="table-header">Future Appointments</h5>
+        {futureAppts.length ? (
+          <div className="table-container">
+            <Table striped bordered hover className="page-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Address</th>
+                  <th>Name</th>
+                  <th>Phone #</th>
+                  <th>Staff Assigned</th>
+                </tr>
+              </thead>
+              <tbody>{futureAppts}</tbody>
+            </Table>
+          </div>
+        ) : (
+          <div>
+            Nothing scheduled for the future. Go grab some appointments from the{" "}
+            <Link to="/app/available">Available page</Link>!
+          </div>
+        )}
+      </div>
+    );
 
     const modalErrorBar = modalError ? (
       <div
@@ -392,57 +446,73 @@ class PageDash extends React.Component {
 
     return (
       <div className="navbar-page">
-        <div className="container">
-          {!takeAppts ? (
-            <>
-              <h2>Account Pending</h2>
-              Thank you for signing up to work for Laker Lawn Care! Your account
-              has been created and you will be given permission to start viewing
-              and taking appointments soon.
-            </>
-          ) : (
-            <>
-              <h2>My Appointments</h2>
-              {table}
+        {!takeAppts ? (
+          <div className="container">
+            <h2>Account Pending</h2>
+            Thank you for signing up to work for Laker Lawn Care! Your account
+            has been created and you will be given permission to start viewing
+            and taking appointments soon.
+          </div>
+        ) : (
+          <div className="container">
+            <h2>My Appointments</h2>
+            {!isLoaded(users, customers, myApptIds) ||
+            (myApptIds &&
+              !isEmpty(myApptIds.incomplete) &&
+              !isLoaded(appointments)) ? (
+              <div>Loading appointments...</div>
+            ) : !myApptIds || isEmpty(myApptIds.incomplete) ? (
+              <div>
+                No appointments scheduled. Go grab some appointments from the{" "}
+                <Link to="/app/available">Available page</Link> to start earning
+                money!
+              </div>
+            ) : (
+              <div>
+                Click an appointment to see details and actions.
+                {missedAppts.length ? missedTable : null}
+                {todayTable}
+                {futureTable}
+              </div>
+            )}
 
-              <Modal show={showApptModal} onHide={this.handleModalClose}>
-                <Modal.Header closeButton>
-                  <Modal.Title>Appointment Report</Modal.Title>
-                </Modal.Header>
-                {modalBody}
-                {modalErrorBar}
-                <Modal.Footer>
+            <Modal show={showApptModal} onHide={this.handleModalClose}>
+              <Modal.Header closeButton>
+                <Modal.Title>Appointment Report</Modal.Title>
+              </Modal.Header>
+              {modalBody}
+              {modalErrorBar}
+              <Modal.Footer>
+                <Button
+                  variant="secondary"
+                  onClick={this.handleModalClose}
+                  disabled={modalLoading}
+                >
+                  Cancel
+                </Button>
+                {apptDateMatch ? (
                   <Button
-                    variant="secondary"
-                    onClick={this.handleModalClose}
+                    variant="success"
+                    onClick={this.completeAppointment}
                     disabled={modalLoading}
                   >
-                    Cancel
+                    {modalLoading ? (
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      "Submit Report"
+                    )}
                   </Button>
-                  {apptDateMatch ? (
-                    <Button
-                      variant="success"
-                      onClick={this.completeAppointment}
-                      disabled={modalLoading}
-                    >
-                      {modalLoading ? (
-                        <Spinner
-                          as="span"
-                          animation="border"
-                          size="sm"
-                          role="status"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        "Submit Report"
-                      )}
-                    </Button>
-                  ) : null}
-                </Modal.Footer>
-              </Modal>
-            </>
-          )}
-        </div>
+                ) : null}
+              </Modal.Footer>
+            </Modal>
+          </div>
+        )}
       </div>
     );
   }

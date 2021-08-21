@@ -18,6 +18,10 @@
 }
 .table-container {
   overflow-x: auto;
+  margin-bottom: -5px;
+}
+.table-header {
+  margin-top: 15px;
 }
 
 /* CSS for PageProfile admin email form */
