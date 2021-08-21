@@ -1,6 +1,5 @@
-
 // Function to convert a date string or date object into another string form for display purposes
-module.exports.getDateString = (date, numeric, time) => {
+function getDateString(date, numeric, time) {
   if (time)
     if (numeric)
       new Date(date).toLocaleDateString("en-US", {
@@ -32,10 +31,10 @@ module.exports.getDateString = (date, numeric, time) => {
       month: "short",
       day: "numeric",
     });
-};
+}
 
 // Function to retrieve transactions from a customer or staff with a given uid
-module.exports.getTransactions = (finances, customers, users, type, uid) => {
+function getTransactions(finances, customers, users, type, uid) {
   const transactions = [];
   if (finances) {
     if (type !== "Staff" && finances.customers) {
@@ -112,4 +111,6 @@ module.exports.getTransactions = (finances, customers, users, type, uid) => {
       return transaction2.payerType.localeCompare(transaction1.payerType);
     } else return new Date(transaction1.date) - new Date(transaction2.date);
   });
-};
+}
+
+export { getDateString, getTransactions };

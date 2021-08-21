@@ -139,7 +139,7 @@ class PageAdminAppts extends React.Component {
       });
     }
 
-    const dateString = getDateString(date);
+    const dateString = getDateString(date, false, false);
 
     // If numStaff is 0, delete the appointment
     const data =

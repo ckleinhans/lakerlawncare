@@ -329,7 +329,11 @@ class PageAdminFinances extends React.Component {
     try {
       await sendEmail({
         email: customers[customerId].email,
-        subject: `Laker Lawn Care ${getDateString(new Date(), true, false)} Invoice`,
+        subject: `Laker Lawn Care ${getDateString(
+          new Date(),
+          true,
+          false
+        )} Invoice`,
         html,
       });
       firebase.set(

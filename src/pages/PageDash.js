@@ -65,7 +65,7 @@ class PageDash extends React.Component {
         modalLoading: false,
       });
     }
-    if (appointments[apptKey].date !== getDateString(new Date())) {
+    if (appointments[apptKey].date !== getDateString(new Date(), false, false)) {
       return this.setState({
         modalError: "Error: This appointment is not scheduled for today.",
         modalLoading: false,
@@ -281,7 +281,7 @@ class PageDash extends React.Component {
         : "None";
 
     const apptDateMatch =
-      selectedAppt && getDateString(new Date()) === selectedAppt.date;
+      selectedAppt && getDateString(new Date(), false, false) === selectedAppt.date;
 
     const reportForm = apptDateMatch ? (
       <div>
@@ -350,7 +350,7 @@ class PageDash extends React.Component {
               value={selectedDate}
             >
               {dateOptions.map((dateOption, index) => (
-                <option key={index}>{getDateString(dateOption)}</option>
+                <option key={index}>{getDateString(dateOption, false, false)}</option>
               ))}
             </Form.Control>
             <Button

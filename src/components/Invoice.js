@@ -5,7 +5,7 @@ import { getDateString } from "./Utilities.js";
 function Invoice(props) {
   const { customerName, transactions, companyVenmo } = props;
 
-  const dateURI = encodeURIComponent(getDateString(new Date(), true));
+  const dateURI = encodeURIComponent(getDateString(new Date(), true, false));
 
   let totalAmount = 0;
 
@@ -16,7 +16,7 @@ function Invoice(props) {
       totalAmount += amount;
       return (
         <tr key={key}>
-          <td>{getDateString(date)}</td>
+          <td>{getDateString(date, false, false)}</td>
           <td> </td>
           <td>${amount.toFixed(2)}</td>
         </tr>
