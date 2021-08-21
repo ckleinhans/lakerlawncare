@@ -1,4 +1,4 @@
-exports.getTransactions = (finances, customers, users, type, uid) => {
+module.exportsexports.getTransactions = (finances, customers, users, type, uid) => {
   const transactions = [];
   if (finances) {
     if (type !== "Staff" && finances.customers) {
@@ -77,7 +77,7 @@ exports.getTransactions = (finances, customers, users, type, uid) => {
   });
 };
 
-exports.getDateString = (date, numeric, time) => {
+module.exports.getDateString = (date, numeric, time) => {
   if (time)
     if (numeric)
       new Date(date).toLocaleDateString("en-US", {
