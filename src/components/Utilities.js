@@ -1,4 +1,4 @@
-module.exportsexports.getTransactions = (finances, customers, users, type, uid) => {
+module.exports.getTransactions = (finances, customers, users, type, uid) => {
   const transactions = [];
   if (finances) {
     if (type !== "Staff" && finances.customers) {

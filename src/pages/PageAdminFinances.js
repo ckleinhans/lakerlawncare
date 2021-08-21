@@ -11,7 +11,7 @@ import DatePicker from "react-datepicker";
 import Autocomplete from "../components/Autocomplete";
 import { Link } from "react-router-dom";
 import Invoice from "../components/Invoice";
-import { getDateString, getTransactions } from "../components/Utilities";
+import { getTransactions, getDateString } from "../components/Utilities";
 
 class PageAdminFinances extends React.Component {
   constructor(props) {
