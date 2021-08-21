@@ -377,14 +377,16 @@ class PageAdminFinances extends React.Component {
       modalKey,
     } = this.state;
 
-    const transactions = getTransactions(
-      finances,
-      customers,
-      users,
-      typeSelect,
-      customerId || staffId,
-      customerName || staffName
-    );
+    const transactions = isLoaded(finances, customers, users)
+      ? getTransactions(
+          finances,
+          customers,
+          users,
+          typeSelect,
+          customerId || staffId,
+          customerName || staffName
+        )
+      : [];
 
     const runningBalance = [];
     const tableContent = transactions
@@ -427,8 +429,7 @@ class PageAdminFinances extends React.Component {
                         (key) => users[key].displayName === payer
                       )
                     : "",
-                transactionMethod:
-                  method && method !== "Owed" ? method : "Transaction Method",
+                transactionMethod: method ? method : "Transaction Method",
                 modalTransactionAmount:
                   typeSelect === "Staff" ? amount * -1 : amount,
                 modalKey: key,
