@@ -1,3 +1,40 @@
+
+// Function to convert a date string or date object into another string form for display purposes
+module.exports.getDateString = (date, numeric, time) => {
+  if (time)
+    if (numeric)
+      new Date(date).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    else
+      return new Date(date).toLocaleDateString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+  else if (numeric)
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    });
+  else
+    return new Date(date).toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+};
+
+// Function to retrieve transactions from a customer or staff with a given uid
 module.exports.getTransactions = (finances, customers, users, type, uid) => {
   const transactions = [];
   if (finances) {
@@ -75,38 +112,4 @@ module.exports.getTransactions = (finances, customers, users, type, uid) => {
       return transaction2.payerType.localeCompare(transaction1.payerType);
     } else return new Date(transaction1.date) - new Date(transaction2.date);
   });
-};
-
-module.exports.getDateString = (date, numeric, time) => {
-  if (time)
-    if (numeric)
-      new Date(date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      });
-    else
-      return new Date(date).toLocaleDateString("en-US", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      });
-  else if (numeric)
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-    });
-  else
-    return new Date(date).toLocaleDateString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
 };
