@@ -12,6 +12,7 @@ import DatePicker from "react-datepicker";
 import Autocomplete from "../components/Autocomplete";
 import error from "../assets/error.png";
 import check from "../assets/check.png";
+import { getDateString } from "../components/Utilities";
 
 class PageAdminAppts extends React.Component {
   constructor(props) {
@@ -138,12 +139,7 @@ class PageAdminAppts extends React.Component {
       });
     }
 
-    const dateString = date.toLocaleDateString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    const dateString = getDateString(date);
 
     // If numStaff is 0, delete the appointment
     const data =

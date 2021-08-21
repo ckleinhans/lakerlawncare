@@ -1,16 +1,11 @@
 import React from "react";
 import Table from "react-bootstrap/Table";
+import { getDateString } from "./Utilities.js";
 
 function Invoice(props) {
   const { customerName, transactions, companyVenmo } = props;
 
-  const dateURI = encodeURIComponent(
-    new Date().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-    })
-  );
+  const dateURI = encodeURIComponent(getDateString(new Date(), true));
 
   let totalAmount = 0;
 
@@ -21,14 +16,7 @@ function Invoice(props) {
       totalAmount += amount;
       return (
         <tr key={key}>
-          <td>
-            {new Date(date).toLocaleDateString("en-US", {
-              weekday: "short",
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
-          </td>
+          <td>{getDateString(date)}</td>
           <td> </td>
           <td>${amount.toFixed(2)}</td>
         </tr>

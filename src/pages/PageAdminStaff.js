@@ -6,6 +6,7 @@ import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import Alert from "react-bootstrap/esm/Alert";
+import { getDateString } from "../components/Utilities";
 
 class PageAdminStaff extends React.Component {
   constructor(props) {
@@ -141,6 +142,9 @@ class PageAdminStaff extends React.Component {
           const name = users[key].displayName;
           const email = users[key].email;
           const phoneNumber = users[key].phoneNumber;
+          const lastLogin = users[key].lastLogin
+            ? getDateString(users[key].lastLogin, false, true)
+            : "Never";
           const adminButton = admins.includes(key) ? (
             <Button
               onClick={() => this.removeAdmin(key)}
@@ -226,6 +230,7 @@ class PageAdminStaff extends React.Component {
               <td>{name}</td>
               <td>{email}</td>
               <td className="nowrap">{phoneNumber}</td>
+              <td className="nowrap">{lastLogin}</td>
               <td style={{ textAlign: "center" }}>{apptUserButton}</td>
               <td style={{ textAlign: "center" }}>{adminButton}</td>
             </tr>

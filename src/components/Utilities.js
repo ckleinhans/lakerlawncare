@@ -1,4 +1,4 @@
-function getTransactions(finances, customers, users, type, uid) {
+exports.getTransactions = (finances, customers, users, type, uid) => {
   const transactions = [];
   if (finances) {
     if (type !== "Staff" && finances.customers) {
@@ -75,6 +75,38 @@ function getTransactions(finances, customers, users, type, uid) {
       return transaction2.payerType.localeCompare(transaction1.payerType);
     } else return new Date(transaction1.date) - new Date(transaction2.date);
   });
-}
+};
 
-export default getTransactions;
+exports.getDateString = (date, numeric, time) => {
+  if (time)
+    if (numeric)
+      new Date(date).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    else
+      return new Date(date).toLocaleDateString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+  else if (numeric)
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    });
+  else
+    return new Date(date).toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+};

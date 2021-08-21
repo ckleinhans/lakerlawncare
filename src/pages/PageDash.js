@@ -9,6 +9,7 @@ import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Col from "react-bootstrap/Col";
 import Spinner from "react-bootstrap/Spinner";
+import { getDateString } from "../components/Utilities";
 
 class PageDash extends React.Component {
   constructor(props) {
@@ -64,29 +65,12 @@ class PageDash extends React.Component {
         modalLoading: false,
       });
     }
-    if (
-      appointments[apptKey].date !==
-      new Date().toLocaleDateString("en-US", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
-    ) {
+    if (appointments[apptKey].date !== getDateString(new Date())) {
       return this.setState({
         modalError: "Error: This appointment is not scheduled for today.",
         modalLoading: false,
       });
     }
-
-    const date = new Date().toLocaleDateString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
 
     const completeAppointment = this.props.firebase
       .functions()
@@ -96,7 +80,7 @@ class PageDash extends React.Component {
         apptKey,
         hours,
         reportNotes,
-        date,
+        date: getDateString(new Date(), false, true),
       });
       this.setState({
         modalLoading: false,
@@ -245,7 +229,7 @@ class PageDash extends React.Component {
     );
     const futureTable = (
       <div>
-        <h5  className="table-header">Future Appointments</h5>
+        <h5 className="table-header">Future Appointments</h5>
         {futureAppts.length ? (
           <div className="table-container">
             <Table striped bordered hover className="page-table">
@@ -297,13 +281,7 @@ class PageDash extends React.Component {
         : "None";
 
     const apptDateMatch =
-      selectedAppt &&
-      new Date().toLocaleDateString("en-US", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }) === selectedAppt.date;
+      selectedAppt && getDateString(new Date()) === selectedAppt.date;
 
     const reportForm = apptDateMatch ? (
       <div>
@@ -372,14 +350,7 @@ class PageDash extends React.Component {
               value={selectedDate}
             >
               {dateOptions.map((dateOption, index) => (
-                <option key={index}>
-                  {dateOption.toLocaleDateString("en-US", {
-                    weekday: "short",
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </option>
+                <option key={index}>{getDateString(dateOption)}</option>
               ))}
             </Form.Control>
             <Button

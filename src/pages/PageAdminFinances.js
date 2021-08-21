@@ -11,7 +11,7 @@ import DatePicker from "react-datepicker";
 import Autocomplete from "../components/Autocomplete";
 import { Link } from "react-router-dom";
 import Invoice from "../components/Invoice";
-import getTransactions from "../components/GetTransactions";
+import { getDateString, getTransactions } from "../components/Utilities";
 
 class PageAdminFinances extends React.Component {
   constructor(props) {
@@ -191,14 +191,7 @@ class PageAdminFinances extends React.Component {
         modalTypeSelect === "Staff"
           ? Number(modalTransactionAmount) * -1
           : Number(modalTransactionAmount),
-      date: date.toLocaleDateString("en-US", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      }),
+      date: getDateString(date, false, true),
       complete: modalTypeSelect === "Company" || modalComplete,
       method:
         transactionMethod !== "Transaction Method" ? transactionMethod : null,
@@ -243,14 +236,7 @@ class PageAdminFinances extends React.Component {
     firebase.ref(`/finances/staff/${staffId}/transactions`).push(
       {
         amount: totalAmount * -1,
-        date: date.toLocaleDateString("en-US", {
-          weekday: "short",
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-        }),
+        date: getDateString(date, false, true),
         complete: true,
         method: "Venmo",
         description,
@@ -293,14 +279,7 @@ class PageAdminFinances extends React.Component {
     ).key;
     transactions[key] = {
       amount: totalAmount * -1,
-      date: date.toLocaleDateString("en-US", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      }),
+      date: getDateString(date, false, true),
       complete: true,
       method: transactionMethod,
       description,
@@ -334,11 +313,6 @@ class PageAdminFinances extends React.Component {
       "Customers",
       customerId
     );
-    const date = new Date().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-    });
 
     const html = ReactDOMServer.renderToStaticMarkup(
       <Invoice
@@ -355,19 +329,12 @@ class PageAdminFinances extends React.Component {
     try {
       await sendEmail({
         email: customers[customerId].email,
-        subject: `Laker Lawn Care ${date} Invoice`,
+        subject: `Laker Lawn Care ${getDateString(new Date(), true)} Invoice`,
         html,
       });
       firebase.set(
         `/customers/${customerId}/invoiceSendDate`,
-        new Date().toLocaleDateString("en-US", {
-          weekday: "short",
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-        }),
+        getDateString(new Date(), false, true),
         this.handleModalClose
       );
     } catch (error) {

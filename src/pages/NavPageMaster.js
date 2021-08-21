@@ -24,6 +24,8 @@ class NavPageMaster extends React.Component {
     this.state = {
       navExpanded: false,
     };
+    console.log(props);
+    props.firebase.set(`/users/${props.uid}/lastLogin`, new Date().valueOf());
   }
 
   render() {
