@@ -247,6 +247,7 @@ class PageAdminStaff extends React.Component {
                   <th>Name</th>
                   <th>Email</th>
                   <th>Phone #</th>
+                  <th>Last Login</th>
                   <th>Approve</th>
                   <th>Admin</th>
                 </tr>
