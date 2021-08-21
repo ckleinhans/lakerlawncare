@@ -20,7 +20,7 @@ class PageProfile extends React.Component {
       oldPassword: "",
       venmo: profile.venmo || "",
       profileUpdated: false,
-      loading: false,
+      loading: "",
       financialManagerName: profile.displayName,
       companyVenmoInput: companyVenmo || "",
       adminEmailInput: "",
@@ -29,6 +29,8 @@ class PageProfile extends React.Component {
   }
 
   updateProfile = async (event) => {
+    this.setState({ loading: "profile" });
+
     const { displayName, phoneNumber, oldPassword, email, newPassword, venmo } =
       this.state;
     const { firebase, profile } = this.props;
@@ -37,19 +39,23 @@ class PageProfile extends React.Component {
       event.stopPropagation();
       return this.setState({
         error: "Name must only contain spaces and letters.",
+        loading: "",
       });
     }
     if (!/^([0-9]{3}-[0-9]{3}-[0-9]{4})$/.test(phoneNumber)) {
       event.stopPropagation();
       return this.setState({
         error: "Phone number must be formatted as 123-456-7890.",
+        loading: "",
       });
     }
     if (venmo.includes(" ")) {
       event.stopPropagation();
-      return this.setState({ error: "Venmo username cannot contain spaces." });
+      return this.setState({
+        error: "Venmo username cannot contain spaces.",
+        loading: "",
+      });
     }
-    this.setState({ loading: true });
 
     const user = firebase.auth().currentUser;
     const credential = firebase.auth.EmailAuthProvider.credential(
@@ -60,7 +66,7 @@ class PageProfile extends React.Component {
       await user.reauthenticateWithCredential(credential);
       // User re-authenticated.
     } catch (error) {
-      this.setState({ error: error.message, loading: false });
+      this.setState({ error: error.message, loading: "" });
       return;
     }
 
@@ -73,7 +79,7 @@ class PageProfile extends React.Component {
 
     firebase.update(`/users/${user.uid}`, updates, async (error) => {
       if (error) {
-        this.setState({ error: error.message, loading: false });
+        this.setState({ error: error.message, loading: "" });
       } else {
         try {
           if (email !== profile.email) {
@@ -82,9 +88,9 @@ class PageProfile extends React.Component {
           if (newPassword) {
             await user.updatePassword(newPassword);
           }
-          this.setState({ profileUpdated: true, loading: false });
+          this.setState({ profileUpdated: true, loading: "" });
         } catch (error) {
-          this.setState({ error: error.message, loading: false });
+          this.setState({ error: error.message, loading: "" });
         }
       }
     });
@@ -95,7 +101,7 @@ class PageProfile extends React.Component {
   };
 
   setFinancialManager = async () => {
-    this.setState({ loading: true });
+    this.setState({ loading: "financialManager" });
     const { financialManagerName } = this.state;
     const { users } = this.props;
     const uid = Object.keys(users).find(
@@ -108,42 +114,45 @@ class PageProfile extends React.Component {
       const result = await setFinanceRole({ uid });
       this.setState({
         financeResult: result.data.message,
-        loading: false,
+        loading: "",
         functionError: false,
       });
     } catch (error) {
       this.setState({
         financeResult: error.message,
-        loading: false,
+        loading: "",
         functionError: true,
       });
     }
   };
 
   setAdminEmail = async () => {
-    this.setState({ loading: true });
+    this.setState({ loading: "adminEmail" });
     const { adminEmailInput, adminEmailPassword } = this.state;
     const { firebase } = this.props;
 
     if (
-      !/^[a-z0-9](\.?[a-z0-9]){5,}@gmail\.com$/.test(adminEmailInput) ||
+      !/^[A-Za-z0-9](\.?[A-Za-z0-9]){5,}@gmail\.com$/.test(adminEmailInput) ||
       !adminEmailPassword
     )
       return this.setState({
         emailResult: "A valid Gmail address and password are required.",
-        loading: false,
+        loading: "",
         functionError: true,
       });
 
     try {
       firebase.update(
         "/adminEmail",
-        { username: adminEmailInput, password: adminEmailPassword },
+        {
+          username: adminEmailInput.toLowerCase(),
+          password: adminEmailPassword,
+        },
         async (error) => {
           if (error)
             return this.setState({
               emailResult: error.message,
-              loading: false,
+              loading: "",
               functionError: true,
             });
 
@@ -158,13 +167,13 @@ class PageProfile extends React.Component {
             });
             this.setState({
               emailResult: result.data.message,
-              loading: false,
+              loading: "",
               functionError: result.data.error,
             });
           } catch (error) {
             this.setState({
               emailResult: error.message,
-              loading: false,
+              loading: "",
               functionError: true,
             });
           }
@@ -173,10 +182,17 @@ class PageProfile extends React.Component {
     } catch (error) {
       this.setState({
         emailResult: error.message,
-        loading: false,
+        loading: "",
         functionError: true,
       });
     }
+  };
+
+  setVenmoAccount = async () => {
+    this.setState({ loading: "companyVenmo" });
+    this.props.firebase.set("/companyVenmo", this.state.companyVenmoInput, () =>
+      this.setState({ loading: "" })
+    );
   };
 
   render() {
@@ -200,25 +216,9 @@ class PageProfile extends React.Component {
       adminEmailPassword,
     } = this.state;
 
-    const disable = !oldPassword.trim();
+    const disable = loading || !oldPassword.trim();
 
     const errorBar = error ? <Alert variant="danger">{error}</Alert> : null;
-
-    const buttonContent = loading ? (
-      <Button variant="primary" size="md" disabled>
-        <Spinner
-          as="span"
-          animation="border"
-          size="sm"
-          role="status"
-          aria-hidden="true"
-        />
-      </Button>
-    ) : (
-      <Button variant="primary" size="md" type="submit" disabled={disable}>
-        Update Profile
-      </Button>
-    );
 
     const formContent = profileUpdated ? (
       <div>Profile successfully updated.</div>
@@ -229,6 +229,7 @@ class PageProfile extends React.Component {
           <Form.Control
             type="password"
             placeholder="Current password"
+            disabled={loading}
             onChange={this.handleInputChange}
             value={oldPassword}
           />
@@ -291,7 +292,19 @@ class PageProfile extends React.Component {
             Leave this blank to keep your old password.
           </Form.Text>
         </Form.Group>
-        {buttonContent}
+        <Button variant="primary" size="md" type="submit" disabled={disable}>
+          {loading === "profile" ? (
+            <Spinner
+              as="span"
+              animation="border"
+              size="sm"
+              role="status"
+              aria-hidden="true"
+            />
+          ) : (
+            "Update Profile"
+          )}
+        </Button>
       </div>
     );
 
@@ -368,6 +381,7 @@ class PageProfile extends React.Component {
                 placeholder="Email Address"
                 id="adminEmailInput"
                 className="dynamic-input"
+                disabled={loading}
                 onChange={this.handleInputChange}
                 value={adminEmailInput}
               />
@@ -376,6 +390,7 @@ class PageProfile extends React.Component {
                 placeholder="Password"
                 id="adminEmailPassword"
                 className="dynamic-input"
+                disabled={loading}
                 onChange={this.handleInputChange}
                 value={adminEmailPassword}
               />
@@ -387,7 +402,7 @@ class PageProfile extends React.Component {
                   variant="primary"
                   size="sm"
                 >
-                  {loading ? (
+                  {loading === "adminEmail" ? (
                     <Spinner
                       as="span"
                       animation="border"
@@ -439,7 +454,7 @@ class PageProfile extends React.Component {
                 variant="primary"
                 size="sm"
               >
-                {loading ? (
+                {loading === "financialManager" ? (
                   <Spinner
                     as="span"
                     animation="border"
@@ -480,6 +495,7 @@ class PageProfile extends React.Component {
                   <Form.Control
                     type="text"
                     placeholder="Username"
+                    disabled={loading}
                     onChange={this.handleInputChange}
                     value={companyVenmoInput}
                   />
@@ -487,14 +503,7 @@ class PageProfile extends React.Component {
               </Form.Group>
               <Button
                 className="inline-button"
-                onClick={() => {
-                  this.setState({ loading: true });
-                  this.props.firebase.set(
-                    "/companyVenmo",
-                    this.state.companyVenmoInput,
-                    () => this.setState({ loading: false })
-                  );
-                }}
+                onClick={this.setVenmoAccount}
                 disabled={
                   loading ||
                   !companyVenmoInput ||
@@ -503,7 +512,17 @@ class PageProfile extends React.Component {
                 variant="primary"
                 size="sm"
               >
-                Update
+                {loading === "companyVenmo" ? (
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  "Update"
+                )}
               </Button>
             </div>
           ) : null}

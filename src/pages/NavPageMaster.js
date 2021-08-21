@@ -183,7 +183,7 @@ class NavPageMaster extends React.Component {
         </Route>
         <Route exact path="/app/balance">
           {navBar}
-          <PageBalance uid={uid} />;
+          <PageBalance uid={uid} />
         </Route>
         <Route exact path="/app/profile">
           {navBar}

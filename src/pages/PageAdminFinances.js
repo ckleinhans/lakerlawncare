@@ -288,23 +288,27 @@ class PageAdminFinances extends React.Component {
         transactions[key].complete = true;
       });
 
-    firebase.ref(`/finances/customers/${customerId}/transactions`).push(
-      {
-        amount: totalAmount * -1,
-        date: date.toLocaleDateString("en-US", {
-          weekday: "short",
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-        }),
-        complete: true,
-        method: transactionMethod,
-        description,
-      },
-      this.handleModalClose
-    );
+    const key = firebase.push(
+      `/finances/customers/${customerId}/transactions`
+    ).key;
+    transactions[key] = {
+      amount: totalAmount * -1,
+      date: date.toLocaleDateString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      complete: true,
+      method: transactionMethod,
+      description,
+    };
+
+    firebase
+      .ref(`/finances/customers/${customerId}/transactions`)
+      .update(transactions, this.handleModalClose);
   };
 
   sendInvoice = async () => {
@@ -463,7 +467,11 @@ class PageAdminFinances extends React.Component {
           >
             <td className="nowrap">{date}</td>
             <td className="nowrap">{payer}</td>
-            <td>{method ? `${description} (${method})` : description}</td>
+            <td>
+              {method && method !== "Owed"
+                ? `${description} (${method})`
+                : description}
+            </td>
             <td className="nowrap">{`$${amount.toFixed(2)}`}</td>
             <td className="nowrap">{`$${runningBalance[index].toFixed(2)}`}</td>
           </tr>

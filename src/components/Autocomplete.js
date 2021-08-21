@@ -61,6 +61,7 @@ class Autocomplete extends React.Component {
       name: "customerName",
       onBlur: () => this.handleReset(),
       onChange: (e, { newValue }) => onChange(newValue),
+      onFocus: (event) => event.target.select(),
     };
 
     if (className) inputProps.className = className;
