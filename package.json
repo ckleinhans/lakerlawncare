@@ -17,6 +17,7 @@
     "react-redux-firebase": "^3.10.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.1",
+    "react-switch": "^6.0.0",
     "react-tag-autocomplete": "^6.2.0",
     "redux": "^4.1.1",
     "web-vitals": "^0.2.4"

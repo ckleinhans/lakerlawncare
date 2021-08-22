@@ -28,51 +28,28 @@ function verifyContext(context, requiredClaims) {
     });
 }
 
-exports.addAdminRole = functions.https.onCall(async (data, context) => {
+exports.setAdminRole = functions.https.onCall(async (data, context) => {
   verifyContext(context, ["admin"]);
 
   // get user & custom claims if they exist
-  const user = await admin.auth().getUser(data.uid);
-  const claims = user.customClaims ? user.customClaims : {};
-
-  // set admin custom claim to true & add user to admin list
-  claims.admin = true;
-  const admins = (await admin.database().ref("/admins/").get()).val();
-  admins.push(user.uid);
-  await admin.auth().setCustomUserClaims(user.uid, claims);
-  await admin.database().ref("/admins/").set(admins);
-
-  // update user's refresh token to random string to push updated claims to client
-  admin
-    .database()
-    .ref(`/users/${user.uid}/refreshToken`)
-    .set(Math.random().toString(16).substr(2, 8));
-
-  // return success message
-  return {
-    message: `Successfully gave ${user.email} admin privileges.`,
-  };
-});
-
-exports.removeAdminRole = functions.https.onCall(async (data, context) => {
-  verifyContext(context, ["admin"]);
-
-  // get user & custom claims if they exist
-  const user = await admin.auth().getUser(data.uid);
+  const user = await admin.auth().getUser(data.id);
   const claims = user.customClaims ? user.customClaims : {};
 
   // if user is financial manager, prevent removing admin
-  if (claims.finances) {
+  if (claims.finances && !data.toggle) {
     throw new functions.https.HttpsError(
       "failed-precondition",
       "Cannot remove admin permissions from the financial manager."
     );
   }
 
-  // remove admin custom claim & remove from admin list
-  claims.admin = false;
-  const admins = (await admin.database().ref("/admins/").get()).val();
-  admins.splice(admins.indexOf(user.uid), 1);
+  // set admin custom claim to passed value & add/remove user from admin list
+  claims.admin = data.toggle;
+  const admins = (await admin.database().ref("/admins/").get()).val() || [];
+  if (data.toggle) admins.push(user.uid);
+  else admins.splice(admins.indexOf(user.uid), 1);
+
+  // push changes
   await admin.auth().setCustomUserClaims(user.uid, claims);
   await admin.database().ref("/admins/").set(admins);
 
@@ -84,23 +61,28 @@ exports.removeAdminRole = functions.https.onCall(async (data, context) => {
 
   // return success message
   return {
-    message: `Successfully removed admin privileges from ${user.email}.`,
+    message: data.toggle
+      ? `Successfully gave ${user.email} admin privileges.`
+      : `Successfully removed admin privileges from ${user.email}.`,
   };
 });
 
-exports.addAppointmentsRole = functions.https.onCall(async (data, context) => {
+exports.setAppointmentRole = functions.https.onCall(async (data, context) => {
   verifyContext(context, ["admin"]);
 
   // get user & custom claims if they exist
-  const user = await admin.auth().getUser(data.uid);
+  const user = await admin.auth().getUser(data.id);
   const claims = user.customClaims ? user.customClaims : {};
 
-  // set appointments custom claim to true & add uid to appt user list
-  claims.appointments = true;
-  const appointmentUsers = await (
-    await admin.database().ref("/appointmentUsers/").get()
-  ).val();
-  appointmentUsers.push(user.uid);
+  // set appointments custom claim to passed value & add/remove user from appt user list
+  claims.appointments = data.toggle;
+  const appointmentUsers =
+    (await (await admin.database().ref("/appointmentUsers/").get()).val()) ||
+    [];
+  if (data.toggle) appointmentUsers.push(user.uid);
+  else appointmentUsers.splice(appointmentUsers.indexOf(user.uid), 1);
+
+  // push updates
   await admin.auth().setCustomUserClaims(user.uid, claims);
   await admin.database().ref("/appointmentUsers/").set(appointmentUsers);
 
@@ -112,39 +94,11 @@ exports.addAppointmentsRole = functions.https.onCall(async (data, context) => {
 
   // return success message
   return {
-    message: `Successfully gave ${user.email} appointment privileges.`,
+    message: data.toggle
+      ? `Successfully gave ${user.email} appointment privileges.`
+      : `Successfully removed appointment privileges from ${user.email}.`,
   };
 });
-
-exports.removeAppointmentsRole = functions.https.onCall(
-  async (data, context) => {
-    verifyContext(context, ["admin"]);
-
-    // get user & custom claims (if they exist)
-    const user = await admin.auth().getUser(data.uid);
-    const claims = user.customClaims ? user.customClaims : {};
-
-    // remove appointments custom claim to true & remove from appt users list
-    claims.appointments = false;
-    const appointmentUsers = await (
-      await admin.database().ref("/appointmentUsers/").get()
-    ).val();
-    appointmentUsers.splice(appointmentUsers.indexOf(user.uid), 1);
-    await admin.auth().setCustomUserClaims(user.uid, claims);
-    await admin.database().ref("/appointmentUsers/").set(appointmentUsers);
-
-    // update user's refresh token to random string to push updated claims to client
-    admin
-      .database()
-      .ref(`/users/${user.uid}/refreshToken`)
-      .set(Math.random().toString(16).substr(2, 8));
-
-    // return success message
-    return {
-      message: `Successfully removed appointment privileges from ${user.email}.`,
-    };
-  }
-);
 
 exports.setFinanceRole = functions.https.onCall(async (data, context) => {
   verifyContext(context, ["finances"]);

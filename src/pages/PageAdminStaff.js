@@ -2,9 +2,8 @@ import React from "react";
 import { firebaseConnect, isLoaded, isEmpty } from "react-redux-firebase";
 import { connect } from "react-redux";
 import { compose } from "redux";
+import Switch from "react-switch";
 import Table from "react-bootstrap/Table";
-import Button from "react-bootstrap/Button";
-import Spinner from "react-bootstrap/Spinner";
 import Alert from "react-bootstrap/esm/Alert";
 import { getDateString } from "../components/Utilities";
 
@@ -13,98 +12,46 @@ class PageAdminStaff extends React.Component {
     super(props);
     this.state = {
       loading: false,
-      adminKeyLoading: "",
-      apptUsersKeyLoading: "",
     };
   }
 
-  setAdmin = async (uid) => {
-    this.setState({ loading: true, adminKeyLoading: uid });
-    const addAdminRole = this.props.firebase
+  setAdmin = async (toggle, event, id) => {
+    this.setState({ loading: true });
+    const adminFunction = this.props.firebase
       .functions()
-      .httpsCallable("addAdminRole");
+      .httpsCallable("setAdminRole");
     try {
-      const result = await addAdminRole({ uid });
+      const result = await adminFunction({ toggle, id });
       this.setState({
         result: result.data.message,
         loading: false,
-        adminKeyLoading: "",
         error: false,
       });
     } catch (error) {
       this.setState({
         result: error.message,
         loading: false,
-        adminKeyLoading: "",
         error: true,
       });
     }
   };
 
-  removeAdmin = async (uid) => {
-    this.setState({ loading: true, adminKeyLoading: uid });
-    const removeAdminRole = this.props.firebase
+  setApptUser = async (toggle, event, id) => {
+    this.setState({ loading: true });
+    const apptFunction = this.props.firebase
       .functions()
-      .httpsCallable("removeAdminRole");
+      .httpsCallable("setAppointmentRole");
     try {
-      const result = await removeAdminRole({ uid });
+      const result = await apptFunction({ toggle, id });
       this.setState({
         result: result.data.message,
         loading: false,
-        adminKeyLoading: "",
         error: false,
       });
     } catch (error) {
       this.setState({
         result: error.message,
         loading: false,
-        adminKeyLoading: "",
-        error: true,
-      });
-    }
-  };
-
-  setApptUser = async (uid) => {
-    this.setState({ loading: true, apptUsersKeyLoading: uid });
-    const addAdminRole = this.props.firebase
-      .functions()
-      .httpsCallable("addAppointmentsRole");
-    try {
-      const result = await addAdminRole({ uid });
-      this.setState({
-        result: result.data.message,
-        loading: false,
-        apptUsersKeyLoading: "",
-        error: false,
-      });
-    } catch (error) {
-      this.setState({
-        result: error.message,
-        loading: false,
-        apptUsersKeyLoading: "",
-        error: true,
-      });
-    }
-  };
-
-  removeApptUser = async (uid) => {
-    this.setState({ loading: true, apptUsersKeyLoading: uid });
-    const removeAdminRole = this.props.firebase
-      .functions()
-      .httpsCallable("removeAppointmentsRole");
-    try {
-      const result = await removeAdminRole({ uid });
-      this.setState({
-        result: result.data.message,
-        loading: false,
-        apptUsersKeyLoading: "",
-        error: false,
-      });
-    } catch (error) {
-      this.setState({
-        result: error.message,
-        loading: false,
-        apptUsersKeyLoading: "",
         error: true,
       });
     }
@@ -112,8 +59,7 @@ class PageAdminStaff extends React.Component {
 
   render() {
     const { users, admins, appointmentUsers } = this.props;
-    const { error, result, loading, adminKeyLoading, apptUsersKeyLoading } =
-      this.state;
+    const { error, result, loading } = this.state;
     let table;
     if (!isLoaded(users, admins, appointmentUsers)) {
       table = <div>Loading staff...</div>;
@@ -121,23 +67,9 @@ class PageAdminStaff extends React.Component {
       table = <div>No registered staff found.</div>;
     } else {
       const tableContent = Object.keys(users)
-        .sort((key1, key2) => {
-          if (admins.includes(key1) && !admins.includes(key2)) {
-            return 1;
-          } else if (!admins.includes(key1) && admins.includes(key2)) {
-            return -1;
-          } else if (
-            appointmentUsers.includes(key1) &&
-            !appointmentUsers.includes(key2)
-          ) {
-            return 1;
-          } else if (
-            !appointmentUsers.includes(key1) &&
-            appointmentUsers.includes(key2)
-          ) {
-            return -1;
-          } else return key1.localeCompare(key2);
-        })
+        .sort((key1, key2) =>
+          users[key1].displayName.localeCompare(users[key2].displayName)
+        )
         .map((key) => {
           const name = users[key].displayName;
           const email = users[key].email;
@@ -145,85 +77,6 @@ class PageAdminStaff extends React.Component {
           const lastLogin = users[key].lastLogin
             ? getDateString(users[key].lastLogin, false, true)
             : "Never";
-          const adminButton = admins.includes(key) ? (
-            <Button
-              onClick={() => this.removeAdmin(key)}
-              disabled={loading}
-              variant="danger"
-              size="sm"
-            >
-              {adminKeyLoading === key ? (
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                />
-              ) : (
-                <span>Remove</span>
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={() => this.setAdmin(key)}
-              disabled={loading}
-              variant="success"
-              size="sm"
-            >
-              {adminKeyLoading === key ? (
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                />
-              ) : (
-                <span>Give</span>
-              )}
-            </Button>
-          );
-
-          const apptUserButton = appointmentUsers.includes(key) ? (
-            <Button
-              onClick={() => this.removeApptUser(key)}
-              disabled={loading}
-              variant="danger"
-              size="sm"
-            >
-              {apptUsersKeyLoading === key ? (
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                />
-              ) : (
-                <span>Undo</span>
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={() => this.setApptUser(key)}
-              disabled={loading}
-              variant="success"
-              size="sm"
-            >
-              {apptUsersKeyLoading === key ? (
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                />
-              ) : (
-                <span>Approve</span>
-              )}
-            </Button>
-          );
 
           return (
             <tr key={key}>
@@ -231,8 +84,24 @@ class PageAdminStaff extends React.Component {
               <td>{email}</td>
               <td className="nowrap">{phoneNumber}</td>
               <td className="nowrap">{lastLogin}</td>
-              <td style={{ textAlign: "center" }}>{apptUserButton}</td>
-              <td style={{ textAlign: "center" }}>{adminButton}</td>
+              <td style={{ textAlign: "center"}}>
+                <Switch
+                  onChange={this.setApptUser}
+                  checked={appointmentUsers.includes(key)}
+                  disabled={loading}
+                  id={key}
+                  height={21}
+                />
+              </td>
+              <td style={{ textAlign: "center"}}>
+                <Switch
+                  onChange={this.setAdmin}
+                  checked={admins.includes(key)}
+                  disabled={loading}
+                  id={key}
+                  height={21}
+                />
+              </td>
             </tr>
           );
         });
