@@ -5,8 +5,8 @@ import { compose } from "redux";
 import InputGroup from "react-bootstrap/InputGroup";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
-import Alert from "react-bootstrap/Alert";
 import Spinner from "react-bootstrap/Spinner";
+import Popup from "../components/Popup";
 
 class PageProfile extends React.Component {
   constructor(props) {
@@ -21,6 +21,8 @@ class PageProfile extends React.Component {
       venmo: profile.venmo || "",
       profileUpdated: false,
       loading: "",
+      error: false,
+      message: "",
       financialManagerName: profile.displayName,
       companyVenmoInput: companyVenmo || "",
       adminEmailInput: "",
@@ -30,32 +32,37 @@ class PageProfile extends React.Component {
 
   updateProfile = async (event) => {
     this.setState({ loading: "profile" });
+    event.preventDefault();
 
     const { displayName, phoneNumber, oldPassword, email, newPassword, venmo } =
       this.state;
     const { firebase, profile } = this.props;
-    event.preventDefault();
-    if (!/^[a-zA-Z ]+$/.test(displayName.trim())) {
-      event.stopPropagation();
+
+    if (!/^[a-zA-Z]+ [a-zA-Z-]+$/.test(displayName.trim()))
       return this.setState({
-        error: "Name must only contain spaces and letters.",
+        message:
+          "You must enter your first and last name separated by a space.",
+        error: true,
         loading: "",
       });
-    }
-    if (!/^([0-9]{3}-[0-9]{3}-[0-9]{4})$/.test(phoneNumber)) {
-      event.stopPropagation();
+    if (!/^([0-9]{3}-[0-9]{3}-[0-9]{4})$/.test(phoneNumber))
       return this.setState({
-        error: "Phone number must be formatted as 123-456-7890.",
+        message: "Phone number must be formatted as 123-456-7890.",
+        error: true,
         loading: "",
       });
-    }
-    if (venmo.includes(" ")) {
-      event.stopPropagation();
+    if (!/^[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+$/.test(email))
       return this.setState({
-        error: "Venmo username cannot contain spaces.",
+        message: "Please enter a valid email address.",
+        error: true,
         loading: "",
       });
-    }
+    if (venmo.includes(" "))
+      return this.setState({
+        message: "Venmo username cannot contain spaces.",
+        error: true,
+        loading: "",
+      });
 
     const user = firebase.auth().currentUser;
     const credential = firebase.auth.EmailAuthProvider.credential(
@@ -65,39 +72,33 @@ class PageProfile extends React.Component {
     try {
       await user.reauthenticateWithCredential(credential);
       // User re-authenticated.
-    } catch (error) {
-      this.setState({ error: error.message, loading: "" });
-      return;
-    }
 
-    const updates = {
-      displayName,
-      email: email.toLowerCase(),
-      phoneNumber,
-      venmo,
-    };
+      const updates = {
+        displayName: displayName.trim(),
+        email: email.toLowerCase(),
+        phoneNumber,
+        venmo,
+      };
 
-    firebase.update(`/users/${user.uid}`, updates, async (error) => {
-      if (error) {
-        this.setState({ error: error.message, loading: "" });
-      } else {
-        try {
-          if (email !== profile.email) {
-            await user.updateEmail(email);
-          }
-          if (newPassword) {
-            await user.updatePassword(newPassword);
-          }
-          this.setState({ profileUpdated: true, loading: "" });
-        } catch (error) {
-          this.setState({ error: error.message, loading: "" });
-        }
+      await firebase.update(`/users/${user.uid}`, updates);
+      if (email !== profile.email) {
+        await user.updateEmail(email);
       }
-    });
+      if (newPassword) {
+        await user.updatePassword(newPassword);
+      }
+      this.setState({ profileUpdated: true, loading: "" });
+    } catch (error) {
+      this.setState({
+        message: error.message,
+        error: true,
+        loading: "",
+      });
+    }
   };
 
   handleInputChange = (event) => {
-    this.setState({ [event.target.id]: event.target.value, error: "" });
+    this.setState({ [event.target.id]: event.target.value });
   };
 
   setFinancialManager = async () => {
@@ -107,21 +108,19 @@ class PageProfile extends React.Component {
     const uid = Object.keys(users).find(
       (key) => users[key].displayName === financialManagerName
     );
-    const setFinanceRole = this.props.firebase
-      .functions()
-      .httpsCallable("setFinanceRole");
     try {
-      const result = await setFinanceRole({ uid });
+      const result = await this.props.firebase
+        .functions()
+        .httpsCallable("setFinanceRole")({ uid });
       this.setState({
-        financeResult: result.data.message,
+        message: result.data.message,
         loading: "",
-        functionError: false,
       });
     } catch (error) {
       this.setState({
-        financeResult: error.message,
+        message: error.message,
+        error: true,
         loading: "",
-        functionError: true,
       });
     }
   };
@@ -132,58 +131,36 @@ class PageProfile extends React.Component {
     const { firebase } = this.props;
 
     if (
-      !/^[A-Za-z0-9](\.?[A-Za-z0-9]){5,}@gmail\.com$/.test(adminEmailInput) ||
+      !/^[a-z0-9](\.?[a-z0-9]){5,}@gmail\.com$/i.test(adminEmailInput) ||
       !adminEmailPassword
     )
       return this.setState({
-        emailResult: "A valid Gmail address and password are required.",
+        error: true,
+        message: "A valid Gmail address and password are required.",
         loading: "",
-        functionError: true,
       });
 
     try {
-      firebase.update(
-        "/adminEmail",
-        {
-          username: adminEmailInput.toLowerCase(),
-          password: adminEmailPassword,
-        },
-        async (error) => {
-          if (error)
-            return this.setState({
-              emailResult: error.message,
-              loading: "",
-              functionError: true,
-            });
-
-          const sendEmail = this.props.firebase
-            .functions()
-            .httpsCallable("sendEmail");
-          try {
-            const result = await sendEmail({
-              email: adminEmailInput,
-              subject: "Email Integration Activation",
-              text: "This is an email confirming this email address is set up to use the Laker Lawn Care company email integration.",
-            });
-            this.setState({
-              emailResult: result.data.message,
-              loading: "",
-              functionError: result.data.error,
-            });
-          } catch (error) {
-            this.setState({
-              emailResult: error.message,
-              loading: "",
-              functionError: true,
-            });
-          }
-        }
-      );
+      await firebase.update("/adminEmail", {
+        username: adminEmailInput.toLowerCase(),
+        password: adminEmailPassword,
+      });
+      const result = await this.props.firebase
+        .functions()
+        .httpsCallable("sendEmail")({
+        email: adminEmailInput,
+        subject: "Email Integration Activation",
+        text: "This is an email confirming this email address is set up to use the Laker Lawn Care company email integration.",
+      });
+      this.setState({
+        message: result.data.message,
+        loading: "",
+      });
     } catch (error) {
       this.setState({
-        emailResult: error.message,
+        error: true,
+        message: error.message,
         loading: "",
-        functionError: true,
       });
     }
   };
@@ -204,12 +181,10 @@ class PageProfile extends React.Component {
       email,
       newPassword,
       error,
+      message,
       loading,
       profileUpdated,
       financialManagerName,
-      financeResult,
-      emailResult,
-      functionError,
       venmo,
       companyVenmoInput,
       adminEmailInput,
@@ -217,120 +192,6 @@ class PageProfile extends React.Component {
     } = this.state;
 
     const disable = loading || !oldPassword.trim();
-
-    const errorBar = error ? <Alert variant="danger">{error}</Alert> : null;
-
-    const formContent = profileUpdated ? (
-      <div>Profile successfully updated.</div>
-    ) : (
-      <div>
-        <Form.Group controlId="oldPassword">
-          <Form.Label>Enter current password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Current password"
-            disabled={loading}
-            onChange={this.handleInputChange}
-            value={oldPassword}
-          />
-        </Form.Group>
-        <Form.Group controlId="displayName">
-          <Form.Label>Full Name</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Full Name"
-            disabled={disable}
-            onChange={this.handleInputChange}
-            value={displayName}
-          />
-        </Form.Group>
-        <Form.Group controlId="phoneNumber">
-          <Form.Label>Phone Number</Form.Label>
-          <Form.Control
-            type="tel"
-            placeholder="Full Name"
-            disabled={disable}
-            onChange={this.handleInputChange}
-            value={phoneNumber}
-          />
-        </Form.Group>
-        <Form.Group controlId="email">
-          <Form.Label>Email address</Form.Label>
-          <Form.Control
-            type="email"
-            placeholder="Email address"
-            disabled={disable}
-            onChange={this.handleInputChange}
-            value={email}
-          />
-        </Form.Group>
-        <Form.Group controlId="venmo">
-          <Form.Label>Venmo Username</Form.Label>
-          <InputGroup>
-            <InputGroup.Prepend>
-              <InputGroup.Text>@</InputGroup.Text>
-            </InputGroup.Prepend>
-            <Form.Control
-              type="text"
-              placeholder="Username"
-              onChange={this.handleInputChange}
-              disabled={disable}
-              value={venmo}
-            />
-          </InputGroup>
-        </Form.Group>
-        <Form.Group controlId="newPassword">
-          <Form.Label>New Password (Optional)</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="New Password"
-            disabled={disable}
-            onChange={this.handleInputChange}
-            value={newPassword}
-          />
-          <Form.Text className="text-muted">
-            Leave this blank to keep your old password.
-          </Form.Text>
-        </Form.Group>
-        <Button variant="primary" size="md" type="submit" disabled={disable}>
-          {loading === "profile" ? (
-            <Spinner
-              as="span"
-              animation="border"
-              size="sm"
-              role="status"
-              aria-hidden="true"
-            />
-          ) : (
-            "Update Profile"
-          )}
-        </Button>
-      </div>
-    );
-
-    const financeMessageBox = financeResult ? (
-      functionError ? (
-        <div>
-          <Alert variant="danger">{financeResult}</Alert>
-        </div>
-      ) : (
-        <div>
-          <Alert variant="success">{financeResult}</Alert>
-        </div>
-      )
-    ) : null;
-
-    const emailMessageBox = emailResult ? (
-      functionError ? (
-        <div>
-          <Alert variant="danger">{emailResult}</Alert>
-        </div>
-      ) : (
-        <div>
-          <Alert variant="success">{emailResult}</Alert>
-        </div>
-      )
-    ) : null;
 
     return (
       <div className="navbar-page">
@@ -358,10 +219,100 @@ class PageProfile extends React.Component {
           )}
           <br />
           <br />
-          <Form onSubmit={this.updateProfile}>
+          <Form noValidate onSubmit={this.updateProfile}>
             <h4>Update Profile Info</h4>
-            {errorBar}
-            {formContent}
+            {profileUpdated ? (
+              <div>Profile successfully updated.</div>
+            ) : (
+              <div>
+                <Form.Group controlId="oldPassword">
+                  <Form.Label>Enter current password</Form.Label>
+                  <Form.Control
+                    type="password"
+                    placeholder="Current password"
+                    disabled={loading}
+                    onChange={this.handleInputChange}
+                    value={oldPassword}
+                  />
+                </Form.Group>
+                <Form.Group controlId="displayName">
+                  <Form.Label>Full Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Full Name"
+                    disabled={disable}
+                    onChange={this.handleInputChange}
+                    value={displayName}
+                  />
+                </Form.Group>
+                <Form.Group controlId="phoneNumber">
+                  <Form.Label>Phone Number</Form.Label>
+                  <Form.Control
+                    type="tel"
+                    placeholder="Full Name"
+                    disabled={disable}
+                    onChange={this.handleInputChange}
+                    value={phoneNumber}
+                  />
+                </Form.Group>
+                <Form.Group controlId="email">
+                  <Form.Label>Email address</Form.Label>
+                  <Form.Control
+                    type="email"
+                    placeholder="Email address"
+                    disabled={disable}
+                    onChange={this.handleInputChange}
+                    value={email}
+                  />
+                </Form.Group>
+                <Form.Group controlId="venmo">
+                  <Form.Label>Venmo Username</Form.Label>
+                  <InputGroup>
+                    <InputGroup.Prepend>
+                      <InputGroup.Text>@</InputGroup.Text>
+                    </InputGroup.Prepend>
+                    <Form.Control
+                      type="text"
+                      placeholder="Username"
+                      onChange={this.handleInputChange}
+                      disabled={disable}
+                      value={venmo}
+                    />
+                  </InputGroup>
+                </Form.Group>
+                <Form.Group controlId="newPassword">
+                  <Form.Label>New Password (Optional)</Form.Label>
+                  <Form.Control
+                    type="password"
+                    placeholder="New Password"
+                    disabled={disable}
+                    onChange={this.handleInputChange}
+                    value={newPassword}
+                  />
+                  <Form.Text className="text-muted">
+                    Leave this blank to keep your old password.
+                  </Form.Text>
+                </Form.Group>
+                <Button
+                  variant="primary"
+                  size="md"
+                  type="submit"
+                  disabled={disable}
+                >
+                  {loading === "profile" ? (
+                    <Spinner
+                      as="span"
+                      animation="border"
+                      size="sm"
+                      role="status"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    "Update Profile"
+                  )}
+                </Button>
+              </div>
+            )}
           </Form>
           {profile.token.claims.admin ? (
             <div>
@@ -425,7 +376,6 @@ class PageProfile extends React.Component {
                   Remove Company Email
                 </Button>
               )}
-              {emailMessageBox}
             </div>
           ) : null}
           {profile.token.claims.finances ? (
@@ -467,7 +417,6 @@ class PageProfile extends React.Component {
                 )}
               </Button>
               <br />
-              {financeMessageBox}
               {companyVenmo ? (
                 <Form.Label style={{ marginTop: "8px" }}>
                   Linked Company Venmo Account:{" "}
@@ -526,6 +475,12 @@ class PageProfile extends React.Component {
               </Button>
             </div>
           ) : null}
+          <Popup
+            show={message}
+            isError={error}
+            message={message}
+            onClose={() => this.setState({ message: "", error: false })}
+          />
         </div>
       </div>
     );

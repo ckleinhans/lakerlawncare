@@ -4,62 +4,54 @@ import { connect } from "react-redux";
 import { compose } from "redux";
 import Switch from "react-switch";
 import Table from "react-bootstrap/Table";
-import Alert from "react-bootstrap/esm/Alert";
 import { getDateString } from "../components/Utilities";
+import Popup from "../components/Popup";
 
 class PageAdminStaff extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      loading: false,
+      loading: "",
     };
   }
 
   setAdmin = async (toggle, event, id) => {
-    this.setState({ loading: true });
+    this.setState({ loading: `admin${id}`, toggle });
     const adminFunction = this.props.firebase
       .functions()
       .httpsCallable("setAdminRole");
     try {
-      const result = await adminFunction({ toggle, id });
-      this.setState({
-        result: result.data.message,
-        loading: false,
-        error: false,
-      });
+      await adminFunction({ toggle, id });
+      this.setState({ loading: "" });
     } catch (error) {
       this.setState({
-        result: error.message,
-        loading: false,
-        error: true,
+        error: error.message,
+        loading: "",
       });
     }
   };
 
   setApptUser = async (toggle, event, id) => {
-    this.setState({ loading: true });
+    this.setState({ loading: `appt${id}`, toggle });
     const apptFunction = this.props.firebase
       .functions()
       .httpsCallable("setAppointmentRole");
     try {
-      const result = await apptFunction({ toggle, id });
+      await apptFunction({ toggle, id });
       this.setState({
-        result: result.data.message,
-        loading: false,
-        error: false,
+        loading: "",
       });
     } catch (error) {
       this.setState({
-        result: error.message,
-        loading: false,
-        error: true,
+        error: error.message,
+        loading: "",
       });
     }
   };
 
   render() {
     const { users, admins, appointmentUsers } = this.props;
-    const { error, result, loading } = this.state;
+    const { error, loading, toggle } = this.state;
     let table;
     if (!isLoaded(users, admins, appointmentUsers)) {
       table = <div>Loading staff...</div>;
@@ -84,20 +76,26 @@ class PageAdminStaff extends React.Component {
               <td>{email}</td>
               <td className="nowrap">{phoneNumber}</td>
               <td className="nowrap">{lastLogin}</td>
-              <td style={{ textAlign: "center"}}>
+              <td style={{ textAlign: "center" }}>
                 <Switch
                   onChange={this.setApptUser}
-                  checked={appointmentUsers.includes(key)}
-                  disabled={loading}
+                  checked={
+                    loading === `appt${key}`
+                      ? toggle
+                      : appointmentUsers.includes(key)
+                  }
+                  disabled={!!loading}
                   id={key}
                   height={21}
                 />
               </td>
-              <td style={{ textAlign: "center"}}>
+              <td style={{ textAlign: "center" }}>
                 <Switch
                   onChange={this.setAdmin}
-                  checked={admins.includes(key)}
-                  disabled={loading}
+                  checked={
+                    loading === `admin${key}` ? toggle : admins.includes(key)
+                  }
+                  disabled={!!loading}
                   id={key}
                   height={21}
                 />
@@ -128,21 +126,17 @@ class PageAdminStaff extends React.Component {
       );
     }
 
-    const messageBox = result ? (
-      error ? (
-        <Alert variant="danger">{result}</Alert>
-      ) : (
-        <Alert variant="success">{result}</Alert>
-      )
-    ) : null;
-
     return (
       <div className="navbar-page">
         <div className="container">
           <h2>Staff List</h2>
-          {messageBox}
           {table}
-          {messageBox}
+          <Popup
+            show={error}
+            isError
+            message={error}
+            onClose={() => this.setState({ error: "" })}
+          />
         </div>
       </div>
     );
