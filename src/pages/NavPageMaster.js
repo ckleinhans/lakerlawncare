@@ -211,7 +211,10 @@ class NavPageMaster extends React.Component {
               </Route>
               <Route exact path="/app/admin/customers">
                 {navBar}
-                <PageAdminCustomers customers={customers} />
+                <PageAdminCustomers
+                  customers={customers}
+                  companyVenmo={companyVenmo}
+                />
               </Route>
               <Route exact path="/app/admin/finances">
                 {navBar}

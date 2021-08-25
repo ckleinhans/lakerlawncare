@@ -1,3 +1,6 @@
+import ReactDOMServer from "react-dom/server";
+import Invoice from "./Invoice";
+
 // Function to convert a date string or date object into another string form for display purposes
 function getDateString(date, numeric, time) {
   if (time)
@@ -113,4 +116,53 @@ function getTransactions(finances, customers, users, type, uid) {
   });
 }
 
-export { getDateString, getTransactions };
+// function to send invoice to a given customer
+async function sendInvoice(
+  firebase,
+  finances,
+  customers,
+  companyVenmo,
+  customerId
+) {
+  // check date of last invoice sent to customer to prevent duplicate sending
+  const prevInvoice = new Date(customers[customerId].invoiceSendDate);
+  prevInvoice.setHours(prevInvoice.getHours() + 36);
+  if (prevInvoice >= new Date()) {
+    throw new Error(
+      `Invoice was sent to ${customers[customerId].name} in last 36 hours: ${customers[customerId].invoiceSendDate}`
+    );
+  }
+
+  const transactions = getTransactions(
+    finances,
+    customers,
+    null,
+    "Customers",
+    customerId
+  );
+
+  const html = ReactDOMServer.renderToStaticMarkup(
+    <Invoice
+      customerName={customerId && customers[customerId].name}
+      transactions={transactions}
+      companyVenmo={companyVenmo}
+    />
+  );
+
+  const result = await firebase.functions().httpsCallable("sendEmail")({
+    email: customers[customerId].email,
+    subject: `Laker Lawn Care ${getDateString(
+      new Date(),
+      true,
+      false
+    )} Invoice`,
+    html,
+  });
+  await firebase.set(
+    `/customers/${customerId}/invoiceSendDate`,
+    getDateString(new Date(), false, true)
+  );
+  return result.data;
+}
+
+export { getDateString, getTransactions, sendInvoice };

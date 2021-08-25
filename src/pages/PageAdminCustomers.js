@@ -6,6 +6,8 @@ import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
+import Spinner from "react-bootstrap/Spinner";
+import { sendInvoice } from "../components/Utilities";
 
 class PageAdminCustomers extends React.Component {
   constructor(props) {
@@ -13,7 +15,10 @@ class PageAdminCustomers extends React.Component {
     this.state = {
       showAddModal: false,
       showEditModal: false,
+      showInvoiceModal: false,
       modalLoading: false,
+      checkboxes: {},
+      invoiceResults: {},
       modalError: "",
       name: "",
       email: "",
@@ -28,7 +33,6 @@ class PageAdminCustomers extends React.Component {
     const { customers } = this.props;
     this.setState({
       showEditModal: true,
-      modalError: "",
       name: customers[key].name,
       email: customers[key].email || "",
       address: customers[key].address,
@@ -120,12 +124,63 @@ class PageAdminCustomers extends React.Component {
     this.props.firebase.set(`/customers/${key}`, data, onUpdate);
   };
 
+  sendInvoices = async () => {
+    const { finances, customers, firebase, companyVenmo } = this.props;
+    const checkboxes = { ...this.state.checkboxes };
+
+    this.setState({ modalLoading: true });
+
+    const invoiceResults = {};
+    const keys = Object.keys(checkboxes).filter((key) => checkboxes[key]);
+    for (var customerId of keys) {
+      checkboxes[customerId] = false;
+      this.setState({
+        currentInvoiceKey: customerId,
+        invoiceResults,
+        checkboxes,
+      });
+      try {
+        invoiceResults[customerId] = await sendInvoice(
+          firebase,
+          finances,
+          customers,
+          companyVenmo,
+          customerId
+        );
+      } catch (error) {
+        invoiceResults[customerId] = { error: true, message: error.message };
+      }
+    }
+    this.setState({
+      modalLoading: false,
+      currentInvoiceKey: "",
+      invoiceResults,
+      checkboxes,
+    });
+  };
+
+  handleCheckboxChange = (event) => {
+    const checkboxes = this.state.checkboxes;
+    checkboxes[event.target.name] = event.target.checked;
+    this.setState({ checkboxes });
+  };
+
   handleChange = (event) =>
     this.setState({ [event.target.name]: event.target.value });
 
-  handleAddClose = () => this.setState({ showAddModal: false });
-
-  handleEditClose = () => this.setState({ showEditModal: false });
+  handleModalClose = () =>
+    this.setState({
+      showAddModal: false,
+      showEditModal: false,
+      showInvoiceModal: false,
+      modalError: "",
+      name: "",
+      email: "",
+      address: "",
+      phoneNumber: "",
+      rate: "",
+      frequency: "",
+    });
 
   render() {
     const {
@@ -133,6 +188,10 @@ class PageAdminCustomers extends React.Component {
       modalLoading,
       showAddModal,
       showEditModal,
+      showInvoiceModal,
+      checkboxes,
+      invoiceResults,
+      currentInvoiceKey,
       name,
       email,
       address,
@@ -141,6 +200,8 @@ class PageAdminCustomers extends React.Component {
       frequency,
     } = this.state;
     const { customers, finances } = this.props;
+    const owed = {};
+    const paid = {};
 
     let table;
     if (!isLoaded(customers, finances)) {
@@ -148,46 +209,19 @@ class PageAdminCustomers extends React.Component {
     } else if (isEmpty(customers)) {
       table = <div>No customers in the database.</div>;
     } else {
-      const tableContent = Object.keys(customers)
-        .sort((key1, key2) =>
-          customers[key1].name.localeCompare(customers[key2].name)
-        )
-        .map((key) => {
-          const name = customers[key].name;
-          const address = customers[key].address;
-          const email = customers[key].email;
-          const phoneNumber = customers[key].phoneNumber;
-          const rate = customers[key].rate ? `$${customers[key].rate}` : "None";
-          const frequency = customers[key].frequency || "None";
-          const amountOwed = finances.customers[key]
-            ? `$${Object.values(finances.customers[key].transactions)
-                .reduce((total, current) => (total += current.amount), 0)
-                .toFixed(2)}`
-            : "None";
-          const amountPaid = finances.customers[key]
-            ? `$${Object.values(finances.customers[key].transactions)
-                .filter((transaction) => transaction.amount > 0)
-                .reduce((total, current) => (total += current.amount), 0)
-                .toFixed(2)}`
-            : "None";
-
-          return (
-            <tr
-              key={key}
-              className="clickable-row"
-              onClick={() => this.handleShowEditModal(key)}
-            >
-              <td>{name}</td>
-              <td>{address}</td>
-              <td>{email}</td>
-              <td className="nowrap">{phoneNumber}</td>
-              <td className="nowrap">{rate}</td>
-              <td className="nowrap">{frequency}</td>
-              <td className="nowrap">{amountOwed}</td>
-              <td className="nowrap">{amountPaid}</td>
-            </tr>
-          );
-        });
+      Object.keys(customers).forEach((key) => {
+        owed[key] = finances.customers[key]
+          ? Object.values(finances.customers[key].transactions).reduce(
+              (total, current) => (total += current.amount),
+              0
+            )
+          : 0.0;
+        paid[key] = finances.customers[key]
+          ? Object.values(finances.customers[key].transactions)
+              .filter((transaction) => transaction.amount > 0)
+              .reduce((total, current) => (total += current.amount), 0)
+          : 0.0;
+      });
 
       table = (
         <div>
@@ -206,7 +240,42 @@ class PageAdminCustomers extends React.Component {
                   <th>Paid</th>
                 </tr>
               </thead>
-              <tbody>{tableContent}</tbody>
+              <tbody>
+                {Object.keys(customers)
+                  .sort((key1, key2) =>
+                    customers[key1].name.localeCompare(customers[key2].name)
+                  )
+                  .map((key) => (
+                    <tr
+                      key={key}
+                      className="clickable-row"
+                      onClick={() => this.handleShowEditModal(key)}
+                    >
+                      <td>{customers[key].name}</td>
+                      <td>{customers[key].address}</td>
+                      <td>{customers[key].email}</td>
+                      <td className="nowrap">{customers[key].phoneNumber}</td>
+                      <td className="nowrap">
+                        {customers[key].rate
+                          ? `$${customers[key].rate}`
+                          : "None"}
+                      </td>
+                      <td className="nowrap">
+                        {customers[key].frequency || "None"}
+                      </td>
+                      <td className="nowrap">
+                        {finances.customers[key]
+                          ? `$${owed[key].toFixed(2)}`
+                          : "None"}
+                      </td>
+                      <td className="nowrap">
+                        {finances.customers[key]
+                          ? `$${paid[key].toFixed(2)}`
+                          : "None"}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
             </Table>
           </div>
         </div>
@@ -275,23 +344,36 @@ class PageAdminCustomers extends React.Component {
       </Modal.Body>
     );
 
+    const numInvoicesSelected = Object.values(checkboxes).filter(
+      (value) => value
+    ).length;
+
     return (
       <div className="navbar-page">
         <div className="container">
           <h2 className="inline-header">Customer List</h2>
           <Button
             className="float-header"
+            variant="secondary"
+            onClick={() => {
+              const checkboxes = {};
+              Object.keys(owed)
+                .filter((key) => owed[key] !== 0)
+                .forEach((key) => (checkboxes[key] = false));
+              this.setState({
+                showInvoiceModal: true,
+                checkboxes,
+              });
+            }}
+          >
+            Send Invoices
+          </Button>
+          <Button
+            className="float-header"
             variant="success"
             onClick={() =>
               this.setState({
                 showAddModal: true,
-                modalError: "",
-                name: "",
-                email: "",
-                address: "",
-                phoneNumber: "",
-                rate: "",
-                frequency: "",
               })
             }
           >
@@ -299,7 +381,7 @@ class PageAdminCustomers extends React.Component {
           </Button>
           {table}
 
-          <Modal show={showAddModal} onHide={this.handleAddClose}>
+          <Modal show={showAddModal} onHide={this.handleModalClose}>
             <Modal.Header closeButton>
               <Modal.Title>Add Customer</Modal.Title>
             </Modal.Header>
@@ -308,7 +390,7 @@ class PageAdminCustomers extends React.Component {
             <Modal.Footer>
               <Button
                 variant="secondary"
-                onClick={this.handleAddClose}
+                onClick={this.handleModalClose}
                 disabled={modalLoading}
               >
                 Cancel
@@ -323,7 +405,7 @@ class PageAdminCustomers extends React.Component {
             </Modal.Footer>
           </Modal>
 
-          <Modal show={showEditModal} onHide={this.handleEditClose}>
+          <Modal show={showEditModal} onHide={this.handleModalClose}>
             <Modal.Header closeButton>
               <Modal.Title>Edit Customer</Modal.Title>
             </Modal.Header>
@@ -332,7 +414,7 @@ class PageAdminCustomers extends React.Component {
             <Modal.Footer>
               <Button
                 variant="secondary"
-                onClick={this.handleEditClose}
+                onClick={this.handleModalClose}
                 disabled={modalLoading}
               >
                 Cancel
@@ -343,6 +425,104 @@ class PageAdminCustomers extends React.Component {
                 disabled={modalLoading}
               >
                 Save Changes
+              </Button>
+            </Modal.Footer>
+          </Modal>
+
+          <Modal show={showInvoiceModal} onHide={this.handleModalClose}>
+            <Modal.Header closeButton>
+              <Modal.Title>Mass Send Invoices</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              Select all customers you wish to send invoices to.
+              <Table size="sm" hover>
+                <thead>
+                  <tr>
+                    <th>Customer Name</th>
+                    <th>Owed</th>
+                    <th>
+                      <Form.Check
+                        type="checkbox"
+                        name="selectAll"
+                        checked={
+                          !Object.keys(checkboxes).find(
+                            (key) => !checkboxes[key]
+                          )
+                        }
+                        disabled={modalLoading}
+                        onChange={(event) => {
+                          const { checkboxes } = this.state;
+                          Object.keys(checkboxes).forEach(
+                            (key) => (checkboxes[key] = event.target.checked)
+                          );
+                          this.setState({ checkboxes });
+                        }}
+                      />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.keys(owed)
+                    .filter((key) => owed[key] !== 0)
+                    .map((key) => {
+                      return (
+                        <tr
+                          title={
+                            invoiceResults[key]
+                              ? invoiceResults[key].message
+                              : null
+                          }
+                          style={
+                            invoiceResults[key]
+                              ? invoiceResults[key].error
+                                ? { background: "#ffa9a9" }
+                                : { background: "#d9ead3" }
+                              : null
+                          }
+                          key={key}
+                        >
+                          <td>{customers[key].name}</td>
+                          <td>{`$${owed[key].toFixed(2)}`}</td>
+                          <td>
+                            {currentInvoiceKey === key ? (
+                              <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                              />
+                            ) : (
+                              <Form.Check
+                                type="checkbox"
+                                name={key}
+                                checked={checkboxes[key]}
+                                disabled={modalLoading}
+                                onChange={this.handleCheckboxChange}
+                              />
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </Table>
+            </Modal.Body>
+            {modalErrorBar}
+            <Modal.Footer>
+              <Button
+                variant="secondary"
+                onClick={this.handleModalClose}
+                disabled={modalLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={this.sendInvoices}
+                disabled={modalLoading || numInvoicesSelected === 0}
+              >
+                Send {numInvoicesSelected} Invoices
               </Button>
             </Modal.Footer>
           </Modal>

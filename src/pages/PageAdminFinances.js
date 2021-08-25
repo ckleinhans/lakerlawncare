@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOMServer from "react-dom/server";
 import { firebaseConnect, isLoaded, isEmpty } from "react-redux-firebase";
 import { connect } from "react-redux";
 import { compose } from "redux";
@@ -11,7 +10,11 @@ import DatePicker from "react-datepicker";
 import Autocomplete from "../components/Autocomplete";
 import { Link } from "react-router-dom";
 import Invoice from "../components/Invoice";
-import { getTransactions, getDateString } from "../components/Utilities";
+import {
+  getTransactions,
+  getDateString,
+  sendInvoice,
+} from "../components/Utilities";
 
 class PageAdminFinances extends React.Component {
   constructor(props) {
@@ -290,57 +293,21 @@ class PageAdminFinances extends React.Component {
       .update(transactions, this.handleModalClose);
   };
 
-  sendInvoice = async () => {
+  handleSendInvoice = async () => {
     const { customers, companyVenmo, firebase, finances } = this.props;
     const { customerId } = this.state;
 
     this.setState({ modalLoading: true });
-
-    // check date of last invoice sent to customer to prevent duplicate sending
-    const prevInvoice = new Date(customers[customerId].invoiceSendDate);
-    prevInvoice.setHours(prevInvoice.getHours() + 36);
-    if (prevInvoice >= new Date()) {
-      return this.setState({
-        modalError: `Invoice was sent in last 36 hours: ${customers[customerId].invoiceSendDate}`,
-        modalLoading: false,
-      });
-    }
-
-    const transactions = getTransactions(
-      finances,
-      customers,
-      null,
-      "Customers",
-      customerId
-    );
-
-    const html = ReactDOMServer.renderToStaticMarkup(
-      <Invoice
-        customerName={customerId && customers[customerId].name}
-        transactions={transactions}
-        companyVenmo={companyVenmo}
-      />
-    );
-
-    const sendEmail = this.props.firebase
-      .functions()
-      .httpsCallable("sendEmail");
-
+    
     try {
-      await sendEmail({
-        email: customers[customerId].email,
-        subject: `Laker Lawn Care ${getDateString(
-          new Date(),
-          true,
-          false
-        )} Invoice`,
-        html,
-      });
-      firebase.set(
-        `/customers/${customerId}/invoiceSendDate`,
-        getDateString(new Date(), false, true),
-        this.handleModalClose
+      await sendInvoice(
+        firebase,
+        finances,
+        customers,
+        companyVenmo,
+        customerId
       );
+      this.handleModalClose();
     } catch (error) {
       this.setState({
         modalError: error.message,
@@ -973,7 +940,7 @@ class PageAdminFinances extends React.Component {
               {companyVenmo && customerId && customers[customerId].email ? (
                 <Button
                   variant="primary"
-                  onClick={this.sendInvoice}
+                  onClick={this.handleSendInvoice}
                   disabled={modalLoading}
                 >
                   Send to {customers[customerId].email}
