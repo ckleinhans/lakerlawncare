@@ -236,16 +236,18 @@ class PageAdminFinances extends React.Component {
         transactions[key].complete = true;
       });
 
-    firebase.ref(`/finances/staff/${staffId}/transactions`).push(
-      {
-        amount: totalAmount * -1,
-        date: getDateString(date, false, true),
-        complete: true,
-        method: "Venmo",
-        description,
-      },
-      this.handleModalClose
-    );
+    const key = firebase.push(`/finances/staff/${staffId}/transactions`).key;
+    transactions[key] = {
+      amount: totalAmount * -1,
+      date: getDateString(date, false, true),
+      complete: true,
+      method: "Venmo",
+      description,
+    };
+
+    firebase
+      .ref(`/finances/staff/${staffId}/transactions`)
+      .update(transactions, this.handleModalClose);
   };
 
   customerPayment = () => {
@@ -298,7 +300,7 @@ class PageAdminFinances extends React.Component {
     const { customerId } = this.state;
 
     this.setState({ modalLoading: true });
-    
+
     try {
       await sendInvoice(
         firebase,
