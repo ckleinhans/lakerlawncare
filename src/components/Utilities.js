@@ -126,10 +126,10 @@ async function sendInvoice(
 ) {
   // check date of last invoice sent to customer to prevent duplicate sending
   const prevInvoice = new Date(customers[customerId].invoiceSendDate);
-  prevInvoice.setHours(prevInvoice.getHours() + 36);
+  prevInvoice.setHours(prevInvoice.getHours() + 168);
   if (prevInvoice >= new Date()) {
     throw new Error(
-      `Invoice was sent to ${customers[customerId].name} in last 36 hours: ${customers[customerId].invoiceSendDate}`
+      `Invoice was sent to ${customers[customerId].name} in the last week: ${customers[customerId].invoiceSendDate}`
     );
   }
 
